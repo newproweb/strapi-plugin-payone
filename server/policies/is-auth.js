@@ -15,7 +15,7 @@ module.exports = async (ctx, config, { strapi }) => {
         return true;
       }
     } catch (e) {
-      strapi.log.warn("strapi-plugin-payone isAuth policy error:", e.message);
+      strapi.log.warn("strapi-plugin-payone-provider isAuth policy error:", e.message);
     }
   }
 

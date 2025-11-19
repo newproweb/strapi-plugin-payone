@@ -66,7 +66,7 @@ module.exports = ({ strapi }) => ({
     const pluginStore = strapi.store({
       environment: "",
       type: "plugin",
-      name: "strapi-plugin-payone"
+      name: "strapi-plugin-payone-provider"
     });
     return await pluginStore.get({ key: "settings" });
   },
@@ -75,7 +75,7 @@ module.exports = ({ strapi }) => ({
     const pluginStore = strapi.store({
       environment: "",
       type: "plugin",
-      name: "strapi-plugin-payone"
+      name: "strapi-plugin-payone-provider"
     });
     await pluginStore.set({
       key: "settings",
@@ -350,7 +350,7 @@ module.exports = ({ strapi }) => ({
     const pluginStore = strapi.store({
       environment: "",
       type: "plugin",
-      name: "strapi-plugin-payone"
+      name: "strapi-plugin-payone-provider"
     });
 
     let transactionHistory =
@@ -400,7 +400,7 @@ module.exports = ({ strapi }) => ({
     const pluginStore = strapi.store({
       environment: "",
       type: "plugin",
-      name: "strapi-plugin-payone"
+      name: "strapi-plugin-payone-provider"
     });
 
     let transactionHistory =

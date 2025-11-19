@@ -79,7 +79,7 @@ module.exports = {
         path: "/preauthorization",
         handler: "payone.preauthorization",
         config: {
-          policies: ["plugin::strapi-plugin-payone.is-auth"],
+          policies: ["plugin::strapi-plugin-payone-provider.is-auth"],
           auth: false
         }
       },
@@ -88,7 +88,7 @@ module.exports = {
         path: "/authorization",
         handler: "payone.authorization",
         config: {
-          policies: ["plugin::strapi-plugin-payone.is-auth"],
+          policies: ["plugin::strapi-plugin-payone-provider.is-auth"],
           auth: false
         }
       },
@@ -97,7 +97,7 @@ module.exports = {
         path: "/capture",
         handler: "payone.capture",
         config: {
-          policies: ["plugin::strapi-plugin-payone.is-auth"],
+          policies: ["plugin::strapi-plugin-payone-provider.is-auth"],
           auth: false
         }
       },
@@ -106,7 +106,7 @@ module.exports = {
         path: "/refund",
         handler: "payone.refund",
         config: {
-          policies: ["plugin::strapi-plugin-payone.is-auth"],
+          policies: ["plugin::strapi-plugin-payone-provider.is-auth"],
           auth: false
         }
       },
@@ -115,7 +115,7 @@ module.exports = {
         path: "/test-connection",
         handler: "payone.testConnection",
         config: {
-          policies: ["plugin::strapi-plugin-payone.is-auth"],
+          policies: ["plugin::strapi-plugin-payone-provider.is-auth"],
           auth: false
         }
       }
