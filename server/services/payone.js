@@ -22,7 +22,23 @@ const normalizeReference = (input, fallbackPrefix = "REF") => {
   }
 };
 
-const buildClientRequestParams = (settings, params) => {
+const normalizeCustomerId = (customerid, logger = null) => {
+  if (!customerid) {
+    // Generate unique customer ID: timestamp (last 10 digits) + random (4 chars) = max 14 chars
+    const timestamp = Date.now().toString().slice(-10);
+    const random = Math.random().toString(36).substring(2, 6).toUpperCase();
+    return `${timestamp}${random}`.slice(0, 17);
+  }
+
+  // Payone API requirement: customerid max 17 characters
+  const normalized = String(customerid).slice(0, 17);
+  if (customerid.length > 17 && logger) {
+    logger.warn(`customerid exceeds 17 characters: ${customerid.length}, truncated to: ${normalized}`);
+  }
+  return normalized;
+};
+
+const buildClientRequestParams = (settings, params, logger = null) => {
   const requestParams = {
     request: params.request,
     aid: settings.aid,
@@ -37,6 +53,9 @@ const buildClientRequestParams = (settings, params) => {
     .createHash("md5")
     .update(settings.portalKey || settings.key)
     .digest("hex");
+
+  // Validate and normalize customerid (max 17 characters per Payone API)
+  requestParams.customerid = normalizeCustomerId(requestParams.customerid, logger);
 
   if (!requestParams.salutation) requestParams.salutation = "Herr";
   if (!requestParams.gender) requestParams.gender = "m";
@@ -100,7 +119,7 @@ module.exports = ({ strapi }) => ({
         params.reference = normalizeReference(params.reference, prefix);
       }
 
-      const requestParams = buildClientRequestParams(settings, params);
+      const requestParams = buildClientRequestParams(settings, params, strapi.log);
       const debugParams = { ...requestParams };
       if (debugParams.key) debugParams.key = "***HIDDEN***";
       strapi.log.info("Payone Client API request params:", debugParams);
@@ -202,6 +221,16 @@ module.exports = ({ strapi }) => ({
 
       case "wlt":
         if (!updated.wallettype) updated.wallettype = "PPE";
+        break;
+
+      case "gpp": // Google Pay
+        updated.clearingtype = "wlt";
+        if (!updated.wallettype) updated.wallettype = "GPP"; // Google Pay
+        break;
+
+      case "apl": // Apple Pay
+        updated.clearingtype = "wlt";
+        if (!updated.wallettype) updated.wallettype = "APL"; // Apple Pay
         break;
 
       case "elv":
@@ -498,7 +527,7 @@ module.exports = ({ strapi }) => ({
             throw new Error("Payone settings not configured");
           }
 
-          const requestParams = buildClientRequestParams(settings, params);
+          const requestParams = buildClientRequestParams(settings, params, strapi.log);
           const formData = toFormData(requestParams);
 
           // Send request to Payone

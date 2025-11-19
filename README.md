@@ -10,13 +10,7 @@ A comprehensive Strapi plugin that integrates the Payone payment gateway into yo
 - [Configuration](#configuration)
 - [Getting Started](#getting-started)
 - [Usage](#usage)
-  - [Admin Panel](#admin-panel)
-  - [API Endpoints](#api-endpoints)
 - [Supported Payment Methods](#supported-payment-methods)
-- [Payment Operations](#payment-operations)
-- [Transaction History](#transaction-history)
-- [Troubleshooting](#troubleshooting)
-- [License](#license)
 
 ## ✨ Features
 
@@ -24,8 +18,8 @@ A comprehensive Strapi plugin that integrates the Payone payment gateway into yo
 - **Payment Operations**:
   - Preauthorization (reserve funds)
   - Authorization (immediate charge)
-  - Capture (complete preauthorized transactions) — currently Credit Card only
-  - Refund (return funds to customers) — currently Credit Card only
+  - Capture (complete preauthorized transactions)
+  - Refund (return funds to customers)
 - **Admin Panel**:
   - Easy configuration interface
   - Transaction history viewer with filtering
@@ -57,7 +51,7 @@ You will need the following credentials from your Payone account:
 
 ## 📦 Installation
 
-### Option 1: Install from npm
+### Install from npm
 
 ```bash
 # Using npm
@@ -68,80 +62,6 @@ yarn add strapi-plugin-payone-provider
 
 # Using pnpm
 pnpm add strapi-plugin-payone-provider
-```
-
-### Option 2: Install from Git
-
-```bash
-# Using npm
-npm install git+https://github.com/your-repo/strapi-plugin-payone-provider.git
-
-# Using yarn
-yarn add git+https://github.com/your-repo/strapi-plugin-payone-provider.git
-
-# Using pnpm
-pnpm add git+https://github.com/your-repo/strapi-plugin-payone-provider.git
-```
-
-### Option 3: Manual Installation (Local Development)
-
-1. Clone or copy the plugin folder to your Strapi project's `src/plugins/` directory:
-
-```bash
-# From your Strapi project root
-mkdir -p src/plugins
-cp -r /path/to/strapi-plugin-payone src/plugins/
-```
-
-2. Install the plugin dependencies:
-
-```bash
-# Using npm
-npm install
-
-# Using yarn
-yarn install
-
-# Using pnpm
-pnpm install
-```
-
-3. Enable the plugin by adding it to your `config/plugins.js` (or `config/plugins.ts`):
-
-```javascript
-module.exports = {
-  // ... other plugins
-  'strapi-plugin-payone-provider': {
-    enabled: true,
-    resolve: './src/plugins/strapi-plugin-payone',
-  },
-};
-```
-
-4. Rebuild your Strapi admin panel:
-
-```bash
-# Using npm
-npm run build
-
-# Using yarn
-yarn build
-
-# Using pnpm
-pnpm build
-```
-
-5. Restart your Strapi application:
-
-```bash
-# Using npm
-npm run develop
-
-# Using yarn
-yarn develop
-
-# Using pnpm
-pnpm develop
 ```
 
 ## ⚙️ Configuration
@@ -163,50 +83,6 @@ After installation, you need to configure your Payone credentials:
 5. Click **"Test Connection"** to verify your credentials
 6. Click **"Save Configuration"** to store your settings
 
-### Manual Configuration (Alternative)
-
-You can also configure the plugin programmatically by adding settings to your `config/plugins.js`:
-
-```javascript
-module.exports = {
-  'strapi-plugin-payone-provider': {
-    enabled: true,
-    resolve: './src/plugins/strapi-plugin-payone',
-    config: {
-      settings: {
-        aid: 'YOUR_ACCOUNT_ID',
-        portalid: 'YOUR_PORTAL_ID',
-        mid: 'YOUR_MERCHANT_ID',
-        key: 'YOUR_PORTAL_KEY',
-        mode: 'test', // or 'live'
-        api_version: '3.10',
-      },
-    },
-  },
-};
-```
-
-> ⚠️ **Security Warning**: Never commit your production credentials to version control. Use environment variables instead:
-
-```javascript
-module.exports = {
-  'strapi-plugin-payone-provider': {
-    enabled: true,
-    resolve: './src/plugins/strapi-plugin-payone',
-    config: {
-      settings: {
-        aid: process.env.PAYONE_AID,
-        portalid: process.env.PAYONE_PORTAL_ID,
-        mid: process.env.PAYONE_MID,
-        key: process.env.PAYONE_KEY,
-        mode: process.env.PAYONE_MODE || 'test',
-        api_version: '3.10',
-      },
-    },
-  },
-};
-```
-
 ## 🚀 Getting Started
 
 ### 1. Test Your Connection
@@ -221,65 +97,62 @@ After configuring your credentials:
 ### 2. Try a Test Payment
 
 1. Go to the **Payment Actions** tab
-2. Try a **Preauthorization** operation (currently test UI supports Credit Card only):
+2. Try a **Preauthorization** operation:
    - Amount: 1000 (equals 10.00 EUR in cents)
    - Reference: Leave empty for auto-generation
    - Click **"Execute Preauthorization"**
 3. Check the **Transaction History** tab to see the logged transaction
 
-### 3. Review Transaction History
-
-1. Navigate to the **Transaction History** tab
-2. View all payment operations
-3. Use filters to search for specific transactions
-4. Click on any transaction to view full details
-
 ## 📖 Usage
 
-### Admin Panel
+### Base URL
 
-The plugin adds a new menu item **"Payone Provider"** to your Strapi admin panel with three tabs:
+All API endpoints are available at:
 
-#### 1. Configuration Tab
+**Content API (Frontend)**: `/api/strapi-plugin-payone-provider`
 
-- Configure Payone API credentials
-- Test connection to Payone servers
-- Switch between test and live modes
+**Admin API**: `/strapi-plugin-payone-provider`
 
-#### 2. Transaction History Tab
+> ⚠️ **Authentication Required**: All endpoints require authentication. Include your Bearer token in the Authorization header.
 
-- View all payment transactions
-- Filter by status, type, transaction ID, reference, or date range
-- View detailed request/response data for each transaction
-- Pagination support for large transaction lists
+### Common Request Headers
 
-#### 3. Payment Actions Tab
+```javascript
+{
+  "Content-Type": "application/json",
+  "Authorization": "Bearer YOUR_AUTH_TOKEN"
+}
+```
 
-- Test payment operations without writing code
-- Execute preauthorizations, authorizations, captures, and refunds
-- View real-time results and error messages
+### Common Response Fields
 
-### API Endpoints
+All responses include:
 
-The plugin provides REST API endpoints for programmatic access:
+- `status`: Transaction status (APPROVED, ERROR, REDIRECT, etc.)
+- `txid`: Transaction ID (for successful transactions)
+- `errorcode`: Error code (if status is ERROR)
+- `errormessage`: Error message (if status is ERROR)
 
-#### Content API Endpoints (Public with Auth Policy)
+---
 
-All content API endpoints require authentication via the `isAuth` policy. These are meant for your frontend application.
+## 💳 Payment Methods & Operations
 
-Base URL: `/api/strapi-plugin-payone-provider`
+### Credit Card
 
-##### POST `/api/strapi-plugin-payone-provider/preauthorization`
+<details>
+<summary><strong>Credit Card Payment Method</strong></summary>
 
-Reserve funds on a customer's card without immediate charge.
+#### Preauthorization
 
-**Request Body:**
+**URL**: `POST /api/strapi-plugin-payone-provider/preauthorization`
+
+**Request Body**:
 
 ```json
 {
   "amount": 1000,
   "currency": "EUR",
-  "reference": "ORDER-12345",
+  "reference": "PAY1234567890ABCDEF",
   "clearingtype": "cc",
   "cardtype": "V",
   "cardpan": "4111111111111111",
@@ -287,15 +160,21 @@ Reserve funds on a customer's card without immediate charge.
   "cardcvc2": "123",
   "firstname": "John",
   "lastname": "Doe",
+  "email": "john.doe@example.com",
+  "telephonenumber": "+4917512345678",
   "street": "Main Street 123",
   "zip": "12345",
   "city": "Berlin",
   "country": "DE",
-  "email": "john.doe@example.com"
+  "salutation": "Herr",
+  "gender": "m",
+  "ip": "127.0.0.1",
+  "language": "de",
+  "customer_is_present": "yes"
 }
 ```
 
-**Response:**
+**Response**:
 
 ```json
 {
@@ -307,316 +186,935 @@ Reserve funds on a customer's card without immediate charge.
 }
 ```
 
-##### POST `/api/strapi-plugin-payone-provider/authorization`
+#### Authorization
 
-Immediately charge a customer's card.
+**URL**: `POST /api/strapi-plugin-payone-provider/authorization`
 
-**Request Body:** (Same as preauthorization)
+**Request Body**: (Same as Preauthorization)
 
-> Note: For redirect-based methods (PayPal, Online Banking) you must provide `successurl`, `errorurl`, and `backurl`. The plugin will auto-fill safe defaults when missing, using `settings.return_base` or `PAYONE_RETURN_BASE`/`FRONTEND_URL`/`NEXT_PUBLIC_SITE_URL`.
+```json
+{
+  "amount": 1000,
+  "currency": "EUR",
+  "reference": "PAY1234567890ABCDEF",
+  "clearingtype": "cc",
+  "cardtype": "V",
+  "cardpan": "4111111111111111",
+  "cardexpiredate": "2512",
+  "cardcvc2": "123",
+  "firstname": "John",
+  "lastname": "Doe",
+  "email": "john.doe@example.com",
+  "telephonenumber": "+4917512345678",
+  "street": "Main Street 123",
+  "zip": "12345",
+  "city": "Berlin",
+  "country": "DE",
+  "salutation": "Herr",
+  "gender": "m",
+  "ip": "127.0.0.1",
+  "language": "de",
+  "customer_is_present": "yes"
+}
+```
 
-##### POST `/api/strapi-plugin-payone-provider/capture`
+**Response**:
 
-Complete a preauthorized transaction and capture the funds.
+```json
+{
+  "data": {
+    "status": "APPROVED",
+    "txid": "123456789",
+    "userid": "987654321"
+  }
+}
+```
 
-**Request Body:**
+#### Capture
+
+**URL**: `POST /api/strapi-plugin-payone-provider/capture`
+
+**Request Body**:
 
 ```json
 {
   "txid": "123456789",
   "amount": 1000,
-  "currency": "EUR"
+  "currency": "EUR",
+  "sequencenumber": 1
 }
 ```
 
-##### POST `/api/strapi-plugin-payone-provider/refund`
+**Response**:
 
-Refund a captured transaction.
+```json
+{
+  "data": {
+    "status": "APPROVED",
+    "txid": "123456789"
+  }
+}
+```
 
-**Request Body:**
+#### Refund
+
+**URL**: `POST /api/strapi-plugin-payone-provider/refund`
+
+**Request Body**:
 
 ```json
 {
   "txid": "123456789",
   "amount": -1000,
   "currency": "EUR",
-  "reference": "REFUND-12345",
+  "reference": "REF1234567890ABCDEF",
   "sequencenumber": 2
 }
 ```
 
-#### Admin API Endpoints
+**Response**:
 
-These endpoints require admin authentication and are available at `/strapi-plugin-payone-provider/`.
-
-- `GET /strapi-plugin-payone-provider/settings` - Get current settings
-- `PUT /strapi-plugin-payone-provider/settings` - Update settings
-- `GET /strapi-plugin-payone-provider/transaction-history` - Get transaction history
-- `POST /strapi-plugin-payone-provider/test-connection` - Test Payone connection
-- All payment operation endpoints (same as content API)
-
-### JavaScript/TypeScript Usage Example
-
-```javascript
-// In your frontend application
-import axios from 'axios';
-
-const processPayment = async (orderData) => {
-  try {
-    // Step 1: Preauthorize the payment
-    const preauth = await axios.post(
-      'http://localhost:1337/api/strapi-plugin-payone-provider/preauthorization',
-      {
-        amount: orderData.amount, // in cents, e.g., 1000 = 10.00 EUR
-        currency: 'EUR',
-        reference: orderData.orderId,
-        clearingtype: 'cc',
-        cardtype: 'V', // Visa
-        cardpan: orderData.cardNumber,
-        cardexpiredate: orderData.cardExpiry, // YYMM format
-        cardcvc2: orderData.cardCvc,
-        firstname: orderData.firstName,
-        lastname: orderData.lastName,
-        street: orderData.street,
-        zip: orderData.zip,
-        city: orderData.city,
-        country: orderData.country,
-        email: orderData.email,
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${yourAuthToken}`,
-        },
-      }
-    );
-
-    if (preauth.data.data.status === 'APPROVED') {
-      const txid = preauth.data.data.txid;
-
-      // Step 2: Capture the preauthorized amount
-      const capture = await axios.post(
-        'http://localhost:1337/api/strapi-plugin-payone-provider/capture',
-        {
-          txid: txid,
-          amount: orderData.amount,
-          currency: 'EUR',
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${yourAuthToken}`,
-          },
-        }
-      );
-
-      return {
-        success: true,
-        transactionId: txid,
-      };
-    }
-  } catch (error) {
-    console.error('Payment failed:', error);
-    return {
-      success: false,
-      error: error.message,
-    };
+```json
+{
+  "data": {
+    "status": "APPROVED",
+    "txid": "123456789"
   }
-};
+}
 ```
 
-## 💳 Payment Operations
-
-## ✅ Supported Payment Methods
-
-The plugin supports the following Payone clearing types. Required fields are listed per method. All methods also require the common customer and address fields shown below.
-
-Common required fields (all methods):
-
-- `amount` (in cents), `currency`, `reference` (max 20 chars; auto-normalized)
-- `firstname`, `lastname`, `email`, `telephonenumber`
-- `street`, `zip`, `city`, `country`
-
-Credit Card (`clearingtype = cc`):
-
-- Required: `cardtype` (V/M/A...), `cardpan`, `cardexpiredate` (MMyy), `cardcvc2`
-- Operations: preauthorization, authorization, capture, refund
-- Test payment in Admin currently supported for Credit Card only
-
-PayPal Wallet (`clearingtype = wlt`, `wallettype = PPE`):
-
-- Required: `successurl`, `errorurl`, `backurl` (redirect URLs)
-- Recommended shipping fields: `shipping_firstname`, `shipping_lastname`, `shipping_street`, `shipping_zip`, `shipping_city`, `shipping_country`
-- Operations: preauthorization, authorization (capture/refund roadmap)
-
-SEPA Direct Debit (`clearingtype = elv`):
-
-- Required: `iban`, `bic`, `bankaccountholder`, `bankcountry`
-- Operations: preauthorization, authorization (capture/refund roadmap)
-
-Online Banking/PNT (`clearingtype = sb`):
-
-- Required: `onlinebanktransfertype` (e.g. `PNT`), `bankcountry`, redirect URLs (`successurl`, `errorurl`, `backurl`)
-- Operations: authorization (capture/refund roadmap)
-
-Notes:
-
-- The plugin normalizes `reference` server-side to comply with Payone (alphanumeric only, max 20 chars, auto-generated fallback).
-- For redirect flows, the plugin auto-fills redirect URLs when missing using a base URL from settings or environment.
-
-### Preauthorization vs Authorization
-
-- **Preauthorization**: Reserves funds on the customer's card but doesn't charge it immediately. Use this when you need to verify funds availability before fulfilling an order (e.g., hotel bookings, rentals). You must later call "Capture" to actually charge the card.
-
-- **Authorization**: Immediately charges the customer's card. Use this for instant payments (e.g., e-commerce purchases).
-
-### Capture
-
-After a successful preauthorization, you must capture the transaction to receive the funds. Captures can be:
-
-- **Full capture**: Capture the entire preauthorized amount
-- **Partial capture**: Capture less than the preauthorized amount
-
-### Refund
-
-Refunds return money to the customer. Important notes:
-
-- Amount must be negative (e.g., -1000 for 10.00 EUR)
-- Requires a valid transaction ID (txid)
-- Requires a sequence number (start with 2, increment for each additional refund on same transaction)
-
-> Current limitation: Capture and Refund are implemented for Credit Card only. Support for PayPal/SEPA/Online Banking will be added in future updates.
-
-## 📊 Transaction History
-
-All payment operations are automatically logged to the transaction history. Each entry includes:
-
-- **Transaction ID (txid)**: Payone's unique transaction identifier
-- **Reference**: Your custom order/payment reference
-- **Type**: Operation type (authorization, preauthorization, capture, refund)
-- **Amount**: Transaction amount in cents
-- **Currency**: Currency code (EUR, USD, etc.)
-- **Status**: APPROVED, ERROR, REDIRECT, etc.
-- **Timestamp**: When the transaction occurred
-- **Raw Request/Response**: Complete API request and response data for debugging
-
-### Filtering Transactions
-
-Use the filters in the Transaction History tab to find specific transactions:
-
-- **Status**: Filter by APPROVED, ERROR, etc.
-- **Type**: Filter by operation type
-- **Transaction ID**: Search by specific txid
-- **Reference**: Search by your order reference
-- **Date Range**: Filter by date
-
-## 🔍 Troubleshooting
-
-### Connection Test Fails
-
-**Problem**: "Authentication failed" or "Invalid credentials"
-
-**Solutions**:
-
-1. Verify your AID, Portal ID, Merchant ID, and Portal Key are correct
-2. Ensure you're using the correct mode (test/live)
-3. Check that your Payone account is active and not suspended
-4. Verify the Portal Key is the MD5 hash key from your Payone PMI
-
-### Payment Gets Rejected
-
-**Problem**: Transactions return ERROR status
-
-**Common Causes**:
-
-1. **Invalid card data**: Check card number, expiry date, and CVC
-2. **Insufficient funds**: Test cards may have limits
-3. **Duplicate reference**: Each transaction needs a unique reference
-4. **Missing required fields**: Ensure all required customer data is provided
-5. **Test mode restrictions**: Some features may be limited in test mode
-
-**Debug Steps**:
-
-1. Check the Transaction History for error codes and messages
-2. Review the raw response data for detailed error information
-3. Consult the Payone API documentation for error code meanings
-4. Check your Strapi server logs for detailed error traces
-
-### Plugin Not Appearing in Admin
-
-**Problem**: Payone Provider menu item doesn't appear
-
-**Solutions**:
-
-1. Ensure the plugin is enabled in `config/plugins.js`
-2. Run `npm run build` to rebuild the admin panel
-3. Clear your browser cache and refresh
-4. Restart your Strapi server
-5. Check browser console for JavaScript errors
-
-### API Requests Return 403 Forbidden
-
-**Problem**: Content API endpoints return authorization errors
-
-**Solutions**:
-
-1. Ensure you're sending a valid authentication token
-2. Check that the `isAuth` policy is properly configured
-3. Verify your user has the necessary permissions
-4. Review Strapi's role and permissions settings
-
-### Transactions Not Logging
-
-**Problem**: Transaction history is empty
-
-**Solutions**:
-
-1. Check that requests are actually reaching Payone (check server logs)
-2. Verify database write permissions
-3. Check for JavaScript errors in the browser console
-4. Ensure the plugin store is accessible
-
-## 🔐 Security Best Practices
-
-1. **Never expose your Portal Key**: Keep it secure and never commit it to version control
-2. **Use environment variables**: Store credentials in `.env` files (excluded from git)
-3. **Enable HTTPS**: Always use HTTPS in production for API requests
-4. **Validate user input**: Always validate and sanitize payment data on the server side
-5. **Use test mode**: Test thoroughly in test mode before going live
-6. **Monitor transactions**: Regularly review transaction history for suspicious activity
-7. **PCI Compliance**: If handling card data directly, ensure PCI DSS compliance
-
-## 📝 License
-
-MIT
-
-## 🤝 Support
-
-If you encounter issues or need help:
-
-1. Check this README thoroughly
-2. Review your Strapi server logs
-3. Consult the [Payone API Documentation](https://docs.payone.com/)
-4. Check the Transaction History for detailed error messages
-
-## 🔄 Updates
-
-To update the plugin:
-
-```bash
-# Using npm
-npm update strapi-plugin-payone-provider
-npm run build
-
-# Using yarn
-yarn upgrade strapi-plugin-payone-provider
-yarn build
-
-# Using pnpm
-pnpm update strapi-plugin-payone-provider
-pnpm build
-```
-
-Then restart your Strapi application.
+</details>
 
 ---
 
-**Made with ❤️ for Strapi**
+### PayPal
+
+<details>
+<summary><strong>PayPal Payment Method</strong></summary>
+
+#### Preauthorization
+
+**URL**: `POST /api/strapi-plugin-payone-provider/preauthorization`
+
+**Request Body**:
+
+```json
+{
+  "amount": 1000,
+  "currency": "EUR",
+  "reference": "PAY1234567890ABCDEF",
+  "clearingtype": "wlt",
+  "wallettype": "PPE",
+  "firstname": "John",
+  "lastname": "Doe",
+  "email": "john.doe@example.com",
+  "telephonenumber": "+4917512345678",
+  "street": "Main Street 123",
+  "zip": "12345",
+  "city": "Berlin",
+  "country": "DE",
+  "shipping_firstname": "John",
+  "shipping_lastname": "Doe",
+  "shipping_street": "Main Street 123",
+  "shipping_zip": "12345",
+  "shipping_city": "Berlin",
+  "shipping_country": "DE",
+  "successurl": "https://www.example.com/success",
+  "errorurl": "https://www.example.com/error",
+  "backurl": "https://www.example.com/back",
+  "salutation": "Herr",
+  "gender": "m",
+  "ip": "127.0.0.1",
+  "language": "de",
+  "customer_is_present": "yes"
+}
+```
+
+**Response**:
+
+```json
+{
+  "data": {
+    "status": "REDIRECT",
+    "txid": "123456789",
+    "redirecturl": "https://secure.pay1.de/redirect/..."
+  }
+}
+```
+
+#### Authorization
+
+**URL**: `POST /api/strapi-plugin-payone-provider/authorization`
+
+**Request Body**: (Same as Preauthorization)
+
+```json
+{
+  "amount": 1000,
+  "currency": "EUR",
+  "reference": "PAY1234567890ABCDEF",
+  "clearingtype": "wlt",
+  "wallettype": "PPE",
+  "firstname": "John",
+  "lastname": "Doe",
+  "email": "john.doe@example.com",
+  "telephonenumber": "+4917512345678",
+  "street": "Main Street 123",
+  "zip": "12345",
+  "city": "Berlin",
+  "country": "DE",
+  "shipping_firstname": "John",
+  "shipping_lastname": "Doe",
+  "shipping_street": "Main Street 123",
+  "shipping_zip": "12345",
+  "shipping_city": "Berlin",
+  "shipping_country": "DE",
+  "successurl": "https://www.example.com/success",
+  "errorurl": "https://www.example.com/error",
+  "backurl": "https://www.example.com/back",
+  "salutation": "Herr",
+  "gender": "m",
+  "ip": "127.0.0.1",
+  "language": "de",
+  "customer_is_present": "yes"
+}
+```
+
+**Response**:
+
+```json
+{
+  "data": {
+    "status": "REDIRECT",
+    "txid": "123456789",
+    "redirecturl": "https://secure.pay1.de/redirect/..."
+  }
+}
+```
+
+#### Capture
+
+**URL**: `POST /api/strapi-plugin-payone-provider/capture`
+
+**Request Body**:
+
+```json
+{
+  "txid": "123456789",
+  "amount": 1000,
+  "currency": "EUR",
+  "sequencenumber": 1,
+  "capturemode": "full"
+}
+```
+
+**Response**:
+
+```json
+{
+  "data": {
+    "status": "APPROVED",
+    "txid": "123456789"
+  }
+}
+```
+
+#### Refund
+
+**URL**: `POST /api/strapi-plugin-payone-provider/refund`
+
+**Request Body**:
+
+```json
+{
+  "txid": "123456789",
+  "amount": -1000,
+  "currency": "EUR",
+  "reference": "REF1234567890ABCDEF",
+  "sequencenumber": 2
+}
+```
+
+**Response**:
+
+```json
+{
+  "data": {
+    "status": "APPROVED",
+    "txid": "123456789"
+  }
+}
+```
+
+</details>
+
+---
+
+### Google Pay
+
+<details>
+<summary><strong>Google Pay Payment Method</strong></summary>
+
+#### Preauthorization
+
+**URL**: `POST /api/strapi-plugin-payone-provider/preauthorization`
+
+**Request Body**:
+
+```json
+{
+  "amount": 1000,
+  "currency": "EUR",
+  "reference": "PAY1234567890ABCDEF",
+  "clearingtype": "wlt",
+  "wallettype": "GPP",
+  "firstname": "John",
+  "lastname": "Doe",
+  "email": "john.doe@example.com",
+  "telephonenumber": "+4917512345678",
+  "street": "Main Street 123",
+  "zip": "12345",
+  "city": "Berlin",
+  "country": "DE",
+  "shipping_firstname": "John",
+  "shipping_lastname": "Doe",
+  "shipping_street": "Main Street 123",
+  "shipping_zip": "12345",
+  "shipping_city": "Berlin",
+  "shipping_country": "DE",
+  "successurl": "https://www.example.com/success",
+  "errorurl": "https://www.example.com/error",
+  "backurl": "https://www.example.com/back",
+  "salutation": "Herr",
+  "gender": "m",
+  "ip": "127.0.0.1",
+  "language": "de",
+  "customer_is_present": "yes"
+}
+```
+
+**Response**:
+
+```json
+{
+  "data": {
+    "status": "REDIRECT",
+    "txid": "123456789",
+    "redirecturl": "https://secure.pay1.de/redirect/..."
+  }
+}
+```
+
+#### Authorization
+
+**URL**: `POST /api/strapi-plugin-payone-provider/authorization`
+
+**Request Body**: (Same as Preauthorization)
+
+```json
+{
+  "amount": 1000,
+  "currency": "EUR",
+  "reference": "PAY1234567890ABCDEF",
+  "clearingtype": "wlt",
+  "wallettype": "GPP",
+  "firstname": "John",
+  "lastname": "Doe",
+  "email": "john.doe@example.com",
+  "telephonenumber": "+4917512345678",
+  "street": "Main Street 123",
+  "zip": "12345",
+  "city": "Berlin",
+  "country": "DE",
+  "shipping_firstname": "John",
+  "shipping_lastname": "Doe",
+  "shipping_street": "Main Street 123",
+  "shipping_zip": "12345",
+  "shipping_city": "Berlin",
+  "shipping_country": "DE",
+  "successurl": "https://www.example.com/success",
+  "errorurl": "https://www.example.com/error",
+  "backurl": "https://www.example.com/back",
+  "salutation": "Herr",
+  "gender": "m",
+  "ip": "127.0.0.1",
+  "language": "de",
+  "customer_is_present": "yes"
+}
+```
+
+**Response**:
+
+```json
+{
+  "data": {
+    "status": "REDIRECT",
+    "txid": "123456789",
+    "redirecturl": "https://secure.pay1.de/redirect/..."
+  }
+}
+```
+
+#### Capture
+
+**URL**: `POST /api/strapi-plugin-payone-provider/capture`
+
+**Request Body**:
+
+```json
+{
+  "txid": "123456789",
+  "amount": 1000,
+  "currency": "EUR",
+  "sequencenumber": 1,
+  "capturemode": "full"
+}
+```
+
+**Response**:
+
+```json
+{
+  "data": {
+    "status": "APPROVED",
+    "txid": "123456789"
+  }
+}
+```
+
+#### Refund
+
+**URL**: `POST /api/strapi-plugin-payone-provider/refund`
+
+**Request Body**:
+
+```json
+{
+  "txid": "123456789",
+  "amount": -1000,
+  "currency": "EUR",
+  "reference": "REF1234567890ABCDEF",
+  "sequencenumber": 2
+}
+```
+
+**Response**:
+
+```json
+{
+  "data": {
+    "status": "APPROVED",
+    "txid": "123456789"
+  }
+}
+```
+
+</details>
+
+---
+
+### Apple Pay
+
+<details>
+<summary><strong>Apple Pay Payment Method</strong></summary>
+
+#### Preauthorization
+
+**URL**: `POST /api/strapi-plugin-payone-provider/preauthorization`
+
+**Request Body**:
+
+```json
+{
+  "amount": 1000,
+  "currency": "EUR",
+  "reference": "PAY1234567890ABCDEF",
+  "clearingtype": "wlt",
+  "wallettype": "APL",
+  "firstname": "John",
+  "lastname": "Doe",
+  "email": "john.doe@example.com",
+  "telephonenumber": "+4917512345678",
+  "street": "Main Street 123",
+  "zip": "12345",
+  "city": "Berlin",
+  "country": "DE",
+  "shipping_firstname": "John",
+  "shipping_lastname": "Doe",
+  "shipping_street": "Main Street 123",
+  "shipping_zip": "12345",
+  "shipping_city": "Berlin",
+  "shipping_country": "DE",
+  "successurl": "https://www.example.com/success",
+  "errorurl": "https://www.example.com/error",
+  "backurl": "https://www.example.com/back",
+  "salutation": "Herr",
+  "gender": "m",
+  "ip": "127.0.0.1",
+  "language": "de",
+  "customer_is_present": "yes"
+}
+```
+
+**Response**:
+
+```json
+{
+  "data": {
+    "status": "REDIRECT",
+    "txid": "123456789",
+    "redirecturl": "https://secure.pay1.de/redirect/..."
+  }
+}
+```
+
+#### Authorization
+
+**URL**: `POST /api/strapi-plugin-payone-provider/authorization`
+
+**Request Body**: (Same as Preauthorization)
+
+```json
+{
+  "amount": 1000,
+  "currency": "EUR",
+  "reference": "PAY1234567890ABCDEF",
+  "clearingtype": "wlt",
+  "wallettype": "APL",
+  "firstname": "John",
+  "lastname": "Doe",
+  "email": "john.doe@example.com",
+  "telephonenumber": "+4917512345678",
+  "street": "Main Street 123",
+  "zip": "12345",
+  "city": "Berlin",
+  "country": "DE",
+  "shipping_firstname": "John",
+  "shipping_lastname": "Doe",
+  "shipping_street": "Main Street 123",
+  "shipping_zip": "12345",
+  "shipping_city": "Berlin",
+  "shipping_country": "DE",
+  "successurl": "https://www.example.com/success",
+  "errorurl": "https://www.example.com/error",
+  "backurl": "https://www.example.com/back",
+  "salutation": "Herr",
+  "gender": "m",
+  "ip": "127.0.0.1",
+  "language": "de",
+  "customer_is_present": "yes"
+}
+```
+
+**Response**:
+
+```json
+{
+  "data": {
+    "status": "REDIRECT",
+    "txid": "123456789",
+    "redirecturl": "https://secure.pay1.de/redirect/..."
+  }
+}
+```
+
+#### Capture
+
+**URL**: `POST /api/strapi-plugin-payone-provider/capture`
+
+**Request Body**:
+
+```json
+{
+  "txid": "123456789",
+  "amount": 1000,
+  "currency": "EUR",
+  "sequencenumber": 1,
+  "capturemode": "full"
+}
+```
+
+**Response**:
+
+```json
+{
+  "data": {
+    "status": "APPROVED",
+    "txid": "123456789"
+  }
+}
+```
+
+#### Refund
+
+**URL**: `POST /api/strapi-plugin-payone-provider/refund`
+
+**Request Body**:
+
+```json
+{
+  "txid": "123456789",
+  "amount": -1000,
+  "currency": "EUR",
+  "reference": "REF1234567890ABCDEF",
+  "sequencenumber": 2
+}
+```
+
+**Response**:
+
+```json
+{
+  "data": {
+    "status": "APPROVED",
+    "txid": "123456789"
+  }
+}
+```
+
+</details>
+
+---
+
+### SEPA Direct Debit
+
+<details>
+<summary><strong>SEPA Direct Debit Payment Method</strong></summary>
+
+#### Preauthorization
+
+**URL**: `POST /api/strapi-plugin-payone-provider/preauthorization`
+
+**Request Body**:
+
+```json
+{
+  "amount": 1000,
+  "currency": "EUR",
+  "reference": "PAY1234567890ABCDEF",
+  "clearingtype": "elv",
+  "iban": "DE89370400440532013000",
+  "bic": "COBADEFFXXX",
+  "bankaccountholder": "John Doe",
+  "bankcountry": "DE",
+  "firstname": "John",
+  "lastname": "Doe",
+  "email": "john.doe@example.com",
+  "telephonenumber": "+4917512345678",
+  "street": "Main Street 123",
+  "zip": "12345",
+  "city": "Berlin",
+  "country": "DE",
+  "salutation": "Herr",
+  "gender": "m",
+  "ip": "127.0.0.1",
+  "language": "de",
+  "customer_is_present": "yes"
+}
+```
+
+**Response**:
+
+```json
+{
+  "data": {
+    "status": "APPROVED",
+    "txid": "123456789",
+    "userid": "987654321"
+  }
+}
+```
+
+#### Authorization
+
+**URL**: `POST /api/strapi-plugin-payone-provider/authorization`
+
+**Request Body**: (Same as Preauthorization)
+
+```json
+{
+  "amount": 1000,
+  "currency": "EUR",
+  "reference": "PAY1234567890ABCDEF",
+  "clearingtype": "elv",
+  "iban": "DE89370400440532013000",
+  "bic": "COBADEFFXXX",
+  "bankaccountholder": "John Doe",
+  "bankcountry": "DE",
+  "firstname": "John",
+  "lastname": "Doe",
+  "email": "john.doe@example.com",
+  "telephonenumber": "+4917512345678",
+  "street": "Main Street 123",
+  "zip": "12345",
+  "city": "Berlin",
+  "country": "DE",
+  "salutation": "Herr",
+  "gender": "m",
+  "ip": "127.0.0.1",
+  "language": "de",
+  "customer_is_present": "yes"
+}
+```
+
+**Response**:
+
+```json
+{
+  "data": {
+    "status": "APPROVED",
+    "txid": "123456789",
+    "userid": "987654321"
+  }
+}
+```
+
+#### Capture
+
+**URL**: `POST /api/strapi-plugin-payone-provider/capture`
+
+**Request Body**:
+
+```json
+{
+  "txid": "123456789",
+  "amount": 1000,
+  "currency": "EUR",
+  "sequencenumber": 1
+}
+```
+
+**Response**:
+
+```json
+{
+  "data": {
+    "status": "APPROVED",
+    "txid": "123456789"
+  }
+}
+```
+
+#### Refund
+
+**URL**: `POST /api/strapi-plugin-payone-provider/refund`
+
+**Request Body**:
+
+```json
+{
+  "txid": "123456789",
+  "amount": -1000,
+  "currency": "EUR",
+  "reference": "REF1234567890ABCDEF",
+  "sequencenumber": 2
+}
+```
+
+**Response**:
+
+```json
+{
+  "data": {
+    "status": "APPROVED",
+    "txid": "123456789"
+  }
+}
+```
+
+</details>
+
+---
+
+### Sofort Banking
+
+<details>
+<summary><strong>Sofort Banking Payment Method</strong></summary>
+
+#### Preauthorization
+
+**URL**: `POST /api/strapi-plugin-payone-provider/preauthorization`
+
+**Request Body**:
+
+```json
+{
+  "amount": 1000,
+  "currency": "EUR",
+  "reference": "PAY1234567890ABCDEF",
+  "clearingtype": "sb",
+  "onlinebanktransfertype": "PNT",
+  "bankcountry": "DE",
+  "firstname": "John",
+  "lastname": "Doe",
+  "email": "john.doe@example.com",
+  "telephonenumber": "+4917512345678",
+  "street": "Main Street 123",
+  "zip": "12345",
+  "city": "Berlin",
+  "country": "DE",
+  "successurl": "https://www.example.com/success",
+  "errorurl": "https://www.example.com/error",
+  "backurl": "https://www.example.com/back",
+  "salutation": "Herr",
+  "gender": "m",
+  "ip": "127.0.0.1",
+  "language": "de",
+  "customer_is_present": "yes"
+}
+```
+
+**Response**:
+
+```json
+{
+  "data": {
+    "status": "REDIRECT",
+    "txid": "123456789",
+    "redirecturl": "https://secure.pay1.de/redirect/..."
+  }
+}
+```
+
+#### Authorization
+
+**URL**: `POST /api/strapi-plugin-payone-provider/authorization`
+
+**Request Body**: (Same as Preauthorization)
+
+```json
+{
+  "amount": 1000,
+  "currency": "EUR",
+  "reference": "PAY1234567890ABCDEF",
+  "clearingtype": "sb",
+  "onlinebanktransfertype": "PNT",
+  "bankcountry": "DE",
+  "firstname": "John",
+  "lastname": "Doe",
+  "email": "john.doe@example.com",
+  "telephonenumber": "+4917512345678",
+  "street": "Main Street 123",
+  "zip": "12345",
+  "city": "Berlin",
+  "country": "DE",
+  "successurl": "https://www.example.com/success",
+  "errorurl": "https://www.example.com/error",
+  "backurl": "https://www.example.com/back",
+  "salutation": "Herr",
+  "gender": "m",
+  "ip": "127.0.0.1",
+  "language": "de",
+  "customer_is_present": "yes"
+}
+```
+
+**Response**:
+
+```json
+{
+  "data": {
+    "status": "REDIRECT",
+    "txid": "123456789",
+    "redirecturl": "https://secure.pay1.de/redirect/..."
+  }
+}
+```
+
+#### Capture
+
+**URL**: `POST /api/strapi-plugin-payone-provider/capture`
+
+**Request Body**:
+
+```json
+{
+  "txid": "123456789",
+  "amount": 1000,
+  "currency": "EUR",
+  "sequencenumber": 1
+}
+```
+
+**Response**:
+
+```json
+{
+  "data": {
+    "status": "APPROVED",
+    "txid": "123456789"
+  }
+}
+```
+
+#### Refund
+
+**URL**: `POST /api/strapi-plugin-payone-provider/refund`
+
+**Request Body**:
+
+```json
+{
+  "txid": "123456789",
+  "amount": -1000,
+  "currency": "EUR",
+  "reference": "REF1234567890ABCDEF",
+  "sequencenumber": 2
+}
+```
+
+**Response**:
+
+```json
+{
+  "data": {
+    "status": "APPROVED",
+    "txid": "123456789"
+  }
+}
+```
+
+</details>
+
+---
+
+## ✅ Supported Payment Methods
+
+Click on any payment method to see detailed API documentation:
+
+- [Credit Card](#credit-card)
+- [PayPal](#paypal)
+- [Google Pay](#google-pay)
+- [Apple Pay](#apple-pay)
+- [SEPA Direct Debit](#sepa-direct-debit)
+- [Sofort Banking](#sofort-banking)
+
+---
+
+## 📝 Notes
+
+### Important Parameters
+
+- **amount**: Always in cents (e.g., 1000 = 10.00 EUR)
+- **reference**: Max 20 characters, alphanumeric only. Auto-normalized by the plugin.
+- **cardexpiredate**: Format is YYMM (e.g., "2512" = December 2025)
+- **sequencenumber**: Start with 1 for capture, 2 for first refund, increment for subsequent refunds
+- **Refund amount**: Must be negative (e.g., -1000 for 10.00 EUR refund)
+
+### Redirect URLs
+
+For redirect-based payment methods (PayPal, Google Pay, Apple Pay, Sofort), you must provide:
+- `successurl`: URL to redirect after successful payment
+- `errorurl`: URL to redirect after payment error
+- `backurl`: URL to redirect if user cancels payment
+
+### Preauthorization vs Authorization
+
+- **Preauthorization**: Reserves funds but doesn't charge immediately. Requires a Capture call later.
+- **Authorization**: Immediately charges the customer's payment method.
+
+### Capture Mode
+
+For wallet payments (PayPal, Google Pay, Apple Pay), you can specify:
+- `capturemode: "full"`: Capture the entire preauthorized amount
+- `capturemode: "partial"`: Capture less than the preauthorized amount

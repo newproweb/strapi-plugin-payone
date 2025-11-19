@@ -11,6 +11,8 @@
  * Supported Payment Methods:
  * - Credit Card (cc)
  * - PayPal (wlt)
+ * - Google Pay (gpp)
+ * - Apple Pay (apl)
  * - Sofort Banking (sb)
  * - SEPA Direct Debit (elv)
  */
@@ -45,8 +47,19 @@ export const getBaseParams = (options = {}) => {
     backurl = "https://www.example.com/back"
   } = options;
 
-  // Generate unique customer ID if not provided
-  const finalCustomerId = customerid || `CUST-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+  const generateCustomerId = () => {
+    const timestamp = Date.now().toString().slice(-10);
+    const random = Math.random().toString(36).substring(2, 6).toUpperCase();
+    const id = `${timestamp}${random}`.slice(0, 17);
+    return id;
+  };
+
+  let finalCustomerId = customerid || generateCustomerId();
+
+  if (finalCustomerId && finalCustomerId.length > 17) {
+    console.warn(`customerid exceeds 17 characters: ${finalCustomerId.length}, truncating...`);
+    finalCustomerId = finalCustomerId.slice(0, 17);
+  }
 
   return {
     // Required core parameters (Payone v1)
@@ -95,8 +108,32 @@ export const getPaymentMethodParams = (paymentMethod, options = {}) => {
     cardcvc2,
     iban,
     bic,
-    bankaccountholder
+    bankaccountholder,
+    // Shipping address for wallet payments (Google Pay, Apple Pay, PayPal)
+    shipping_firstname,
+    shipping_lastname,
+    shipping_street,
+    shipping_zip,
+    shipping_city,
+    shipping_country,
+    // Billing address (used as fallback for shipping)
+    firstname,
+    lastname,
+    street,
+    zip,
+    city,
+    country
   } = options;
+
+  // Helper to get shipping params for wallet payments
+  const getShippingParams = () => ({
+    shipping_firstname: shipping_firstname || firstname || "John",
+    shipping_lastname: shipping_lastname || lastname || "Doe",
+    shipping_street: shipping_street || street || "Test Street 123",
+    shipping_zip: shipping_zip || zip || "12345",
+    shipping_city: shipping_city || city || "Test City",
+    shipping_country: (shipping_country || country || "DE").toUpperCase()
+  });
 
   switch (paymentMethod) {
     case "cc": // Credit Card (Visa, Mastercard, Amex)
@@ -112,12 +149,21 @@ export const getPaymentMethodParams = (paymentMethod, options = {}) => {
       return {
         clearingtype: "wlt",
         wallettype: "PPE", // PayPal Express
-        shipping_firstname: "John",
-        shipping_lastname: "Doe",
-        shipping_street: "Test Street 123",
-        shipping_zip: "12345",
-        shipping_city: "Test City",
-        shipping_country: "DE"
+        ...getShippingParams()
+      };
+
+    case "gpp": // Google Pay
+      return {
+        clearingtype: "wlt",
+        wallettype: "GPP", // Google Pay
+        ...getShippingParams()
+      };
+
+    case "apl": // Apple Pay
+      return {
+        clearingtype: "wlt",
+        wallettype: "APL", // Apple Pay
+        ...getShippingParams()
       };
 
     case "sb": // Sofort Banking
@@ -220,6 +266,8 @@ export const getCaptureParams = (paymentMethod, options = {}) => {
       break;
 
     case "wlt": // PayPal
+    case "gpp": // Google Pay
+    case "apl": // Apple Pay
       methodParams = {
         capturemode: captureMode // full or partial
       };
@@ -279,7 +327,9 @@ export const getRefundParams = (paymentMethod, options = {}) => {
       break;
 
     case "wlt": // PayPal
-      // PayPal specific refund parameters (if needed)
+    case "gpp": // Google Pay
+    case "apl": // Apple Pay
+      // Wallet payment specific refund parameters (if needed)
       break;
 
     case "sb": // Sofort Banking
@@ -310,6 +360,8 @@ export const getPaymentMethodDisplayName = (paymentMethod) => {
   const displayNames = {
     cc: "Credit Card (Visa, Mastercard)",
     wlt: "PayPal",
+    gpp: "Google Pay",
+    apl: "Apple Pay",
     sb: "Sofort Banking",
     elv: "SEPA Direct Debit"
   };
@@ -325,6 +377,8 @@ export const getPaymentMethodOptions = () => {
   return [
     { value: "cc", label: "Credit Card (Visa, Mastercard)" },
     { value: "wlt", label: "PayPal" },
+    { value: "gpp", label: "Google Pay" },
+    { value: "apl", label: "Apple Pay" },
     { value: "sb", label: "Sofort Banking" },
     { value: "elv", label: "SEPA Direct Debit" }
   ];
@@ -336,7 +390,7 @@ export const getPaymentMethodOptions = () => {
  * @returns {boolean} True if supports capture mode
  */
 export const supportsCaptureMode = (paymentMethod) => {
-  return paymentMethod === "wlt"; // Only PayPal supports capture mode
+  return paymentMethod === "wlt" || paymentMethod === "gpp" || paymentMethod === "apl"; // PayPal, Google Pay, and Apple Pay support capture mode
 };
 
 /**
@@ -484,6 +538,24 @@ export const validatePaymentParams = (operation, paymentMethod, params) => {
       }
       if (params.wallettype && !["PPE", "PAP"].includes(params.wallettype)) {
         errors.push("Wallet type must be PPE (PayPal Express) or PAP (PayPal Plus)");
+      }
+      break;
+
+    case "gpp":
+      if (!params.wallettype) {
+        errors.push("Wallet type is required for Google Pay payments");
+      }
+      if (params.wallettype && params.wallettype !== "GPP") {
+        errors.push("Wallet type must be GPP for Google Pay payments");
+      }
+      break;
+
+    case "apl":
+      if (!params.wallettype) {
+        errors.push("Wallet type is required for Apple Pay payments");
+      }
+      if (params.wallettype && params.wallettype !== "APL") {
+        errors.push("Wallet type must be APL for Apple Pay payments");
       }
       break;
 
