@@ -13,12 +13,15 @@ const PreauthorizationForm = ({
   return (
     <Box>
       <Flex direction="column" alignItems="stretch" gap={4}>
-        <Typography variant="delta" as="h3">
-          Preauthorization
-        </Typography>
-        <Typography variant="pi" textColor="neutral600">
-          Reserve an amount on a credit card without capturing it immediately.
-        </Typography>
+        <Box>
+          <Typography variant="omega" fontWeight="semiBold" textColor="neutral800">
+            Preauthorization
+          </Typography>
+          <br />
+          <Typography variant="pi" textColor="neutral600" marginTop={1}>
+            Reserve an amount on a credit card without capturing it immediately.
+          </Typography>
+        </Box>
 
         <Flex gap={4}>
           <TextInput

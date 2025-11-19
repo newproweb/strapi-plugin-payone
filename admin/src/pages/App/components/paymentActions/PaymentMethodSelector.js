@@ -16,9 +16,6 @@ const PaymentMethodSelector = ({
   return (
     <Box>
       <Flex direction="column" alignItems="stretch" gap={4}>
-        <Typography variant="delta" as="h3">
-          Payment Method
-        </Typography>
         <Select
           label="Select Payment Method"
           name="paymentMethod"

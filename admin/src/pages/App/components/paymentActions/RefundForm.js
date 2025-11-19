@@ -17,12 +17,15 @@ const RefundForm = ({
   return (
     <Box>
       <Flex direction="column" alignItems="stretch" gap={4}>
-        <Typography variant="delta" as="h3">
-          Refund
-        </Typography>
-        <Typography variant="pi" textColor="neutral600">
-          Refund a previously captured amount.
-        </Typography>
+        <Box>
+          <Typography variant="omega" fontWeight="semiBold" textColor="neutral800">
+            Refund
+          </Typography>
+          <br />
+          <Typography variant="pi" textColor="neutral600" marginTop={1}>
+            Refund a previously captured amount.
+          </Typography>
+        </Box>
 
         <Flex gap={4}>
           <TextInput

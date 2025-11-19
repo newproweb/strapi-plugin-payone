@@ -1,62 +1,72 @@
 "use strict";
 
+const PLUGIN_NAME = "strapi-plugin-payone-provider";
+
+/**
+ * Get Payone service
+ * @param {Object} strapi - Strapi instance
+ * @returns {Object} Payone service
+ */
+const getPayoneService = (strapi) => {
+  return strapi.plugin(PLUGIN_NAME).service("payone");
+};
+
+/**
+ * Handle error response
+ * @param {Object} ctx - Koa context
+ * @param {Error} error - Error object
+ */
+const handleError = (ctx, error) => {
+  strapi.log.error("Payone controller error:", error);
+  ctx.throw(500, error);
+};
+
+/**
+ * Hide sensitive key in settings
+ * @param {Object} settings - Settings object
+ * @returns {Object} Settings with hidden key
+ */
+const hideKey = (settings) => {
+  if (settings && settings.key) {
+    settings.key = "***HIDDEN***";
+  }
+  return settings;
+};
+
 module.exports = ({ strapi }) => ({
   async getSettings(ctx) {
     try {
-      const settings = await strapi
-        .plugin("strapi-plugin-payone-provider")
-        .service("payone")
-        .getSettings();
-
-      if (settings && settings.key) {
-        settings.key = "***HIDDEN***";
-      }
-
-      ctx.body = { data: settings };
+      const settings = await getPayoneService(strapi).getSettings();
+      ctx.body = { data: hideKey(settings) };
     } catch (error) {
-      ctx.throw(500, error);
+      handleError(ctx, error);
     }
   },
 
   async updateSettings(ctx) {
     try {
       const { body } = ctx.request;
+      const currentSettings = await getPayoneService(strapi).getSettings();
 
-      const currentSettings = await strapi
-        .plugin("strapi-plugin-payone-provider")
-        .service("payone")
-        .getSettings();
-
+      // Preserve existing key if hidden or not provided
       if (body.key === "***HIDDEN***" || !body.key) {
-        body.key = currentSettings.key;
+        body.key = currentSettings?.key;
       }
 
-      const settings = await strapi
-        .plugin("strapi-plugin-payone-provider")
-        .service("payone")
-        .updateSettings(body);
-
-      if (settings && settings.key) {
-        settings.key = "***HIDDEN***";
-      }
-
-      ctx.body = { data: settings };
+      const settings = await getPayoneService(strapi).updateSettings(body);
+      ctx.body = { data: hideKey(settings) };
     } catch (error) {
-      ctx.throw(500, error);
+      handleError(ctx, error);
     }
   },
 
   async preauthorization(ctx) {
     try {
       const params = ctx.request.body;
-      const result = await strapi
-        .plugin("strapi-plugin-payone-provider")
-        .service("payone")
-        .preauthorization(params);
-
+      const result = await getPayoneService(strapi).preauthorization(params);
       ctx.body = { data: result };
     } catch (error) {
-      ctx.throw(500, error);
+      handleError(ctx, error);
     }
   },
 
@@ -64,71 +74,50 @@ module.exports = ({ strapi }) => ({
     try {
       const params = ctx.request.body;
       strapi.log.info("Payone authorization controller called with:", params);
-
-      const result = await strapi
-        .plugin("strapi-plugin-payone-provider")
-        .service("payone")
-        .authorization(params);
-
+      const result = await getPayoneService(strapi).authorization(params);
       ctx.body = { data: result };
     } catch (error) {
       strapi.log.error("Payone authorization error:", error);
-      ctx.throw(500, error);
+      handleError(ctx, error);
     }
   },
 
   async capture(ctx) {
     try {
       const params = ctx.request.body;
-      const result = await strapi
-        .plugin("strapi-plugin-payone-provider")
-        .service("payone")
-        .capture(params);
-
+      const result = await getPayoneService(strapi).capture(params);
       ctx.body = { data: result };
     } catch (error) {
-      ctx.throw(500, error);
+      handleError(ctx, error);
     }
   },
 
   async refund(ctx) {
     try {
       const params = ctx.request.body;
-      const result = await strapi
-        .plugin("strapi-plugin-payone-provider")
-        .service("payone")
-        .refund(params);
-
+      const result = await getPayoneService(strapi).refund(params);
       ctx.body = { data: result };
     } catch (error) {
-      ctx.throw(500, error);
+      handleError(ctx, error);
     }
   },
 
   async getTransactionHistory(ctx) {
     try {
       const filters = ctx.query || {};
-      const history = await strapi
-        .plugin("strapi-plugin-payone-provider")
-        .service("payone")
-        .getTransactionHistory(filters);
-
+      const history = await getPayoneService(strapi).getTransactionHistory(filters);
       ctx.body = { data: history };
     } catch (error) {
-      ctx.throw(500, error);
+      handleError(ctx, error);
     }
   },
 
   async testConnection(ctx) {
     try {
-      const result = await strapi
-        .plugin("strapi-plugin-payone-provider")
-        .service("payone")
-        .testConnection();
-
+      const result = await getPayoneService(strapi).testConnection();
       ctx.body = { data: result };
     } catch (error) {
-      ctx.throw(500, error);
+      handleError(ctx, error);
     }
   }
 });

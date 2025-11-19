@@ -1,0 +1,182 @@
+"use strict";
+
+const axios = require("axios");
+const { normalizeReference } = require("../utils/normalize");
+const { buildClientRequestParams, toFormData } = require("../utils/requestBuilder");
+const { addPaymentMethodParams } = require("../utils/paymentMethodParams");
+const { parseResponse, extractTxId } = require("../utils/responseParser");
+const { getSettings, validateSettings } = require("./settingsService");
+const { logTransaction } = require("./transactionService");
+
+const POST_GATEWAY_URL = "https://api.pay1.de/post-gateway/";
+
+/**
+ * Send request to Payone API
+ * @param {Object} strapi - Strapi instance
+ * @param {Object} params - Request parameters
+ * @returns {Promise<Object>} Response data
+ */
+const sendRequest = async (strapi, params) => {
+  try {
+    strapi.log.info("Payone sendRequest called with params:", params);
+
+    const settings = await getSettings(strapi);
+
+    if (!validateSettings(settings)) {
+      throw new Error("Payone settings not configured");
+    }
+
+    // Normalize reference for certain request types
+    const reqType = params.request;
+    if (["authorization", "preauthorization", "refund"].includes(reqType)) {
+      const prefix =
+        reqType === "refund" ? "REF" : reqType === "preauthorization" ? "PRE" : "AUTH";
+      params.reference = normalizeReference(params.reference, prefix);
+    }
+
+    const requestParams = buildClientRequestParams(settings, params, strapi.log);
+    const debugParams = { ...requestParams };
+    if (debugParams.key) debugParams.key = "***HIDDEN***";
+
+    strapi.log.info("Payone Client API request params:", debugParams);
+
+    const formData = toFormData(requestParams);
+    strapi.log.info("Payone form data being sent:", formData.toString());
+
+    const response = await axios.post(POST_GATEWAY_URL, formData, {
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      timeout: 30000
+    });
+
+    const responseData = parseResponse(response.data, strapi.log);
+
+    // Log transaction
+    await logTransaction(strapi, {
+      txid: extractTxId(responseData) || params.txid || null,
+      reference: params.reference || null,
+      status: responseData.status || responseData.Status || "unknown",
+      request_type: params.request,
+      amount: params.amount || null,
+      currency: params.currency || "EUR",
+      raw_request: requestParams,
+      raw_response: responseData,
+      error_code: responseData.Error?.ErrorCode || null,
+      error_message: responseData.Error?.ErrorMessage || null,
+      customer_message: responseData.Error?.CustomerMessage || null
+    });
+
+    return responseData;
+  } catch (error) {
+    strapi.log.error("Payone sendRequest error:", error);
+    throw error;
+  }
+};
+
+/**
+ * Preauthorization
+ * @param {Object} strapi - Strapi instance
+ * @param {Object} params - Request parameters
+ * @returns {Promise<Object>} Response data
+ */
+const preauthorization = async (strapi, params) => {
+  strapi.log.info("Payone preauthorization called with params:", params);
+
+  const requiredParams = {
+    request: "preauthorization",
+    clearingtype: params.clearingtype || "cc",
+    amount: params.amount || 1000,
+    currency: params.currency || "EUR",
+    reference: params.reference || `PREAUTH-${Date.now()}`,
+    firstname: params.firstname || "Test",
+    lastname: params.lastname || "User",
+    street: params.street || "Test Street 1",
+    zip: params.zip || "12345",
+    city: params.city || "Test City",
+    country: params.country || "DE",
+    email: params.email || "test@example.com",
+    ...params
+  };
+
+  const updatedParams = addPaymentMethodParams(requiredParams, strapi.log);
+  return await sendRequest(strapi, updatedParams);
+};
+
+/**
+ * Authorization
+ * @param {Object} strapi - Strapi instance
+ * @param {Object} params - Request parameters
+ * @returns {Promise<Object>} Response data
+ */
+const authorization = async (strapi, params) => {
+  strapi.log.info("Payone authorization called with params:", params);
+
+  const requiredParams = {
+    request: "authorization",
+    clearingtype: params.clearingtype || "cc",
+    ...params
+  };
+
+  const updatedParams = addPaymentMethodParams(requiredParams, strapi.log);
+  return await sendRequest(strapi, updatedParams);
+};
+
+/**
+ * Capture
+ * @param {Object} strapi - Strapi instance
+ * @param {Object} params - Request parameters
+ * @returns {Promise<Object>} Response data
+ */
+const capture = async (strapi, params) => {
+  strapi.log.info("Payone capture called with params:", params);
+
+  if (!params.txid) {
+    throw new Error("Transaction ID (txid) is required for capture");
+  }
+
+  const requiredParams = {
+    request: "capture",
+    txid: params.txid,
+    amount: params.amount || 1000,
+    currency: params.currency || "EUR",
+    ...params
+  };
+
+  delete requiredParams.reference;
+  strapi.log.info("Payone capture required params:", requiredParams);
+
+  return await sendRequest(strapi, requiredParams);
+};
+
+/**
+ * Refund
+ * @param {Object} strapi - Strapi instance
+ * @param {Object} params - Request parameters
+ * @returns {Promise<Object>} Response data
+ */
+const refund = async (strapi, params) => {
+  strapi.log.info("Payone refund called with params:", params);
+
+  if (!params.txid) {
+    throw new Error("Transaction ID (txid) is required for refund");
+  }
+
+  const requiredParams = {
+    request: "refund",
+    txid: params.txid,
+    amount: params.amount || 1000,
+    currency: params.currency || "EUR",
+    reference: params.reference || `REFUND-${Date.now()}`,
+    ...params
+  };
+
+  return await sendRequest(strapi, requiredParams);
+};
+
+module.exports = {
+  sendRequest,
+  preauthorization,
+  authorization,
+  capture,
+  refund
+};
+

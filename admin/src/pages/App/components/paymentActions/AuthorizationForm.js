@@ -13,12 +13,15 @@ const AuthorizationForm = ({
   return (
     <Box>
       <Flex direction="column" alignItems="stretch" gap={4}>
-        <Typography variant="delta" as="h3">
-          Authorization
-        </Typography>
-        <Typography variant="pi" textColor="neutral600">
-          Authorize and capture an amount immediately.
-        </Typography>
+        <Box>
+          <Typography variant="omega" fontWeight="semiBold" textColor="neutral800">
+            Authorization
+          </Typography>
+          <br />
+          <Typography variant="pi" textColor="neutral600" marginTop={1}>
+            Authorize and capture an amount immediately.
+          </Typography>
+        </Box>
 
         <Flex gap={4}>
           <TextInput

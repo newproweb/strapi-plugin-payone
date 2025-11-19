@@ -13,13 +13,16 @@ const CaptureForm = ({
   return (
     <Box>
       <Flex direction="column" alignItems="stretch" gap={4}>
-        <Typography variant="delta" as="h3">
-          Capture
-        </Typography>
-        <Typography variant="pi" textColor="neutral600">
-          Capture a previously authorized amount. Note: Reference parameter is
-          not supported by Payone capture.
-        </Typography>
+        <Box>
+          <Typography variant="omega" fontWeight="semiBold" textColor="neutral800">
+            Capture
+          </Typography>
+          <br />
+          <Typography variant="pi" textColor="neutral600" marginTop={1}>
+            Capture a previously authorized amount. Note: Reference parameter is
+            not supported by Payone capture.
+          </Typography>
+        </Box>
 
         <Flex gap={4}>
           <TextInput
