@@ -1,6 +1,6 @@
 "use strict";
 
 module.exports = {
-  isSuperAdmin: require("./isSuperAdmin"),
-  isAuth: require("./isAuth")
+  "is-auth": require("./is-auth"),
+  "is-super-admin": require("./isSuperAdmin")
 };

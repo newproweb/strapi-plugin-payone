@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useNotification, useFetchClient } from "@strapi/helper-plugin";
+import { useNotification } from "@strapi/helper-plugin";
 import {
   Layout,
   HeaderLayout,
@@ -21,7 +21,6 @@ import PaymentActionsPanel from "./components/PaymentActionsPanel";
 
 const App = () => {
   const toggleNotification = useNotification();
-  const { get, put } = useFetchClient();
 
   const [settings, setSettings] = useState({
     aid: "",
@@ -89,8 +88,8 @@ const App = () => {
   const loadSettings = async () => {
     setIsLoading(true);
     try {
-      const { data } = await get(`/payone-provider/settings`);
-      if (data?.data) setSettings(data.data);
+      const response = await payoneRequests.getSettings();
+      if (response?.data) setSettings(response.data);
     } catch (error) {
       toggleNotification({
         type: "warning",
@@ -108,7 +107,7 @@ const App = () => {
   const handleSave = async () => {
     setIsSaving(true);
     try {
-      await put(`/payone-provider/settings`, settings);
+      await payoneRequests.updateSettings(settings);
       toggleNotification({
         type: "success",
         message: "Settings saved successfully"

@@ -5,7 +5,7 @@ module.exports = async ({ strapi }) => {
   const pluginStore = strapi.store({
     environment: "",
     type: "plugin",
-    name: "payone-provider"
+    name: "strapi-plugin-payone"
   });
 
   // Initialize default settings if not already set

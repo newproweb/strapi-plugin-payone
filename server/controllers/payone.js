@@ -4,7 +4,7 @@ module.exports = ({ strapi }) => ({
   async getSettings(ctx) {
     try {
       const settings = await strapi
-        .plugin("payone-provider")
+        .plugin("strapi-plugin-payone")
         .service("payone")
         .getSettings();
 
@@ -23,7 +23,7 @@ module.exports = ({ strapi }) => ({
       const { body } = ctx.request;
 
       const currentSettings = await strapi
-        .plugin("payone-provider")
+        .plugin("strapi-plugin-payone")
         .service("payone")
         .getSettings();
 
@@ -32,7 +32,7 @@ module.exports = ({ strapi }) => ({
       }
 
       const settings = await strapi
-        .plugin("payone-provider")
+        .plugin("strapi-plugin-payone")
         .service("payone")
         .updateSettings(body);
 
@@ -50,7 +50,7 @@ module.exports = ({ strapi }) => ({
     try {
       const params = ctx.request.body;
       const result = await strapi
-        .plugin("payone-provider")
+        .plugin("strapi-plugin-payone")
         .service("payone")
         .preauthorization(params);
 
@@ -66,7 +66,7 @@ module.exports = ({ strapi }) => ({
       strapi.log.info("Payone authorization controller called with:", params);
 
       const result = await strapi
-        .plugin("payone-provider")
+        .plugin("strapi-plugin-payone")
         .service("payone")
         .authorization(params);
 
@@ -81,7 +81,7 @@ module.exports = ({ strapi }) => ({
     try {
       const params = ctx.request.body;
       const result = await strapi
-        .plugin("payone-provider")
+        .plugin("strapi-plugin-payone")
         .service("payone")
         .capture(params);
 
@@ -95,7 +95,7 @@ module.exports = ({ strapi }) => ({
     try {
       const params = ctx.request.body;
       const result = await strapi
-        .plugin("payone-provider")
+        .plugin("strapi-plugin-payone")
         .service("payone")
         .refund(params);
 
@@ -109,7 +109,7 @@ module.exports = ({ strapi }) => ({
     try {
       const filters = ctx.query || {};
       const history = await strapi
-        .plugin("payone-provider")
+        .plugin("strapi-plugin-payone")
         .service("payone")
         .getTransactionHistory(filters);
 
@@ -122,7 +122,7 @@ module.exports = ({ strapi }) => ({
   async testConnection(ctx) {
     try {
       const result = await strapi
-        .plugin("payone-provider")
+        .plugin("strapi-plugin-payone")
         .service("payone")
         .testConnection();
 
