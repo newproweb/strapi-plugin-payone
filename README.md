@@ -57,26 +57,53 @@ You will need the following credentials from your Payone account:
 
 ## 📦 Installation
 
-### Option 1: Install from npm (if published)
+### Option 1: Install from npm
 
 ```bash
-npm install payone-provider
+# Using npm
+npm install strapi-plugin-payone-provider
+
+# Using yarn
+yarn add strapi-plugin-payone-provider
+
+# Using pnpm
+pnpm add strapi-plugin-payone-provider
 ```
 
-### Option 2: Manual Installation
+### Option 2: Install from Git
 
-1. Copy the `payone-provider` folder to your Strapi project's `src/plugins/` directory:
+```bash
+# Using npm
+npm install git+https://github.com/your-repo/strapi-plugin-payone-provider.git
+
+# Using yarn
+yarn add git+https://github.com/your-repo/strapi-plugin-payone-provider.git
+
+# Using pnpm
+pnpm add git+https://github.com/your-repo/strapi-plugin-payone-provider.git
+```
+
+### Option 3: Manual Installation (Local Development)
+
+1. Clone or copy the plugin folder to your Strapi project's `src/plugins/` directory:
 
 ```bash
 # From your Strapi project root
 mkdir -p src/plugins
-cp -r /path/to/payone-provider src/plugins/
+cp -r /path/to/strapi-plugin-payone src/plugins/
 ```
 
 2. Install the plugin dependencies:
 
 ```bash
+# Using npm
 npm install
+
+# Using yarn
+yarn install
+
+# Using pnpm
+pnpm install
 ```
 
 3. Enable the plugin by adding it to your `config/plugins.js` (or `config/plugins.ts`):
@@ -84,9 +111,9 @@ npm install
 ```javascript
 module.exports = {
   // ... other plugins
-  'payone-provider': {
+  'strapi-plugin-payone-provider': {
     enabled: true,
-    resolve: './src/plugins/payone-provider',
+    resolve: './src/plugins/strapi-plugin-payone',
   },
 };
 ```
@@ -94,13 +121,27 @@ module.exports = {
 4. Rebuild your Strapi admin panel:
 
 ```bash
+# Using npm
 npm run build
+
+# Using yarn
+yarn build
+
+# Using pnpm
+pnpm build
 ```
 
 5. Restart your Strapi application:
 
 ```bash
+# Using npm
 npm run develop
+
+# Using yarn
+yarn develop
+
+# Using pnpm
+pnpm develop
 ```
 
 ## ⚙️ Configuration
@@ -128,9 +169,9 @@ You can also configure the plugin programmatically by adding settings to your `c
 
 ```javascript
 module.exports = {
-  'payone-provider': {
+  'strapi-plugin-payone-provider': {
     enabled: true,
-    resolve: './src/plugins/payone-provider',
+    resolve: './src/plugins/strapi-plugin-payone',
     config: {
       settings: {
         aid: 'YOUR_ACCOUNT_ID',
@@ -149,8 +190,9 @@ module.exports = {
 
 ```javascript
 module.exports = {
-  'payone-provider': {
+  'strapi-plugin-payone-provider': {
     enabled: true,
+    resolve: './src/plugins/strapi-plugin-payone',
     config: {
       settings: {
         aid: process.env.PAYONE_AID,
@@ -225,9 +267,9 @@ The plugin provides REST API endpoints for programmatic access:
 
 All content API endpoints require authentication via the `isAuth` policy. These are meant for your frontend application.
 
-Base URL: `/api/payone-provider`
+Base URL: `/api/strapi-plugin-payone-provider`
 
-##### POST `/api/payone-provider/preauthorization`
+##### POST `/api/strapi-plugin-payone-provider/preauthorization`
 
 Reserve funds on a customer's card without immediate charge.
 
@@ -265,7 +307,7 @@ Reserve funds on a customer's card without immediate charge.
 }
 ```
 
-##### POST `/api/payone-provider/authorization`
+##### POST `/api/strapi-plugin-payone-provider/authorization`
 
 Immediately charge a customer's card.
 
@@ -273,7 +315,7 @@ Immediately charge a customer's card.
 
 > Note: For redirect-based methods (PayPal, Online Banking) you must provide `successurl`, `errorurl`, and `backurl`. The plugin will auto-fill safe defaults when missing, using `settings.return_base` or `PAYONE_RETURN_BASE`/`FRONTEND_URL`/`NEXT_PUBLIC_SITE_URL`.
 
-##### POST `/api/payone-provider/capture`
+##### POST `/api/strapi-plugin-payone-provider/capture`
 
 Complete a preauthorized transaction and capture the funds.
 
@@ -287,7 +329,7 @@ Complete a preauthorized transaction and capture the funds.
 }
 ```
 
-##### POST `/api/payone-provider/refund`
+##### POST `/api/strapi-plugin-payone-provider/refund`
 
 Refund a captured transaction.
 
@@ -305,12 +347,12 @@ Refund a captured transaction.
 
 #### Admin API Endpoints
 
-These endpoints require admin authentication and are available at `/payone-provider/`.
+These endpoints require admin authentication and are available at `/strapi-plugin-payone-provider/`.
 
-- `GET /payone-provider/settings` - Get current settings
-- `PUT /payone-provider/settings` - Update settings
-- `GET /payone-provider/transaction-history` - Get transaction history
-- `POST /payone-provider/test-connection` - Test Payone connection
+- `GET /strapi-plugin-payone-provider/settings` - Get current settings
+- `PUT /strapi-plugin-payone-provider/settings` - Update settings
+- `GET /strapi-plugin-payone-provider/transaction-history` - Get transaction history
+- `POST /strapi-plugin-payone-provider/test-connection` - Test Payone connection
 - All payment operation endpoints (same as content API)
 
 ### JavaScript/TypeScript Usage Example
@@ -323,7 +365,7 @@ const processPayment = async (orderData) => {
   try {
     // Step 1: Preauthorize the payment
     const preauth = await axios.post(
-      'http://localhost:1337/api/payone-provider/preauthorization',
+      'http://localhost:1337/api/strapi-plugin-payone-provider/preauthorization',
       {
         amount: orderData.amount, // in cents, e.g., 1000 = 10.00 EUR
         currency: 'EUR',
@@ -353,7 +395,7 @@ const processPayment = async (orderData) => {
 
       // Step 2: Capture the preauthorized amount
       const capture = await axios.post(
-        'http://localhost:1337/api/payone-provider/capture',
+        'http://localhost:1337/api/strapi-plugin-payone-provider/capture',
         {
           txid: txid,
           amount: orderData.amount,
@@ -560,8 +602,17 @@ If you encounter issues or need help:
 To update the plugin:
 
 ```bash
-npm update payone-provider
+# Using npm
+npm update strapi-plugin-payone-provider
 npm run build
+
+# Using yarn
+yarn upgrade strapi-plugin-payone-provider
+yarn build
+
+# Using pnpm
+pnpm update strapi-plugin-payone-provider
+pnpm build
 ```
 
 Then restart your Strapi application.
