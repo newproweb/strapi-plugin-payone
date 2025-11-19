@@ -25,30 +25,24 @@ const ConfigurationPanel = ({
 }) => {
   return (
     <Box
-      hasRadius
-      shadow="filterShadow"
+      className="payment-container"
       paddingTop={8}
       paddingBottom={8}
       paddingLeft={8}
       paddingRight={8}
-      style={{
-        borderRadius: "12px",
-        boxShadow: "0 4px 20px rgba(0, 0, 0, 0.08)",
-        border: "1px solid #f6f6f9"
-      }}
     >
       <Flex direction="column" alignItems="stretch" gap={8}>
         <Box>
-          <Typography variant="beta" as="h2" fontWeight="bold">
+          <Typography variant="beta" as="h2" fontWeight="bold" className="payment-title" style={{ fontSize: '20px', marginBottom: '4px' }}>
             Payone API Configuration
           </Typography>
-          <Typography variant="pi" marginTop={2}>
+          <Typography variant="pi" marginTop={2} className="payment-subtitle" style={{ fontSize: '14px' }}>
             Configure your Payone payment gateway settings
           </Typography>
         </Box>
 
         <Box>
-          <Card style={{ borderRadius: "8px", border: "1px solid #e4e2e7" }}>
+          <Card className="payment-card">
             <CardBody padding={6}>
               <Stack spacing={6}>
                 <Flex gap={4} wrap="wrap">
@@ -59,6 +53,7 @@ const ConfigurationPanel = ({
                     onChange={(e) => onInputChange("aid", e.target.value)}
                     required
                     hint="Your Payone account ID"
+                    className="payment-input"
                     style={{ flex: 1, minWidth: "300px" }}
                   />
 
@@ -69,6 +64,7 @@ const ConfigurationPanel = ({
                     onChange={(e) => onInputChange("portalid", e.target.value)}
                     required
                     hint="Your Payone portal ID"
+                    className="payment-input"
                     style={{ flex: 1, minWidth: "300px" }}
                   />
                 </Flex>
@@ -81,6 +77,7 @@ const ConfigurationPanel = ({
                     onChange={(e) => onInputChange("mid", e.target.value)}
                     required
                     hint="Your Payone merchant ID"
+                    className="payment-input"
                     style={{ flex: 1, minWidth: "300px" }}
                   />
 
@@ -92,6 +89,7 @@ const ConfigurationPanel = ({
                     onChange={(e) => onInputChange("key", e.target.value)}
                     required
                     hint="Your Payone portal key (will be encrypted)"
+                    className="payment-input"
                     style={{ flex: 1, minWidth: "300px" }}
                   />
                 </Flex>
@@ -103,6 +101,7 @@ const ConfigurationPanel = ({
                     value={settings.mode || "test"}
                     onChange={(value) => onInputChange("mode", value)}
                     hint="Select the API mode"
+                    className="payment-input"
                     style={{ flex: 1, minWidth: "300px" }}
                   >
                     <Option value="test">Test Environment</Option>
@@ -117,6 +116,7 @@ const ConfigurationPanel = ({
                       onInputChange("api_version", e.target.value)
                     }
                     hint="Payone API version"
+                    className="payment-input"
                     style={{ flex: 1, minWidth: "300px" }}
                   />
                 </Flex>
@@ -126,7 +126,7 @@ const ConfigurationPanel = ({
         </Box>
 
         <Box paddingTop={6}>
-          <Card style={{ borderRadius: "8px", border: "1px solid #e4e2e7" }}>
+          <Card className="payment-card">
             <CardBody padding={6}>
               <Stack spacing={6}>
                 <Box>
@@ -149,13 +149,7 @@ const ConfigurationPanel = ({
                   onClick={onTestConnection}
                   loading={isTesting}
                   startIcon={<Play />}
-                  style={{
-                    background: "#28a745",
-                    border: "none",
-                    color: "white",
-                    fontWeight: "600",
-                    borderRadius: "8px"
-                  }}
+                  className="payment-button payment-button-success"
                 >
                   {isTesting ? "Testing Connection..." : "Test Connection"}
                 </Button>
@@ -168,12 +162,7 @@ const ConfigurationPanel = ({
                         ? "Connection Successful"
                         : "Connection Failed"
                     }
-                    style={{
-                      borderRadius: "8px",
-                      border: Boolean(testResult.success)
-                        ? "1px solid #d4edda"
-                        : "1px solid #f8d7da"
-                    }}
+                    className="payment-alert"
                   >
                     <Typography
                       variant="pi"
@@ -185,11 +174,7 @@ const ConfigurationPanel = ({
                     {testResult.details && (
                       <Box paddingTop={3}>
                         {Boolean(testResult.success) ? (
-                          <Card
-                            style={{
-                              border: "1px solid #e9ecef"
-                            }}
-                          >
+                          <Card className="payment-card">
                             <CardBody padding={4}>
                               <Typography variant="pi">
                                 <strong>Mode:</strong> {testResult.details.mode}{" "}
@@ -202,12 +187,7 @@ const ConfigurationPanel = ({
                             </CardBody>
                           </Card>
                         ) : (
-                          <Card
-                            style={{
-                              background: "#fff5f5",
-                              border: "1px solid #fed7d7"
-                            }}
-                          >
+                          <Card className="payment-card" style={{ background: "#fff5f5" }}>
                             <CardBody padding={4}>
                               <Stack spacing={2}>
                                 {testResult.errorcode && (

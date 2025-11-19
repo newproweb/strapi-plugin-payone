@@ -29,22 +29,21 @@ const HistoryPanel = ({
 
   return (
     <Box
-      hasRadius
-      shadow="filterShadow"
+      className="payment-container"
       paddingTop={8}
       paddingBottom={8}
       paddingLeft={8}
       paddingRight={8}
-      style={{
-        borderRadius: "12px",
-        boxShadow: "0 4px 20px rgba(0, 0, 0, 0.08)",
-        border: "1px solid #f6f6f9"
-      }}
     >
       <Flex direction="column" alignItems="stretch" gap={8}>
-        <Typography variant="beta" as="h2" marginBottom={2}>
-          Transaction Management
-        </Typography>
+        <Box>
+          <Typography variant="beta" as="h2" className="payment-title" style={{ fontSize: '20px', marginBottom: '4px' }}>
+            Transaction Management
+          </Typography>
+          <Typography variant="pi" textColor="neutral600" className="payment-subtitle" style={{ fontSize: '14px', marginTop: '4px' }}>
+            View and filter all payment transactions processed through Payone
+          </Typography>
+        </Box>
         {/* Filters */}
         <Box>
           <Box marginBottom={4}>
@@ -55,7 +54,7 @@ const HistoryPanel = ({
               Filter transactions by status, type, date range, and more
             </Typography>
           </Box>
-          <Card style={{ borderRadius: "8px", border: "1px solid #e4e2e7" }}>
+          <Card className="payment-card">
             <CardBody padding={6}>
               <Stack spacing={4}>
                 <Flex gap={4} wrap="wrap" alignItems="center">
@@ -65,6 +64,7 @@ const HistoryPanel = ({
                     value={filters.status}
                     onChange={(e) => onFilterChange("status", e.target.value)}
                     placeholder="APPROVED, ERROR, etc."
+                    className="payment-input"
                     style={{ flex: 1, minWidth: "200px" }}
                   />
                   <TextInput
@@ -75,6 +75,7 @@ const HistoryPanel = ({
                       onFilterChange("request_type", e.target.value)
                     }
                     placeholder="preauthorization, authorization, etc."
+                    className="payment-input"
                     style={{ flex: 1, minWidth: "200px" }}
                   />
                   <TextInput
@@ -83,6 +84,7 @@ const HistoryPanel = ({
                     value={filters.txid}
                     onChange={(e) => onFilterChange("txid", e.target.value)}
                     placeholder="Enter TxId"
+                    className="payment-input"
                     style={{ flex: 1, minWidth: "200px" }}
                   />
                   <TextInput
@@ -93,6 +95,7 @@ const HistoryPanel = ({
                       onFilterChange("reference", e.target.value)
                     }
                     placeholder="Enter reference"
+                    className="payment-input"
                     style={{ flex: 1, minWidth: "200px" }}
                   />
                   <TextInput
@@ -104,6 +107,7 @@ const HistoryPanel = ({
                     }
                     placeholder="YYYY-MM-DD"
                     type="date"
+                    className="payment-input"
                     style={{ flex: 1, minWidth: "200px" }}
                   />
                   <TextInput
@@ -113,6 +117,7 @@ const HistoryPanel = ({
                     onChange={(e) => onFilterChange("date_to", e.target.value)}
                     placeholder="YYYY-MM-DD"
                     type="date"
+                    className="payment-input"
                     style={{ flex: 1, minWidth: "200px" }}
                   />
                   <Button
@@ -120,6 +125,7 @@ const HistoryPanel = ({
                     onClick={onFilterApply}
                     loading={isLoadingHistory}
                     startIcon={<Search />}
+                    className="payment-button payment-button-primary"
                   >
                     Apply Filters
                   </Button>
@@ -155,13 +161,7 @@ const HistoryPanel = ({
                 loading={isLoadingHistory}
                 startIcon={<Search />}
                 size="S"
-                style={{
-                  background: "#28a745",
-                  border: "none",
-                  color: "white",
-                  fontWeight: "600",
-                  borderRadius: "8px"
-                }}
+                className="payment-button payment-button-success"
               >
                 Refresh
               </Button>
@@ -189,9 +189,7 @@ const HistoryPanel = ({
 
               {/* Pagination */}
               <Box paddingTop={6} paddingBottom={4}>
-                <Card
-                  style={{ borderRadius: "8px", border: "1px solid #e4e2e7" }}
-                >
+                <Card className="payment-card">
                   <CardBody padding={4}>
                     <Flex justifyContent="space-between" alignItems="center">
                       {transactionHistory.length > pageSize &&
@@ -204,13 +202,10 @@ const HistoryPanel = ({
                               onPageChange(Math.max(1, currentPage - 1))
                             }
                             disabled={currentPage === 1}
+                            className={`payment-button ${currentPage === 1 ? '' : 'payment-button-success'}`}
                             style={{
-                              background:
-                                currentPage === 1 ? "#f6f6f9" : "#28a745",
-                              border: "none",
-                              color: currentPage === 1 ? "#666687" : "white",
-                              fontWeight: "600",
-                              borderRadius: "6px"
+                              background: currentPage === 1 ? "#f6f6f9" : undefined,
+                              color: currentPage === 1 ? "#666687" : undefined
                             }}
                           >
                             ← Previous
@@ -239,18 +234,10 @@ const HistoryPanel = ({
                               )
                             }
                             disabled={currentPage === totalPages}
+                            className={`payment-button ${currentPage === totalPages ? '' : 'payment-button-success'}`}
                             style={{
-                              background:
-                                currentPage === totalPages
-                                  ? "#f6f6f9"
-                                  : "#28a745",
-                              border: "none",
-                              color:
-                                currentPage === totalPages
-                                  ? "#666687"
-                                  : "white",
-                              fontWeight: "600",
-                              borderRadius: "6px"
+                              background: currentPage === totalPages ? "#f6f6f9" : undefined,
+                              color: currentPage === totalPages ? "#666687" : undefined
                             }}
                           >
                             Next →

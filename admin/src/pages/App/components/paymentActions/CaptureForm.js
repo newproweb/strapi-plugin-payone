@@ -11,53 +11,52 @@ const CaptureForm = ({
   onCapture
 }) => {
   return (
-    <Box>
-      <Flex direction="column" alignItems="stretch" gap={4}>
-        <Box>
-          <Typography variant="omega" fontWeight="semiBold" textColor="neutral800">
-            Capture
-          </Typography>
-          <br />
-          <Typography variant="pi" textColor="neutral600" marginTop={1}>
-            Capture a previously authorized amount. Note: Reference parameter is
-            not supported by Payone capture.
-          </Typography>
-        </Box>
+    <Flex direction="column" alignItems="stretch" gap={4}>
+      <Box>
+        <Typography variant="omega" fontWeight="semiBold" textColor="neutral800" className="payment-form-title">
+          Capture
+        </Typography>
+        <Typography variant="pi" textColor="neutral600" className="payment-form-description">
+          Capture a previously authorized amount. Note: Reference parameter is
+          not supported by Payone capture.
+        </Typography>
+      </Box>
 
-        <Flex gap={4}>
-          <TextInput
-            label="Transaction ID"
-            name="captureTxid"
-            value={captureTxid}
-            onChange={(e) => setCaptureTxid(e.target.value)}
-            placeholder="Enter TxId from preauthorization"
-            hint="Transaction ID from a previous preauthorization"
-            style={{ flex: 1 }}
-          />
+      <Flex gap={4} wrap="wrap">
+        <TextInput
+          label="Transaction ID"
+          name="captureTxid"
+          value={captureTxid}
+          onChange={(e) => setCaptureTxid(e.target.value)}
+          placeholder="Enter TxId from preauthorization"
+          hint="Transaction ID from a previous preauthorization"
+          className="payment-input"
+          style={{ flex: 1, minWidth: "250px" }}
+        />
 
-          <TextInput
-            label="Amount (in cents)"
-            name="captureAmount"
-            value={paymentAmount}
-            onChange={(e) => setPaymentAmount(e.target.value)}
-            placeholder="1000"
-            hint="Amount in cents to capture"
-            style={{ flex: 1 }}
-          />
-        </Flex>
-
-        <Button
-          variant="default"
-          onClick={onCapture}
-          loading={isProcessingPayment}
-          startIcon={<Play />}
-          fullWidth={false}
-          disabled={!captureTxid.trim() || !paymentAmount.trim()}
-        >
-          Process Capture
-        </Button>
+        <TextInput
+          label="Amount (in cents)"
+          name="captureAmount"
+          value={paymentAmount}
+          onChange={(e) => setPaymentAmount(e.target.value)}
+          placeholder="1000"
+          hint="Amount in cents to capture"
+          className="payment-input"
+          style={{ flex: 1, minWidth: "250px" }}
+        />
       </Flex>
-    </Box>
+
+      <Button
+        variant="default"
+        onClick={onCapture}
+        loading={isProcessingPayment}
+        startIcon={<Play />}
+        className="payment-button payment-button-primary"
+        disabled={!captureTxid.trim() || !paymentAmount.trim()}
+      >
+        Process Capture
+      </Button>
+    </Flex>
   );
 };
 

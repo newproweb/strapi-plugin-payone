@@ -75,6 +75,7 @@ const TransactionHistoryItem = ({ transaction }) => {
 
   return (
     <Card
+      className="payment-transaction-item"
       background="neutral0"
       hasRadius
       shadow="filterShadow"
@@ -147,6 +148,7 @@ const TransactionHistoryItem = ({ transaction }) => {
             size="S"
             onClick={() => setIsExpanded(!isExpanded)}
             startIcon={isExpanded ? <ChevronUpIcon size={16} /> : <ChevronDownIcon size={16} />}
+            className="payment-button payment-button-primary"
           >
             {isExpanded ? 'Hide Details' : 'Show Details'}
           </Button>
@@ -154,7 +156,7 @@ const TransactionHistoryItem = ({ transaction }) => {
 
         {/* Expanded Details */}
         {isExpanded && (
-          <Box marginTop={4}>
+          <Box marginTop={4} style={{ animation: 'fadeIn 0.3s ease-out' }}>
             <Stack spacing={4}>
               {/* Error Message */}
               {transaction.status === 'ERROR' && (
@@ -163,6 +165,7 @@ const TransactionHistoryItem = ({ transaction }) => {
                   padding={3}
                   background="danger100"
                   hasRadius
+                  className="payment-alert"
                   style={{
                     border: '1px solid',
                     borderColor: 'var(--strapi-colors-danger200)',

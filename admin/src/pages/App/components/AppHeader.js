@@ -7,10 +7,10 @@ const AppHeader = ({ activeTab, isSaving, onSave }) => {
     <HeaderLayout
       title={
         <Box>
-          <Typography variant="alpha" as="h1" fontWeight="bold">
+          <Typography variant="alpha" as="h1" fontWeight="bold" className="payment-title">
             Payone Provider
           </Typography>
-          <Typography variant="pi" marginTop={2}>
+          <Typography variant="pi" marginTop={2} className="payment-subtitle">
             Configure your Payone integration and manage payment transactions
           </Typography>
         </Box>
@@ -23,12 +23,7 @@ const AppHeader = ({ activeTab, isSaving, onSave }) => {
             startIcon={<Check />}
             size="L"
             variant="default"
-            style={{
-              background: "#28a745",
-              border: "none",
-              borderRadius: "8px",
-              fontWeight: "600"
-            }}
+            className="payment-button payment-button-success"
           >
             Save Configuration
           </Button>

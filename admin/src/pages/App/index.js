@@ -5,6 +5,7 @@ import useTransactionHistory from "../hooks/useTransactionHistory";
 import usePaymentActions from "../hooks/usePaymentActions";
 import AppHeader from "./components/AppHeader";
 import AppTabs from "./components/AppTabs";
+import "./styles.css";
 
 const App = () => {
   const [activeTab, setActiveTab] = useState(0);

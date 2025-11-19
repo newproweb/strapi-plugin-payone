@@ -1,5 +1,5 @@
 import React from "react";
-import { Box, Flex, Select, Option, Typography } from "@strapi/design-system";
+import { Box, Flex, Select, Option } from "@strapi/design-system";
 import {
   getPaymentMethodOptions,
   supportsCaptureMode,
@@ -50,4 +50,3 @@ const PaymentMethodSelector = ({
 };
 
 export default PaymentMethodSelector;
-

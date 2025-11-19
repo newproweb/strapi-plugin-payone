@@ -1,5 +1,5 @@
 import React from "react";
-import { Box, Divider, Flex, Typography } from "@strapi/design-system";
+import { Box, Flex, Typography } from "@strapi/design-system";
 import PaymentMethodSelector from "./paymentActions/PaymentMethodSelector";
 import PreauthorizationForm from "./paymentActions/PreauthorizationForm";
 import AuthorizationForm from "./paymentActions/AuthorizationForm";
@@ -36,18 +36,21 @@ const PaymentActionsPanel = ({
 }) => {
   return (
     <Box
-      background="neutral0"
-      hasRadius
-      shadow="filterShadow"
-      paddingTop={6}
-      paddingBottom={6}
-      paddingLeft={7}
-      paddingRight={7}
+      className="payment-container"
+      paddingTop={8}
+      paddingBottom={8}
+      paddingLeft={8}
+      paddingRight={8}
     >
       <Flex direction="column" alignItems="stretch" gap={6}>
-        <Typography variant="beta" as="h2">
-          Payment Actions
-        </Typography>
+        <Box>
+          <Typography variant="beta" as="h2" className="payment-title" style={{ fontSize: '20px', marginBottom: '4px' }}>
+            Payment Actions
+          </Typography>
+          <Typography variant="pi" textColor="neutral600" className="payment-subtitle" style={{ fontSize: '14px' }}>
+            Process payments, captures, and refunds with multiple payment methods
+          </Typography>
+        </Box>
 
         <PaymentMethodSelector
           paymentMethod={paymentMethod}
@@ -56,55 +59,63 @@ const PaymentActionsPanel = ({
           setCaptureMode={setCaptureMode}
         />
 
-        <Divider />
+        <hr className="payment-divider" />
 
-        <PreauthorizationForm
-          paymentAmount={paymentAmount}
-          setPaymentAmount={setPaymentAmount}
-          preauthReference={preauthReference}
-          setPreauthReference={setPreauthReference}
-          isProcessingPayment={isProcessingPayment}
-          onPreauthorization={onPreauthorization}
-        />
+        <Box className="payment-form-section">
+          <PreauthorizationForm
+            paymentAmount={paymentAmount}
+            setPaymentAmount={setPaymentAmount}
+            preauthReference={preauthReference}
+            setPreauthReference={setPreauthReference}
+            isProcessingPayment={isProcessingPayment}
+            onPreauthorization={onPreauthorization}
+          />
+        </Box>
 
-        <Divider />
+        <hr className="payment-divider" />
 
-        <AuthorizationForm
-          paymentAmount={paymentAmount}
-          setPaymentAmount={setPaymentAmount}
-          authReference={authReference}
-          setAuthReference={setAuthReference}
-          isProcessingPayment={isProcessingPayment}
-          onAuthorization={onAuthorization}
-        />
+        <Box className="payment-form-section">
+          <AuthorizationForm
+            paymentAmount={paymentAmount}
+            setPaymentAmount={setPaymentAmount}
+            authReference={authReference}
+            setAuthReference={setAuthReference}
+            isProcessingPayment={isProcessingPayment}
+            onAuthorization={onAuthorization}
+          />
+        </Box>
 
-        <Divider />
+        <hr className="payment-divider" />
 
-        <CaptureForm
-          paymentAmount={paymentAmount}
-          setPaymentAmount={setPaymentAmount}
-          captureTxid={captureTxid}
-          setCaptureTxid={setCaptureTxid}
-          isProcessingPayment={isProcessingPayment}
-          onCapture={onCapture}
-        />
+        <Box className="payment-form-section">
+          <CaptureForm
+            paymentAmount={paymentAmount}
+            setPaymentAmount={setPaymentAmount}
+            captureTxid={captureTxid}
+            setCaptureTxid={setCaptureTxid}
+            isProcessingPayment={isProcessingPayment}
+            onCapture={onCapture}
+          />
+        </Box>
 
-        <Divider />
+        <hr className="payment-divider" />
 
-        <RefundForm
-          paymentAmount={paymentAmount}
-          setPaymentAmount={setPaymentAmount}
-          refundTxid={refundTxid}
-          setRefundTxid={setRefundTxid}
-          refundSequenceNumber={refundSequenceNumber}
-          setRefundSequenceNumber={setRefundSequenceNumber}
-          refundReference={refundReference}
-          setRefundReference={setRefundReference}
-          isProcessingPayment={isProcessingPayment}
-          onRefund={onRefund}
-        />
+        <Box className="payment-form-section">
+          <RefundForm
+            paymentAmount={paymentAmount}
+            setPaymentAmount={setPaymentAmount}
+            refundTxid={refundTxid}
+            setRefundTxid={setRefundTxid}
+            refundSequenceNumber={refundSequenceNumber}
+            setRefundSequenceNumber={setRefundSequenceNumber}
+            refundReference={refundReference}
+            setRefundReference={setRefundReference}
+            isProcessingPayment={isProcessingPayment}
+            onRefund={onRefund}
+          />
+        </Box>
 
-        <Divider />
+        <hr className="payment-divider" />
 
         <PaymentResult
           paymentError={paymentError}

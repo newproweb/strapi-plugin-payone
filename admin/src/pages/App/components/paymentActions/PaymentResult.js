@@ -20,17 +20,21 @@ const PaymentResult = ({ paymentError, paymentResult }) => {
   return (
     <>
       {paymentError && (
-        <Alert variant="danger" title="Error">
+        <Alert 
+          variant="danger" 
+          title="Error"
+          className="payment-alert"
+        >
           {paymentError}
         </Alert>
       )}
 
       {paymentResult && (
-        <Card>
+        <Card className="payment-result-card">
           <CardBody>
             <Stack spacing={4}>
               <Flex justifyContent="space-between" alignItems="center">
-                <Typography variant="delta" as="h3">
+                <Typography variant="delta" as="h3" className="payment-section-title">
                   Payment Result
                 </Typography>
                 {paymentResult.Status && (
@@ -38,7 +42,7 @@ const PaymentResult = ({ paymentError, paymentResult }) => {
                 )}
               </Flex>
 
-              <Divider />
+              <hr className="payment-divider" style={{ margin: '16px 0' }} />
 
               <Box>
                 <Stack spacing={3}>
@@ -47,17 +51,21 @@ const PaymentResult = ({ paymentError, paymentResult }) => {
                       key={index}
                       justifyContent="space-between"
                       alignItems="start"
+                      style={{
+                        padding: '8px 0',
+                        borderBottom: index < formatTransactionData(paymentResult).length - 1 ? '1px solid #e8e8ea' : 'none'
+                      }}
                     >
                       <Typography
                         variant="pi"
                         textColor="neutral600"
-                        style={{ minWidth: "200px" }}
+                        style={{ minWidth: "200px", fontWeight: '500' }}
                       >
                         {item.key}:
                       </Typography>
                       <Typography
                         variant="pi"
-                        style={{ flex: 1, textAlign: "right" }}
+                        style={{ flex: 1, textAlign: "right", fontWeight: '400' }}
                       >
                         {item.value}
                       </Typography>

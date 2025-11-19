@@ -1,0 +1,294 @@
+/* Payment System UI - Minimalistic & Professional Styles */
+
+/* ===== Global Animations ===== */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-12px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes pulse {
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.7;
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -1000px 0;
+  }
+
+  100% {
+    background-position: 1000px 0;
+  }
+}
+
+/* ===== Container Styles ===== */
+
+/* ===== Card Styles ===== */
+.payment-card {
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+
+/* ===== Button Styles ===== */
+.payment-button {
+  border-radius: 8px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  border: none !important;
+}
+
+.payment-button-primary {
+  background: linear-gradient(135deg, #4945ff 0%, #7b3af4 100%);
+  color: white;
+}
+
+
+.payment-button-success {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+}
+
+.payment-button-primary:hover {
+  background: linear-gradient(135deg, #4945ff 0%, #7b3af4 100%);
+  color: white;
+}
+
+
+.payment-button-success:hover {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+}
+
+
+/* ===== Input Styles ===== */
+.payment-input {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 8px;
+}
+
+.payment-input:focus-within {
+  border-color: #4945ff;
+  box-shadow: 0 0 0 3px rgba(73, 69, 255, 0.1);
+}
+
+/* ===== Tab Styles ===== */
+.payment-tab {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  padding: 12px 20px;
+  font-weight: 500;
+  color: #6b7280;
+}
+
+.payment-tab:hover {
+  color: #4945ff;
+}
+
+.payment-tab-active {
+  color: #4945ff;
+  font-weight: 600;
+}
+
+.payment-tab-active::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, #4945ff 0%, #7b3af4 100%);
+  animation: slideIn 0.3s ease-out;
+}
+
+/* ===== Form Section Styles ===== */
+.payment-form-section {
+  animation: fadeIn 0.5s ease-out;
+  padding: 24px;
+  margin-bottom: 20px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.payment-form-section:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.payment-form-title {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  letter-spacing: -0.01em;
+}
+
+.payment-form-description {
+  font-size: 13px;
+  line-height: 1.5;
+  margin-top: 8px;
+  margin-bottom: 20px;
+}
+
+/* ===== Divider Styles ===== */
+.payment-divider {
+  border: none;
+  height: 1px;
+  background: linear-gradient(90deg, transparent 0%, #e8e8ea 20%, #e8e8ea 80%, transparent 100%);
+  margin: 32px 0;
+  animation: fadeIn 0.4s ease-out;
+}
+
+/* ===== Status Badge Styles ===== */
+.payment-status-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  animation: fadeIn 0.3s ease-out;
+  transition: all 0.2s ease;
+}
+
+.payment-status-badge:hover {
+  transform: scale(1.05);
+}
+
+/* ===== Loading States ===== */
+.payment-loading {
+  position: relative;
+  overflow: hidden;
+}
+
+.payment-loading::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg,
+      transparent,
+      rgba(255, 255, 255, 0.4),
+      transparent);
+  animation: shimmer 1.5s infinite;
+}
+
+/* ===== Alert/Notification Styles ===== */
+.payment-alert {
+  animation: slideIn 0.3s ease-out;
+  transition: all 0.2s ease;
+}
+
+.payment-alert:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+/* ===== Result Card Styles ===== */
+.payment-result-card {
+  animation: fadeIn 0.5s ease-out;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.payment-result-card:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  transform: translateY(-2px);
+}
+
+/* ===== Transaction Item Styles ===== */
+.payment-transaction-item {
+  margin-bottom: 12px;
+  animation: fadeIn 0.4s ease-out;
+  cursor: pointer;
+}
+
+.payment-transaction-item:hover {
+  box-shadow: 0 4px 12px rgba(73, 69, 255, 0.1);
+}
+
+/* ===== Typography Styles ===== */
+.payment-title {
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin-bottom: 8px;
+  animation: fadeIn 0.4s ease-out;
+}
+
+.payment-subtitle {
+  font-size: 15px;
+  line-height: 1.6;
+  animation: fadeIn 0.5s ease-out;
+}
+
+.payment-section-title {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 4px;
+  letter-spacing: -0.01em;
+}
+
+/* ===== Grid & Layout ===== */
+.payment-grid {
+  display: grid;
+  gap: 20px;
+  animation: fadeIn 0.5s ease-out;
+}
+
+.payment-grid-2 {
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+}
+
+.payment-grid-3 {
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+}
+
+/* ===== Smooth Transitions ===== */
+
+/* ===== Focus States ===== */
+.payment-focus:focus-visible {
+  outline: 2px solid #4945ff;
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 768px) {
+  .payment-container {
+    border-radius: 12px;
+    padding: 16px;
+  }
+
+  .payment-form-section {
+    padding: 16px;
+  }
+
+  .payment-grid-2,
+  .payment-grid-3 {
+    grid-template-columns: 1fr;
+  }
+}

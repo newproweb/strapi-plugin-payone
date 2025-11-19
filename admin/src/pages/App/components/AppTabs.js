@@ -32,20 +32,27 @@ const AppTabs = ({
   // Payment actions props
   paymentActions
 }) => {
-  const tabStyle = (index) => ({
-    fontWeight: activeTab === index ? "600" : "400",
-    color: activeTab === index ? "#4945ff" : "#666687"
-  });
-
   return (
     <TabGroup
       label="Payone Provider Tabs"
       onTabChange={(index) => setActiveTab(index)}
     >
-      <Tabs style={{ borderBottom: "2px solid #f6f6f9" }}>
-        <Tab style={tabStyle(0)}>Configuration</Tab>
-        <Tab style={tabStyle(1)}>Transaction History</Tab>
-        <Tab style={tabStyle(2)}>Payment Actions</Tab>
+      <Tabs style={{ borderBottom: "2px solid #e8e8ea" }}>
+        <Tab
+          className={`payment-tab ${activeTab === 0 ? 'payment-tab-active' : ''}`}
+        >
+          Configuration
+        </Tab>
+        <Tab
+          className={`payment-tab ${activeTab === 1 ? 'payment-tab-active' : ''}`}
+        >
+          Transaction History
+        </Tab>
+        <Tab
+          className={`payment-tab ${activeTab === 2 ? 'payment-tab-active' : ''}`}
+        >
+          Payment Actions
+        </Tab>
       </Tabs>
       <TabPanels>
         <TabPanel>
