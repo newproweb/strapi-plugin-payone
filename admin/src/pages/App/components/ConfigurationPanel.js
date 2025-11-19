@@ -36,7 +36,7 @@ const ConfigurationPanel = ({
           <Typography variant="beta" as="h2" fontWeight="bold" className="payment-title" style={{ fontSize: '20px', marginBottom: '4px' }}>
             Payone API Configuration
           </Typography>
-          <Typography variant="pi" marginTop={2} className="payment-subtitle" style={{ fontSize: '14px' }}>
+          <Typography variant="pi" textColor="neutral600" marginTop={2} className="payment-subtitle" style={{ fontSize: '14px' }}>
             Configure your Payone payment gateway settings
           </Typography>
         </Box>
@@ -119,6 +119,25 @@ const ConfigurationPanel = ({
                     className="payment-input"
                     style={{ flex: 1, minWidth: "300px" }}
                   />
+                </Flex>
+
+                <Flex direction="column" wrap="wrap" gap={1} alignItems="flex-start">
+                  <Select
+                    label="Enable 3D Secure"
+                    name="enable3DSecure"
+                    value={settings.enable3DSecure ? "yes" : "no"}
+                    onChange={(value) =>
+                      onInputChange("enable3DSecure", value === "yes")
+                    }
+                    hint="Enable 3D Secure authentication for credit card payments"
+                    className="payment-input"
+                  >
+                    <Option value="yes">Enabled</Option>
+                    <Option value="no">Disabled</Option>
+                  </Select>
+                  <Typography variant="pi" textColor="neutral600" marginTop={1}>
+                    When enabled, credit card payments will require 3D Secure authentication (SCA compliance)
+                  </Typography>
                 </Flex>
               </Stack>
             </CardBody>

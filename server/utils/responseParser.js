@@ -47,8 +47,34 @@ const extractTxId = (data) => {
   );
 };
 
+/**
+ * Check if response requires 3D Secure redirect
+ * @param {Object} data - Response data
+ * @returns {boolean} True if 3DS redirect is required
+ */
+const requires3DSRedirect = (data) => {
+  const status = (data.status || data.Status || "").toUpperCase();
+  const redirecturl = data.redirecturl || data.RedirectUrl || data.redirect_url;
+
+  return status === "REDIRECT" && !!redirecturl;
+};
+
+/**
+ * Extract 3D Secure redirect URL from response
+ * @param {Object} data - Response data
+ * @returns {string|null} Redirect URL
+ */
+const get3DSRedirectUrl = (data) => {
+  if (requires3DSRedirect(data)) {
+    return data.redirecturl || data.RedirectUrl || data.redirect_url || null;
+  }
+  return null;
+};
+
 module.exports = {
   parseResponse,
-  extractTxId
+  extractTxId,
+  requires3DSRedirect,
+  get3DSRedirectUrl
 };
 

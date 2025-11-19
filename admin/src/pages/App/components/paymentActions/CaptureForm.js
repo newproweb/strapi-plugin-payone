@@ -12,7 +12,7 @@ const CaptureForm = ({
 }) => {
   return (
     <Flex direction="column" alignItems="stretch" gap={4}>
-      <Box>
+      <Flex direction="row" gap={2}>
         <Typography variant="omega" fontWeight="semiBold" textColor="neutral800" className="payment-form-title">
           Capture
         </Typography>
@@ -20,7 +20,7 @@ const CaptureForm = ({
           Capture a previously authorized amount. Note: Reference parameter is
           not supported by Payone capture.
         </Typography>
-      </Box>
+      </Flex>
 
       <Flex gap={4} wrap="wrap">
         <TextInput

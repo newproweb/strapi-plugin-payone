@@ -12,14 +12,14 @@ const AuthorizationForm = ({
 }) => {
   return (
     <Flex direction="column" alignItems="stretch" gap={4}>
-      <Box>
+      <Flex direction="row" gap={2}>
         <Typography variant="omega" fontWeight="semiBold" textColor="neutral800" className="payment-form-title">
           Authorization
         </Typography>
         <Typography variant="pi" textColor="neutral600" className="payment-form-description">
           Authorize and capture an amount immediately.
         </Typography>
-      </Box>
+      </Flex>
 
       <Flex gap={4} wrap="wrap">
         <TextInput

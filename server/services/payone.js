@@ -47,5 +47,10 @@ module.exports = ({ strapi }) => ({
   // Test connection
   async testConnection() {
     return await testConnectionService.testConnection(strapi);
+  },
+
+  // 3D Secure callback handler
+  async handle3DSCallback(callbackData) {
+    return await paymentService.handle3DSCallback(strapi, callbackData);
   }
 });

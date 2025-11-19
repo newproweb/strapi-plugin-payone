@@ -10,7 +10,8 @@ const useSettings = () => {
     mid: "",
     key: "",
     mode: "test",
-    api_version: "3.10"
+    api_version: "3.10",
+    enable3DSecure: false
   });
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);

@@ -69,6 +69,16 @@ const payoneRequests = {
         "Content-Type": "application/json"
       }
     });
+  },
+
+  handle3DSCallback: (data) => {
+    return request(`/${pluginId}/3ds-callback`, {
+      method: "POST",
+      body: data,
+      headers: {
+        "Content-Type": "application/json"
+      }
+    });
   }
 };
 

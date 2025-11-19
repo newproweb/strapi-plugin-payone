@@ -16,14 +16,14 @@ const RefundForm = ({
 }) => {
   return (
     <Flex direction="column" alignItems="stretch" gap={4}>
-      <Box>
+      <Flex direction="row" gap={2}>
         <Typography variant="omega" fontWeight="semiBold" textColor="neutral800" className="payment-form-title">
           Refund
         </Typography>
         <Typography variant="pi" textColor="neutral600" className="payment-form-description">
           Refund a previously captured amount.
         </Typography>
-      </Box>
+      </Flex>
 
       <Flex gap={4} wrap="wrap">
         <TextInput

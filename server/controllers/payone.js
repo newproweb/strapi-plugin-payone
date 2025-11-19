@@ -119,5 +119,23 @@ module.exports = ({ strapi }) => ({
     } catch (error) {
       handleError(ctx, error);
     }
+  },
+
+  /**
+   * Handle 3D Secure callback from Payone
+   * This endpoint receives the callback after customer completes 3DS authentication
+   */
+  async handle3DSCallback(ctx) {
+    try {
+      strapi.log.info("3DS callback received:", ctx.request.body);
+
+      const callbackData = ctx.request.body;
+      const result = await getPayoneService(strapi).handle3DSCallback(callbackData);
+
+      ctx.body = { data: result };
+    } catch (error) {
+      strapi.log.error("3DS callback error:", error);
+      handleError(ctx, error);
+    }
   }
 });

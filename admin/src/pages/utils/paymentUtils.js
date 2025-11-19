@@ -205,11 +205,19 @@ export const getPreauthorizationParams = (paymentMethod, options = {}) => {
   const baseParams = getBaseParams(options);
   const methodParams = getPaymentMethodParams(paymentMethod, options);
 
-  return {
+  const params = {
     ...baseParams,
     ...methodParams,
     request: "preauthorization" // Required for Payone API
   };
+
+  // Add 3D Secure parameters for credit card payments if enabled
+  if (paymentMethod === "cc" && options.enable3DSecure !== false) {
+    params["3dsecure"] = "yes";
+    params.ecommercemode = options.ecommercemode || "internet";
+  }
+
+  return params;
 };
 
 /**
@@ -223,11 +231,19 @@ export const getAuthorizationParams = (paymentMethod, options = {}) => {
   const baseParams = getBaseParams(options);
   const methodParams = getPaymentMethodParams(paymentMethod, options);
 
-  return {
+  const params = {
     ...baseParams,
     ...methodParams,
     request: "authorization" // Required for Payone API
   };
+
+  // Add 3D Secure parameters for credit card payments if enabled
+  if (paymentMethod === "cc" && options.enable3DSecure !== false) {
+    params["3dsecure"] = "yes";
+    params.ecommercemode = options.ecommercemode || "internet";
+  }
+
+  return params;
 };
 
 /**

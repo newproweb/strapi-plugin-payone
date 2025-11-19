@@ -4,7 +4,7 @@ const axios = require("axios");
 const { normalizeReference } = require("../utils/normalize");
 const { buildClientRequestParams, toFormData } = require("../utils/requestBuilder");
 const { addPaymentMethodParams } = require("../utils/paymentMethodParams");
-const { parseResponse, extractTxId } = require("../utils/responseParser");
+const { parseResponse, extractTxId, requires3DSRedirect, get3DSRedirectUrl } = require("../utils/responseParser");
 const { getSettings, validateSettings } = require("./settingsService");
 const { logTransaction } = require("./transactionService");
 
@@ -49,6 +49,34 @@ const sendRequest = async (strapi, params) => {
     });
 
     const responseData = parseResponse(response.data, strapi.log);
+
+    // Log response for debugging
+    strapi.log.info("Payone API Response:", {
+      status: responseData.status || responseData.Status,
+      txid: responseData.txid || responseData.TxId,
+      redirecturl: responseData.redirecturl || responseData.RedirectUrl,
+      hasError: !!responseData.Error,
+      errorCode: responseData.Error?.ErrorCode,
+      errorMessage: responseData.Error?.ErrorMessage
+    });
+
+    // Check if 3DS redirect is required
+    if (requires3DSRedirect(responseData)) {
+      const redirectUrl = get3DSRedirectUrl(responseData);
+      responseData.requires3DSRedirect = true;
+      responseData.redirectUrl = redirectUrl;
+      strapi.log.info("🔐 3DS redirect required:", redirectUrl);
+    } else {
+      strapi.log.info("ℹ️ No 3DS redirect required. Response status:", responseData.status || responseData.Status);
+      // Log why 3DS redirect was not required
+      const status = (responseData.status || responseData.Status || "").toUpperCase();
+      const redirecturl = responseData.redirecturl || responseData.RedirectUrl;
+      strapi.log.info("3DS Redirect Check:", {
+        status,
+        redirecturl: redirecturl || "not provided",
+        requiresRedirect: status === "REDIRECT" && !!redirecturl
+      });
+    }
 
     // Log transaction
     await logTransaction(strapi, {
@@ -172,11 +200,59 @@ const refund = async (strapi, params) => {
   return await sendRequest(strapi, requiredParams);
 };
 
+/**
+ * Handle 3D Secure callback from Payone
+ * This processes the callback after customer completes 3DS authentication
+ * @param {Object} strapi - Strapi instance
+ * @param {Object} callbackData - Callback data from Payone
+ * @returns {Promise<Object>} Processed callback result
+ */
+const handle3DSCallback = async (strapi, callbackData) => {
+  try {
+    strapi.log.info("Processing 3DS callback:", callbackData);
+
+    // Parse callback data
+    const parsedData = parseResponse(callbackData, strapi.log);
+
+    // Extract transaction information
+    const txid = extractTxId(parsedData);
+    const status = parsedData.status || parsedData.Status || "unknown";
+    const reference = parsedData.reference || parsedData.Reference || null;
+
+    // Log the callback transaction
+    await logTransaction(strapi, {
+      txid: txid || null,
+      reference: reference || null,
+      status: status,
+      request_type: "3ds_callback",
+      amount: parsedData.amount || null,
+      currency: parsedData.currency || "EUR",
+      raw_request: callbackData,
+      raw_response: parsedData,
+      error_code: parsedData.Error?.ErrorCode || null,
+      error_message: parsedData.Error?.ErrorMessage || null,
+      customer_message: parsedData.Error?.CustomerMessage || null
+    });
+
+    return {
+      success: status.toUpperCase() === "APPROVED" || status.toUpperCase() === "REDIRECT",
+      status: status,
+      txid: txid,
+      reference: reference,
+      data: parsedData
+    };
+  } catch (error) {
+    strapi.log.error("3DS callback processing error:", error);
+    throw error;
+  }
+};
+
 module.exports = {
   sendRequest,
   preauthorization,
   authorization,
   capture,
-  refund
+  refund,
+  handle3DSCallback
 };
 

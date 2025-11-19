@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNotification } from "@strapi/helper-plugin";
 import payoneRequests from "../utils/api";
 import {
@@ -11,6 +11,24 @@ import { DEFAULT_PAYMENT_DATA } from "../constants/paymentConstants";
 
 const usePaymentActions = () => {
   const toggleNotification = useNotification();
+
+  // Load settings to get enable3DSecure value
+  const [settings, setSettings] = useState({ enable3DSecure: false });
+
+  useEffect(() => {
+    const loadSettings = async () => {
+      try {
+        const response = await payoneRequests.getSettings();
+        if (response?.data) {
+          setSettings(response.data);
+          console.log("📋 Settings loaded:", { enable3DSecure: response.data.enable3DSecure });
+        }
+      } catch (error) {
+        console.error("Failed to load settings:", error);
+      }
+    };
+    loadSettings();
+  }, []);
 
   // Payment form state
   const [paymentAmount, setPaymentAmount] = useState("1000");
@@ -52,15 +70,60 @@ const usePaymentActions = () => {
     setPaymentError(null);
     setPaymentResult(null);
     try {
-      const params = getPreauthorizationParams(paymentMethod, {
+      // Build base params
+      const baseParams = {
         amount: parseInt(paymentAmount),
         currency: "EUR",
         reference: preauthReference || `PREAUTH-${Date.now()}`,
+        enable3DSecure: settings.enable3DSecure !== false, // Use settings value
         ...DEFAULT_PAYMENT_DATA
-      });
+      };
+
+      // Add redirect URLs only if 3DS is enabled for credit card payments
+      // or for redirect-based payment methods (PayPal, Google Pay, Apple Pay, Sofort)
+      const needsRedirectUrls =
+        (paymentMethod === "cc" && settings.enable3DSecure !== false) ||
+        ["wlt", "gpp", "apl", "sb"].includes(paymentMethod);
+
+      if (needsRedirectUrls) {
+        // Use current window location as base for admin panel testing
+        const baseUrl = window.location.origin;
+        baseParams.successurl = `${baseUrl}/api/strapi-plugin-payone-provider/payment/success`;
+        baseParams.errorurl = `${baseUrl}/api/strapi-plugin-payone-provider/payment/error`;
+        baseParams.backurl = `${baseUrl}/api/strapi-plugin-payone-provider/payment/back`;
+      }
+
+      const params = getPreauthorizationParams(paymentMethod, baseParams);
+
+      console.log("🔐 3DS setting:", settings.enable3DSecure);
+      console.log("🔗 Redirect URLs needed:", needsRedirectUrls);
+      console.log("📋 Preauthorization params:", params);
 
       const result = await payoneRequests.preauthorization(params);
-      setPaymentResult(result);
+      const responseData = result?.data || result;
+
+      console.log("📥 Preauthorization response:", responseData);
+      console.log("🔍 Checking for 3DS redirect:", {
+        requires3DSRedirect: responseData.requires3DSRedirect,
+        redirectUrl: responseData.redirectUrl,
+        status: responseData.status,
+        redirecturl: responseData.redirecturl
+      });
+
+      // Check if 3DS redirect is required (check multiple possible field names)
+      const redirectUrl = responseData.redirectUrl || responseData.redirecturl || responseData.RedirectUrl;
+      const needsRedirect = responseData.requires3DSRedirect ||
+        (responseData.status === "REDIRECT" && redirectUrl) ||
+        (responseData.Status === "REDIRECT" && redirectUrl);
+
+      if (needsRedirect && redirectUrl) {
+        console.log("🔐 3DS redirect required, redirecting to:", redirectUrl);
+        // Redirect to 3DS authentication page
+        window.location.href = redirectUrl;
+        return; // Don't set result or show success message yet
+      }
+
+      setPaymentResult(responseData);
       handlePaymentSuccess("Preauthorization completed successfully");
     } catch (error) {
       handlePaymentError(error, "Preauthorization failed");
@@ -81,20 +144,61 @@ const usePaymentActions = () => {
     setPaymentResult(null);
 
     try {
-      const params = getAuthorizationParams(paymentMethod, {
+      // Build base params
+      const baseParams = {
         amount: parseInt(paymentAmount),
         currency: "EUR",
         reference: authReference || `AUTH-${Date.now()}`,
+        enable3DSecure: settings.enable3DSecure !== false, // Use settings value
         ...DEFAULT_PAYMENT_DATA
-      });
+      };
 
+      // Add redirect URLs only if 3DS is enabled for credit card payments
+      // or for redirect-based payment methods (PayPal, Google Pay, Apple Pay, Sofort)
+      const needsRedirectUrls =
+        (paymentMethod === "cc" && settings.enable3DSecure !== false) ||
+        ["wlt", "gpp", "apl", "sb"].includes(paymentMethod);
+
+      if (needsRedirectUrls) {
+        // Use current window location as base for admin panel testing
+        const baseUrl = window.location.origin;
+        baseParams.successurl = `${baseUrl}/api/strapi-plugin-payone-provider/payment/success`;
+        baseParams.errorurl = `${baseUrl}/api/strapi-plugin-payone-provider/payment/error`;
+        baseParams.backurl = `${baseUrl}/api/strapi-plugin-payone-provider/payment/back`;
+      }
+
+      const params = getAuthorizationParams(paymentMethod, baseParams);
+
+      console.log("🔐 3DS setting:", settings.enable3DSecure);
+      console.log("🔗 Redirect URLs needed:", needsRedirectUrls);
       console.log("📤 Authorization params:", params);
       console.log("📡 Sending authorization request...");
 
       const result = await payoneRequests.authorization(params);
+      const responseData = result?.data || result;
 
-      console.log("✅ Authorization result:", result);
-      setPaymentResult(result);
+      console.log("✅ Authorization result:", responseData);
+      console.log("🔍 Checking for 3DS redirect:", {
+        requires3DSRedirect: responseData.requires3DSRedirect,
+        redirectUrl: responseData.redirectUrl,
+        status: responseData.status,
+        redirecturl: responseData.redirecturl
+      });
+
+      // Check if 3DS redirect is required (check multiple possible field names)
+      const redirectUrl = responseData.redirectUrl || responseData.redirecturl || responseData.RedirectUrl;
+      const needsRedirect = responseData.requires3DSRedirect ||
+        (responseData.status === "REDIRECT" && redirectUrl) ||
+        (responseData.Status === "REDIRECT" && redirectUrl);
+
+      if (needsRedirect && redirectUrl) {
+        console.log("🔐 3DS redirect required, redirecting to:", redirectUrl);
+        // Redirect to 3DS authentication page
+        window.location.href = redirectUrl;
+        return; // Don't set result or show success message yet
+      }
+
+      setPaymentResult(responseData);
       handlePaymentSuccess("Authorization completed successfully");
     } catch (error) {
       console.error("❌ Authorization error:", error);

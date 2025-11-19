@@ -67,6 +67,14 @@ module.exports = {
         config: {
           policies: ["admin::isAuthenticatedAdmin"]
         }
+      },
+      {
+        method: "POST",
+        path: "/3ds-callback",
+        handler: "payone.handle3DSCallback",
+        config: {
+          policies: ["admin::isAuthenticatedAdmin"]
+        }
       }
     ]
   },
@@ -114,6 +122,15 @@ module.exports = {
         method: "POST",
         path: "/test-connection",
         handler: "payone.testConnection",
+        config: {
+          policies: ["plugin::strapi-plugin-payone-provider.is-auth"],
+          auth: false
+        }
+      },
+      {
+        method: "POST",
+        path: "/3ds-callback",
+        handler: "payone.handle3DSCallback",
         config: {
           policies: ["plugin::strapi-plugin-payone-provider.is-auth"],
           auth: false
