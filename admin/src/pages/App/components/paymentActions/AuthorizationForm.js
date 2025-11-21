@@ -1,6 +1,7 @@
 import React from "react";
 import { Box, Flex, Typography, TextInput, Button } from "@strapi/design-system";
 import { Play } from "@strapi/icons";
+import GooglePayButton from "../GooglePaybutton";
 
 const AuthorizationForm = ({
   paymentAmount,
@@ -8,8 +9,25 @@ const AuthorizationForm = ({
   authReference,
   setAuthReference,
   isProcessingPayment,
-  onAuthorization
+  onAuthorization,
+  paymentMethod,
+  settings,
+  googlePayToken,
+  setGooglePayToken
 }) => {
+  const handleGooglePayToken = (token, paymentData) => {
+    if (!token) {
+      return;
+    }
+    setGooglePayToken(token);
+    onAuthorization(token);
+  };
+
+  const handleGooglePayError = (error) => {
+    if (onError) {
+      onError(error);
+    }
+  };
   return (
     <Flex direction="column" alignItems="stretch" gap={4}>
       <Flex direction="row" gap={2}>
@@ -47,16 +65,26 @@ const AuthorizationForm = ({
         />
       </Flex>
 
-      <Button
-        variant="default"
-        onClick={onAuthorization}
-        loading={isProcessingPayment}
-        startIcon={<Play />}
-        className="payment-button payment-button-primary"
-        disabled={!paymentAmount.trim() || !authReference.trim()}
-      >
-        Process Authorization
-      </Button>
+      {paymentMethod === "gpp" ? (
+        <GooglePayButton
+          amount={paymentAmount}
+          currency="EUR"
+          onTokenReceived={handleGooglePayToken}
+          onError={handleGooglePayError}
+          settings={settings}
+        />
+      ) : (
+        <Button
+          variant="default"
+          onClick={onAuthorization}
+          loading={isProcessingPayment}
+          startIcon={<Play />}
+          className="payment-button payment-button-primary"
+          disabled={!paymentAmount.trim() || !authReference.trim()}
+        >
+          Process Authorization
+        </Button>
+      )}
     </Flex>
   );
 };

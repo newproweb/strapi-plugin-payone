@@ -18,15 +18,12 @@ const POST_GATEWAY_URL = "https://api.pay1.de/post-gateway/";
  */
 const sendRequest = async (strapi, params) => {
   try {
-    strapi.log.info("Payone sendRequest called with params:", params);
-
     const settings = await getSettings(strapi);
 
     if (!validateSettings(settings)) {
       throw new Error("Payone settings not configured");
     }
 
-    // Normalize reference for certain request types
     const reqType = params.request;
     if (["authorization", "preauthorization", "refund"].includes(reqType)) {
       const prefix =
@@ -35,13 +32,7 @@ const sendRequest = async (strapi, params) => {
     }
 
     const requestParams = buildClientRequestParams(settings, params, strapi.log);
-    const debugParams = { ...requestParams };
-    if (debugParams.key) debugParams.key = "***HIDDEN***";
-
-    strapi.log.info("Payone Client API request params:", debugParams);
-
     const formData = toFormData(requestParams);
-    strapi.log.info("Payone form data being sent:", formData.toString());
 
     const response = await axios.post(POST_GATEWAY_URL, formData, {
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
@@ -50,32 +41,10 @@ const sendRequest = async (strapi, params) => {
 
     const responseData = parseResponse(response.data, strapi.log);
 
-    // Log response for debugging
-    strapi.log.info("Payone API Response:", {
-      status: responseData.status || responseData.Status,
-      txid: responseData.txid || responseData.TxId,
-      redirecturl: responseData.redirecturl || responseData.RedirectUrl,
-      hasError: !!responseData.Error,
-      errorCode: responseData.Error?.ErrorCode,
-      errorMessage: responseData.Error?.ErrorMessage
-    });
-
-    // Check if 3DS redirect is required
     if (requires3DSRedirect(responseData)) {
       const redirectUrl = get3DSRedirectUrl(responseData);
       responseData.requires3DSRedirect = true;
       responseData.redirectUrl = redirectUrl;
-      strapi.log.info("🔐 3DS redirect required:", redirectUrl);
-    } else {
-      strapi.log.info("ℹ️ No 3DS redirect required. Response status:", responseData.status || responseData.Status);
-      // Log why 3DS redirect was not required
-      const status = (responseData.status || responseData.Status || "").toUpperCase();
-      const redirecturl = responseData.redirecturl || responseData.RedirectUrl;
-      strapi.log.info("3DS Redirect Check:", {
-        status,
-        redirecturl: redirecturl || "not provided",
-        requiresRedirect: status === "REDIRECT" && !!redirecturl
-      });
     }
 
     // Log transaction
@@ -107,8 +76,6 @@ const sendRequest = async (strapi, params) => {
  * @returns {Promise<Object>} Response data
  */
 const preauthorization = async (strapi, params) => {
-  strapi.log.info("Payone preauthorization called with params:", params);
-
   const requiredParams = {
     request: "preauthorization",
     clearingtype: params.clearingtype || "cc",
@@ -136,8 +103,6 @@ const preauthorization = async (strapi, params) => {
  * @returns {Promise<Object>} Response data
  */
 const authorization = async (strapi, params) => {
-  strapi.log.info("Payone authorization called with params:", params);
-
   const requiredParams = {
     request: "authorization",
     clearingtype: params.clearingtype || "cc",
@@ -155,8 +120,6 @@ const authorization = async (strapi, params) => {
  * @returns {Promise<Object>} Response data
  */
 const capture = async (strapi, params) => {
-  strapi.log.info("Payone capture called with params:", params);
-
   if (!params.txid) {
     throw new Error("Transaction ID (txid) is required for capture");
   }
@@ -170,8 +133,6 @@ const capture = async (strapi, params) => {
   };
 
   delete requiredParams.reference;
-  strapi.log.info("Payone capture required params:", requiredParams);
-
   return await sendRequest(strapi, requiredParams);
 };
 
@@ -182,8 +143,6 @@ const capture = async (strapi, params) => {
  * @returns {Promise<Object>} Response data
  */
 const refund = async (strapi, params) => {
-  strapi.log.info("Payone refund called with params:", params);
-
   if (!params.txid) {
     throw new Error("Transaction ID (txid) is required for refund");
   }
@@ -209,9 +168,6 @@ const refund = async (strapi, params) => {
  */
 const handle3DSCallback = async (strapi, callbackData) => {
   try {
-    strapi.log.info("Processing 3DS callback:", callbackData);
-
-    // Parse callback data
     const parsedData = parseResponse(callbackData, strapi.log);
 
     // Extract transaction information

@@ -2,6 +2,7 @@ import pluginPkg from "../../package.json";
 import pluginId from "./pluginId";
 import Initializer from "./components/Initializer";
 import PluginIcon from "./components/PluginIcon";
+import { injectGooglePayScript } from "./pages/utils/injectGooglePayScript";
 
 const name = pluginPkg.strapi.name;
 
@@ -29,7 +30,9 @@ export default {
     });
   },
 
-  bootstrap(app) {},
+  bootstrap(app) {
+    injectGooglePayScript();
+  },
 
   async registerTrads() {
     return Promise.resolve([]);

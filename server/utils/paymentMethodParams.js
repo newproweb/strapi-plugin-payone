@@ -23,7 +23,7 @@ const addPaymentMethodParams = (params, logger) => {
     },
     gpp: {
       clearingtype: "wlt",
-      wallettype: "GPP"
+      wallettype: "GGP"
     },
     apl: {
       clearingtype: "wlt",
@@ -62,24 +62,44 @@ const addPaymentMethodParams = (params, logger) => {
     }
   };
 
+  // Handle special cases (gpp, apl) FIRST - set wallettype BEFORE changing clearingtype
+  if (clearingtype === "gpp" || clearingtype === "apl") {
+    if (clearingtype === "gpp") {
+      updated.wallettype = "GGP";
+    } else if (clearingtype === "apl") {
+      updated.wallettype = "APL";
+    }
+    updated.clearingtype = "wlt";
+  }
+
   const defaults = methodDefaults[clearingtype] || methodDefaults.cc;
 
-  // Apply defaults
+  // Apply defaults (but don't override wallettype if already set)
   Object.entries(defaults).forEach(([key, value]) => {
+    if (key === "wallettype" && updated.wallettype) {
+      return; // Don't override wallettype if already set
+    }
     if (!updated[key]) {
       updated[key] = value;
     }
   });
-
-  // Handle special cases (gpp, apl)
-  if (clearingtype === "gpp" || clearingtype === "apl") {
-    updated.clearingtype = "wlt";
+  
+  // Ensure wallettype is set for wallet payments
+  if (updated.clearingtype === "wlt" && !updated.wallettype) {
+    if (clearingtype === "gpp" || updated.paymentMethod === "gpp" || updated["add_paydata[paymentmethod_token_data]"]) {
+      updated.wallettype = "GGP";
+    } else if (clearingtype === "apl" || updated.paymentMethod === "apl") {
+      updated.wallettype = "APL";
+    } else {
+      updated.wallettype = "PPE";
+    }
+  }
+  
+  // Remove cardtype if clearingtype is wallet payment
+  if (updated.clearingtype === "wlt" && updated.cardtype) {
+    delete updated.cardtype;
   }
 
-  // Warn for unknown clearing types
-  if (!methodDefaults[clearingtype] && logger) {
-    logger.warn(`Unknown clearingtype: ${clearingtype}, using credit card defaults`);
-  }
 
   // Common defaults
   const commonDefaults = {

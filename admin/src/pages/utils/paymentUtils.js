@@ -57,7 +57,6 @@ export const getBaseParams = (options = {}) => {
   let finalCustomerId = customerid || generateCustomerId();
 
   if (finalCustomerId && finalCustomerId.length > 17) {
-    console.warn(`customerid exceeds 17 characters: ${finalCustomerId.length}, truncating...`);
     finalCustomerId = finalCustomerId.slice(0, 17);
   }
 
@@ -152,12 +151,25 @@ export const getPaymentMethodParams = (paymentMethod, options = {}) => {
         ...getShippingParams()
       };
 
-    case "gpp": // Google Pay
-      return {
+    case "gpp":
+      const googlePayParams = {
         clearingtype: "wlt",
-        wallettype: "GPP", // Google Pay
+        wallettype: "GGP",
         ...getShippingParams()
       };
+
+      if (options.googlePayToken) {
+        const gatewayMerchantId = options.settings?.mid || options.settings?.portalid || '';
+        googlePayParams["add_paydata[paymentmethod_token_data]"] = options.googlePayToken;
+        googlePayParams["add_paydata[paymentmethod]"] = "GGP";
+        googlePayParams["add_paydata[paymentmethod_type]"] = "GOOGLEPAY";
+        googlePayParams["add_paydata[gatewayid]"] = "payonegmbh";
+        if (gatewayMerchantId) {
+          googlePayParams["add_paydata[gateway_merchantid]"] = gatewayMerchantId;
+        }
+      }
+
+      return googlePayParams;
 
     case "apl": // Apple Pay
       return {
@@ -561,8 +573,8 @@ export const validatePaymentParams = (operation, paymentMethod, params) => {
       if (!params.wallettype) {
         errors.push("Wallet type is required for Google Pay payments");
       }
-      if (params.wallettype && params.wallettype !== "GPP") {
-        errors.push("Wallet type must be GPP for Google Pay payments");
+      if (params.wallettype && params.wallettype !== "GGP") {
+        errors.push("Wallet type must be GGP for Google Pay payments");
       }
       break;
 

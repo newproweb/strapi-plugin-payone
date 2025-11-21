@@ -112,6 +112,9 @@ const AppTabs = ({
             onAuthorization={paymentActions.handleAuthorization}
             onCapture={paymentActions.handleCapture}
             onRefund={paymentActions.handleRefund}
+            settings={settings}
+            googlePayToken={paymentActions.googlePayToken}
+            setGooglePayToken={paymentActions.setGooglePayToken}
           />
         </TabPanel>
       </TabPanels>

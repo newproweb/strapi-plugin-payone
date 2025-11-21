@@ -21,10 +21,9 @@ const usePaymentActions = () => {
         const response = await payoneRequests.getSettings();
         if (response?.data) {
           setSettings(response.data);
-          console.log("📋 Settings loaded:", { enable3DSecure: response.data.enable3DSecure });
         }
       } catch (error) {
-        console.error("Failed to load settings:", error);
+        // Silent fail
       }
     };
     loadSettings();
@@ -40,6 +39,7 @@ const usePaymentActions = () => {
   const [refundReference, setRefundReference] = useState("");
   const [paymentMethod, setPaymentMethod] = useState("cc");
   const [captureMode, setCaptureMode] = useState("full");
+  const [googlePayToken, setGooglePayToken] = useState(null);
 
   // Payment processing state
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
@@ -65,62 +65,50 @@ const usePaymentActions = () => {
     });
   };
 
-  const handlePreauthorization = async () => {
+  const handlePreauthorization = async (tokenParam = null) => {
     setIsProcessingPayment(true);
     setPaymentError(null);
     setPaymentResult(null);
     try {
-      // Build base params
       const baseParams = {
         amount: parseInt(paymentAmount),
         currency: "EUR",
         reference: preauthReference || `PREAUTH-${Date.now()}`,
-        enable3DSecure: settings.enable3DSecure !== false, // Use settings value
+        enable3DSecure: settings.enable3DSecure !== false,
         ...DEFAULT_PAYMENT_DATA
       };
 
-      // Add redirect URLs only if 3DS is enabled for credit card payments
-      // or for redirect-based payment methods (PayPal, Google Pay, Apple Pay, Sofort)
       const needsRedirectUrls =
         (paymentMethod === "cc" && settings.enable3DSecure !== false) ||
         ["wlt", "gpp", "apl", "sb"].includes(paymentMethod);
 
       if (needsRedirectUrls) {
-        // Use current window location as base for admin panel testing
         const baseUrl = window.location.origin;
-        baseParams.successurl = `${baseUrl}/api/strapi-plugin-payone-provider/payment/success`;
-        baseParams.errorurl = `${baseUrl}/api/strapi-plugin-payone-provider/payment/error`;
-        baseParams.backurl = `${baseUrl}/api/strapi-plugin-payone-provider/payment/back`;
+        baseParams.successurl = `${baseUrl}/admin/plugins/strapi-plugin-payone-provider/payment/success`;
+        baseParams.errorurl = `${baseUrl}/admin/plugins/strapi-plugin-payone-provider/payment/error`;
+        baseParams.backurl = `${baseUrl}/admin/plugins/strapi-plugin-payone-provider/payment/back`;
+      }
+
+      const tokenToUse = tokenParam || googlePayToken;
+      if (paymentMethod === "gpp" && tokenToUse) {
+        baseParams.googlePayToken = tokenToUse;
+        baseParams.settings = settings;
       }
 
       const params = getPreauthorizationParams(paymentMethod, baseParams);
 
-      console.log("🔐 3DS setting:", settings.enable3DSecure);
-      console.log("🔗 Redirect URLs needed:", needsRedirectUrls);
-      console.log("📋 Preauthorization params:", params);
-
       const result = await payoneRequests.preauthorization(params);
       const responseData = result?.data || result;
 
-      console.log("📥 Preauthorization response:", responseData);
-      console.log("🔍 Checking for 3DS redirect:", {
-        requires3DSRedirect: responseData.requires3DSRedirect,
-        redirectUrl: responseData.redirectUrl,
-        status: responseData.status,
-        redirecturl: responseData.redirecturl
-      });
 
-      // Check if 3DS redirect is required (check multiple possible field names)
       const redirectUrl = responseData.redirectUrl || responseData.redirecturl || responseData.RedirectUrl;
       const needsRedirect = responseData.requires3DSRedirect ||
         (responseData.status === "REDIRECT" && redirectUrl) ||
         (responseData.Status === "REDIRECT" && redirectUrl);
 
       if (needsRedirect && redirectUrl) {
-        console.log("🔐 3DS redirect required, redirecting to:", redirectUrl);
-        // Redirect to 3DS authentication page
         window.location.href = redirectUrl;
-        return; // Don't set result or show success message yet
+        return;
       }
 
       setPaymentResult(responseData);
@@ -132,76 +120,55 @@ const usePaymentActions = () => {
     }
   };
 
-  const handleAuthorization = async () => {
-    console.log("🚀 handleAuthorization called", {
-      paymentMethod,
-      paymentAmount,
-      authReference
-    });
-
+  const handleAuthorization = async (tokenParam = null) => {
     setIsProcessingPayment(true);
     setPaymentError(null);
     setPaymentResult(null);
 
     try {
-      // Build base params
       const baseParams = {
         amount: parseInt(paymentAmount),
         currency: "EUR",
         reference: authReference || `AUTH-${Date.now()}`,
-        enable3DSecure: settings.enable3DSecure !== false, // Use settings value
+        enable3DSecure: settings.enable3DSecure !== false,
         ...DEFAULT_PAYMENT_DATA
       };
 
-      // Add redirect URLs only if 3DS is enabled for credit card payments
-      // or for redirect-based payment methods (PayPal, Google Pay, Apple Pay, Sofort)
       const needsRedirectUrls =
         (paymentMethod === "cc" && settings.enable3DSecure !== false) ||
         ["wlt", "gpp", "apl", "sb"].includes(paymentMethod);
 
       if (needsRedirectUrls) {
-        // Use current window location as base for admin panel testing
         const baseUrl = window.location.origin;
-        baseParams.successurl = `${baseUrl}/api/strapi-plugin-payone-provider/payment/success`;
-        baseParams.errorurl = `${baseUrl}/api/strapi-plugin-payone-provider/payment/error`;
-        baseParams.backurl = `${baseUrl}/api/strapi-plugin-payone-provider/payment/back`;
+        baseParams.successurl = `${baseUrl}/admin/plugins/strapi-plugin-payone-provider/payment/success`;
+        baseParams.errorurl = `${baseUrl}/admin/plugins/strapi-plugin-payone-provider/payment/error`;
+        baseParams.backurl = `${baseUrl}/admin/plugins/strapi-plugin-payone-provider/payment/back`;
+      }
+
+      const tokenToUse = tokenParam || googlePayToken;
+      if (paymentMethod === "gpp" && tokenToUse) {
+        baseParams.googlePayToken = tokenToUse;
+        baseParams.settings = settings;
       }
 
       const params = getAuthorizationParams(paymentMethod, baseParams);
 
-      console.log("🔐 3DS setting:", settings.enable3DSecure);
-      console.log("🔗 Redirect URLs needed:", needsRedirectUrls);
-      console.log("📤 Authorization params:", params);
-      console.log("📡 Sending authorization request...");
-
       const result = await payoneRequests.authorization(params);
       const responseData = result?.data || result;
 
-      console.log("✅ Authorization result:", responseData);
-      console.log("🔍 Checking for 3DS redirect:", {
-        requires3DSRedirect: responseData.requires3DSRedirect,
-        redirectUrl: responseData.redirectUrl,
-        status: responseData.status,
-        redirecturl: responseData.redirecturl
-      });
-
-      // Check if 3DS redirect is required (check multiple possible field names)
       const redirectUrl = responseData.redirectUrl || responseData.redirecturl || responseData.RedirectUrl;
       const needsRedirect = responseData.requires3DSRedirect ||
         (responseData.status === "REDIRECT" && redirectUrl) ||
         (responseData.Status === "REDIRECT" && redirectUrl);
 
       if (needsRedirect && redirectUrl) {
-        console.log("🔐 3DS redirect required, redirecting to:", redirectUrl);
-        // Redirect to 3DS authentication page
         window.location.href = redirectUrl;
-        return; // Don't set result or show success message yet
+        return;
       }
 
       setPaymentResult(responseData);
       handlePaymentSuccess("Authorization completed successfully");
     } catch (error) {
-      console.error("❌ Authorization error:", error);
       handlePaymentError(error, "Authorization failed");
     } finally {
       setIsProcessingPayment(false);
@@ -292,7 +259,11 @@ const usePaymentActions = () => {
     handlePreauthorization,
     handleAuthorization,
     handleCapture,
-    handleRefund
+    handleRefund,
+
+    // Google Pay
+    googlePayToken,
+    setGooglePayToken
   };
 };
 

@@ -32,7 +32,10 @@ const PaymentActionsPanel = ({
   onPreauthorization,
   onAuthorization,
   onCapture,
-  onRefund
+  onRefund,
+  settings,
+  googlePayToken,
+  setGooglePayToken
 }) => {
   return (
     <Box
@@ -69,6 +72,10 @@ const PaymentActionsPanel = ({
             setPreauthReference={setPreauthReference}
             isProcessingPayment={isProcessingPayment}
             onPreauthorization={onPreauthorization}
+            paymentMethod={paymentMethod}
+            settings={settings}
+            googlePayToken={googlePayToken}
+            setGooglePayToken={setGooglePayToken}
           />
         </Box>
 
@@ -82,6 +89,10 @@ const PaymentActionsPanel = ({
             setAuthReference={setAuthReference}
             isProcessingPayment={isProcessingPayment}
             onAuthorization={onAuthorization}
+            paymentMethod={paymentMethod}
+            settings={settings}
+            googlePayToken={googlePayToken}
+            setGooglePayToken={setGooglePayToken}
           />
         </Box>
 
