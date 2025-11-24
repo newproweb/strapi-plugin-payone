@@ -54,9 +54,38 @@ const extractTxId = (data) => {
  */
 const requires3DSRedirect = (data) => {
   const status = (data.status || data.Status || "").toUpperCase();
-  const redirecturl = data.redirecturl || data.RedirectUrl || data.redirect_url;
+  const errorCode = data.errorcode || data.ErrorCode || data.Error?.ErrorCode;
+  
+  // Check for redirect URL in various possible fields
+  const redirecturl = 
+    data.redirecturl || 
+    data.RedirectUrl || 
+    data.redirect_url ||
+    data.redirectUrl ||
+    data.RedirectURL ||
+    data.redirectURL ||
+    data.url ||
+    data.Url ||
+    data.URL ||
+    null;
 
-  return status === "REDIRECT" && !!redirecturl;
+  // 3DS required error codes (4219, etc.)
+  const requires3DSErrorCodes = ["4219", 4219];
+  const is3DSRequiredError = requires3DSErrorCodes.includes(errorCode);
+
+  return (status === "REDIRECT" && !!redirecturl) || is3DSRequiredError;
+};
+
+/**
+ * Check if response indicates an error
+ * @param {Object} data - Response data
+ * @returns {boolean} True if response indicates error
+ */
+const isErrorResponse = (data) => {
+  const status = (data.status || data.Status || "").toUpperCase();
+  const errorCode = data.errorcode || data.ErrorCode || data.Error?.ErrorCode;
+  
+  return status === "ERROR" || status === "INVALID" || !!errorCode;
 };
 
 /**
@@ -65,9 +94,33 @@ const requires3DSRedirect = (data) => {
  * @returns {string|null} Redirect URL
  */
 const get3DSRedirectUrl = (data) => {
-  if (requires3DSRedirect(data)) {
-    return data.redirecturl || data.RedirectUrl || data.redirect_url || null;
+  // Check all possible redirect URL fields
+  const redirecturl = 
+    data.redirecturl || 
+    data.RedirectUrl || 
+    data.redirect_url ||
+    data.redirectUrl ||
+    data.RedirectURL ||
+    data.redirectURL ||
+    data.url ||
+    data.Url ||
+    data.URL ||
+    data.redirect ||
+    data.Redirect ||
+    null;
+
+  if (redirecturl) {
+    return redirecturl;
   }
+
+  // If 3DS required but no redirect URL, might need 3dscheck
+  const errorCode = data.errorcode || data.ErrorCode || data.Error?.ErrorCode;
+  const requires3DSErrorCodes = ["4219", 4219];
+  if (requires3DSErrorCodes.includes(errorCode)) {
+    // Return null - will need to handle 3dscheck separately
+    return null;
+  }
+
   return null;
 };
 
@@ -75,6 +128,7 @@ module.exports = {
   parseResponse,
   extractTxId,
   requires3DSRedirect,
-  get3DSRedirectUrl
+  get3DSRedirectUrl,
+  isErrorResponse
 };
 

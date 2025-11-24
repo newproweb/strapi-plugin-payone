@@ -31,8 +31,16 @@ const usePaymentActions = () => {
 
   // Payment form state
   const [paymentAmount, setPaymentAmount] = useState("1000");
-  const [preauthReference, setPreauthReference] = useState("");
-  const [authReference, setAuthReference] = useState("");
+
+  // Generate reference automatically
+  const generateReference = (prefix = "REF") => {
+    const timestamp = Date.now().toString(36).toUpperCase();
+    const random = Math.random().toString(36).substring(2, 6).toUpperCase();
+    return `${prefix}-${timestamp}${random}`.slice(0, 20);
+  };
+
+  const [preauthReference, setPreauthReference] = useState(generateReference("PRE"));
+  const [authReference, setAuthReference] = useState(generateReference("AUTH"));
   const [captureTxid, setCaptureTxid] = useState("");
   const [refundTxid, setRefundTxid] = useState("");
   const [refundSequenceNumber, setRefundSequenceNumber] = useState("2");
@@ -40,6 +48,12 @@ const usePaymentActions = () => {
   const [paymentMethod, setPaymentMethod] = useState("cc");
   const [captureMode, setCaptureMode] = useState("full");
   const [googlePayToken, setGooglePayToken] = useState(null);
+
+  // Card details for 3DS testing
+  const [cardtype, setCardtype] = useState("");
+  const [cardpan, setCardpan] = useState("");
+  const [cardexpiredate, setCardexpiredate] = useState("");
+  const [cardcvc2, setCardcvc2] = useState("");
 
   // Payment processing state
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
@@ -70,13 +84,31 @@ const usePaymentActions = () => {
     setPaymentError(null);
     setPaymentResult(null);
     try {
+      // Auto-generate reference if empty
+      const finalPreauthReference = preauthReference.trim() || generateReference("PRE");
+      if (!preauthReference.trim()) {
+        setPreauthReference(finalPreauthReference);
+      }
+
+      // Determine currency based on card type
+      // American Express typically requires USD, other cards use EUR
+      const currency = (paymentMethod === "cc" && cardtype === "A") ? "USD" : "EUR";
+
       const baseParams = {
         amount: parseInt(paymentAmount),
-        currency: "EUR",
-        reference: preauthReference || `PREAUTH-${Date.now()}`,
+        currency: currency,
+        reference: finalPreauthReference,
         enable3DSecure: settings.enable3DSecure !== false,
         ...DEFAULT_PAYMENT_DATA
       };
+
+      // Add card details if credit card payment and 3DS enabled
+      if (paymentMethod === "cc" && settings.enable3DSecure !== false) {
+        if (cardtype) baseParams.cardtype = cardtype;
+        if (cardpan) baseParams.cardpan = cardpan;
+        if (cardexpiredate) baseParams.cardexpiredate = cardexpiredate;
+        if (cardcvc2) baseParams.cardcvc2 = cardcvc2;
+      }
 
       const needsRedirectUrls =
         (paymentMethod === "cc" && settings.enable3DSecure !== false) ||
@@ -100,19 +132,81 @@ const usePaymentActions = () => {
       const result = await payoneRequests.preauthorization(params);
       const responseData = result?.data || result;
 
+      // Log full response
+      console.log("Preauthorization Response:", responseData);
+      console.log("Response Status:", responseData.status || responseData.Status);
+      console.log("Response Error Code:", responseData.errorcode || responseData.errorCode || responseData.ErrorCode);
+      console.log("Response Error Message:", responseData.errormessage || responseData.errorMessage || responseData.ErrorMessage);
+      console.log("All redirect URL fields:", {
+        redirectUrl: responseData.redirectUrl,
+        redirecturl: responseData.redirecturl,
+        RedirectUrl: responseData.RedirectUrl,
+        redirect_url: responseData.redirect_url,
+        url: responseData.url,
+        Url: responseData.Url
+      });
 
-      const redirectUrl = responseData.redirectUrl || responseData.redirecturl || responseData.RedirectUrl;
+      const status = (responseData.status || responseData.Status || "").toUpperCase();
+      const errorCode = responseData.errorcode || responseData.errorCode || responseData.ErrorCode;
+      const errorMessage = responseData.errormessage || responseData.errorMessage || responseData.ErrorMessage;
+
+      // Check for 3DS required error (4219)
+      const requires3DSErrorCodes = ["4219", 4219];
+      const is3DSRequiredError = requires3DSErrorCodes.includes(errorCode);
+
+      // Check all possible redirect URL fields
+      const redirectUrl =
+        responseData.redirectUrl ||
+        responseData.redirecturl ||
+        responseData.RedirectUrl ||
+        responseData.redirect_url ||
+        responseData.url ||
+        responseData.Url ||
+        null;
+
+      // If 3DS required but no redirect URL, show helpful message
+      if (is3DSRequiredError && !redirectUrl) {
+        console.warn("3DS authentication required (Error 4219) but no redirect URL found in response");
+        console.log("Full response:", JSON.stringify(responseData, null, 2));
+        setPaymentError(
+          "3D Secure authentication required. Please check Payone configuration and ensure redirect URLs are properly set. Error: " +
+          (errorMessage || `Error code: ${errorCode}`)
+        );
+        setPaymentResult(responseData);
+        return;
+      }
+
+      // Check for other errors (but not 3DS required)
+      if ((status === "ERROR" || status === "INVALID" || errorCode) && !is3DSRequiredError) {
+        setPaymentError(
+          errorMessage ||
+          `Payment failed with error code: ${errorCode || "Unknown"}` ||
+          "Preauthorization failed"
+        );
+        setPaymentResult(responseData);
+        return;
+      }
+
       const needsRedirect = responseData.requires3DSRedirect ||
-        (responseData.status === "REDIRECT" && redirectUrl) ||
-        (responseData.Status === "REDIRECT" && redirectUrl);
+        (status === "REDIRECT" && redirectUrl) ||
+        (is3DSRequiredError && redirectUrl);
 
       if (needsRedirect && redirectUrl) {
+        console.log("Redirecting to 3DS:", redirectUrl);
         window.location.href = redirectUrl;
         return;
       }
 
       setPaymentResult(responseData);
-      handlePaymentSuccess("Preauthorization completed successfully");
+
+      if (status === "APPROVED") {
+        handlePaymentSuccess("Preauthorization completed successfully");
+      } else {
+        handlePaymentError(
+          { message: `Unexpected status: ${status}` },
+          `Preauthorization completed with status: ${status}`
+        );
+      }
     } catch (error) {
       handlePaymentError(error, "Preauthorization failed");
     } finally {
@@ -126,13 +220,31 @@ const usePaymentActions = () => {
     setPaymentResult(null);
 
     try {
+      // Auto-generate reference if empty
+      const finalAuthReference = authReference.trim() || generateReference("AUTH");
+      if (!authReference.trim()) {
+        setAuthReference(finalAuthReference);
+      }
+
+      // Determine currency based on card type
+      // American Express typically requires USD, other cards use EUR
+      const currency = (paymentMethod === "cc" && cardtype === "A") ? "USD" : "EUR";
+
       const baseParams = {
         amount: parseInt(paymentAmount),
-        currency: "EUR",
-        reference: authReference || `AUTH-${Date.now()}`,
+        currency: currency,
+        reference: finalAuthReference,
         enable3DSecure: settings.enable3DSecure !== false,
         ...DEFAULT_PAYMENT_DATA
       };
+
+      // Add card details if credit card payment and 3DS enabled
+      if (paymentMethod === "cc" && settings.enable3DSecure !== false) {
+        if (cardtype) baseParams.cardtype = cardtype;
+        if (cardpan) baseParams.cardpan = cardpan;
+        if (cardexpiredate) baseParams.cardexpiredate = cardexpiredate;
+        if (cardcvc2) baseParams.cardcvc2 = cardcvc2;
+      }
 
       const needsRedirectUrls =
         (paymentMethod === "cc" && settings.enable3DSecure !== false) ||
@@ -156,18 +268,81 @@ const usePaymentActions = () => {
       const result = await payoneRequests.authorization(params);
       const responseData = result?.data || result;
 
-      const redirectUrl = responseData.redirectUrl || responseData.redirecturl || responseData.RedirectUrl;
+      // Log full response
+      console.log("Authorization Response:", responseData);
+      console.log("Response Status:", responseData.status || responseData.Status);
+      console.log("Response Error Code:", responseData.errorcode || responseData.errorCode || responseData.ErrorCode);
+      console.log("Response Error Message:", responseData.errormessage || responseData.errorMessage || responseData.ErrorMessage);
+      console.log("All redirect URL fields:", {
+        redirectUrl: responseData.redirectUrl,
+        redirecturl: responseData.redirecturl,
+        RedirectUrl: responseData.RedirectUrl,
+        redirect_url: responseData.redirect_url,
+        url: responseData.url,
+        Url: responseData.Url
+      });
+
+      const status = (responseData.status || responseData.Status || "").toUpperCase();
+      const errorCode = responseData.errorcode || responseData.errorCode || responseData.ErrorCode;
+      const errorMessage = responseData.errormessage || responseData.errorMessage || responseData.ErrorMessage;
+
+      // Check for 3DS required error (4219)
+      const requires3DSErrorCodes = ["4219", 4219];
+      const is3DSRequiredError = requires3DSErrorCodes.includes(errorCode);
+
+      // Check all possible redirect URL fields
+      const redirectUrl =
+        responseData.redirectUrl ||
+        responseData.redirecturl ||
+        responseData.RedirectUrl ||
+        responseData.redirect_url ||
+        responseData.url ||
+        responseData.Url ||
+        null;
+
+      // If 3DS required but no redirect URL, show helpful message
+      if (is3DSRequiredError && !redirectUrl) {
+        console.warn("3DS authentication required (Error 4219) but no redirect URL found in response");
+        console.log("Full response:", JSON.stringify(responseData, null, 2));
+        setPaymentError(
+          "3D Secure authentication required. Please check Payone configuration and ensure redirect URLs are properly set. Error: " +
+          (errorMessage || `Error code: ${errorCode}`)
+        );
+        setPaymentResult(responseData);
+        return;
+      }
+
+      // Check for other errors (but not 3DS required)
+      if ((status === "ERROR" || status === "INVALID" || errorCode) && !is3DSRequiredError) {
+        setPaymentError(
+          errorMessage ||
+          `Payment failed with error code: ${errorCode || "Unknown"}` ||
+          "Authorization failed"
+        );
+        setPaymentResult(responseData);
+        return;
+      }
+
       const needsRedirect = responseData.requires3DSRedirect ||
-        (responseData.status === "REDIRECT" && redirectUrl) ||
-        (responseData.Status === "REDIRECT" && redirectUrl);
+        (status === "REDIRECT" && redirectUrl) ||
+        (is3DSRequiredError && redirectUrl);
 
       if (needsRedirect && redirectUrl) {
+        console.log("Redirecting to 3DS:", redirectUrl);
         window.location.href = redirectUrl;
         return;
       }
 
       setPaymentResult(responseData);
-      handlePaymentSuccess("Authorization completed successfully");
+
+      if (status === "APPROVED") {
+        handlePaymentSuccess("Authorization completed successfully");
+      } else {
+        handlePaymentError(
+          { message: `Unexpected status: ${status}` },
+          `Authorization completed with status: ${status}`
+        );
+      }
     } catch (error) {
       handlePaymentError(error, "Authorization failed");
     } finally {
@@ -263,7 +438,17 @@ const usePaymentActions = () => {
 
     // Google Pay
     googlePayToken,
-    setGooglePayToken
+    setGooglePayToken,
+
+    // Card details for 3DS
+    cardtype,
+    setCardtype,
+    cardpan,
+    setCardpan,
+    cardexpiredate,
+    setCardexpiredate,
+    cardcvc2,
+    setCardcvc2
   };
 };
 

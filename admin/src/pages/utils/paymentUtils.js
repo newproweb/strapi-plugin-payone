@@ -100,7 +100,8 @@ export const getBaseParams = (options = {}) => {
  */
 export const getPaymentMethodParams = (paymentMethod, options = {}) => {
   const {
-    cardType = "V",
+    cardType,
+    cardtype,
     captureMode = "full",
     cardpan,
     cardexpiredate,
@@ -124,6 +125,9 @@ export const getPaymentMethodParams = (paymentMethod, options = {}) => {
     country
   } = options;
 
+  // Use cardtype if provided, otherwise fall back to cardType, otherwise default to "V"
+  const finalCardType = cardtype || cardType || "V";
+
   // Helper to get shipping params for wallet payments
   const getShippingParams = () => ({
     shipping_firstname: shipping_firstname || firstname || "John",
@@ -138,7 +142,7 @@ export const getPaymentMethodParams = (paymentMethod, options = {}) => {
     case "cc": // Credit Card (Visa, Mastercard, Amex)
       return {
         clearingtype: "cc",
-        cardtype: cardType, // V = Visa, M = Mastercard, A = Amex
+        cardtype: finalCardType, // V = Visa, M = Mastercard, A = Amex
         cardpan: cardpan || "4111111111111111", // Test Visa card
         cardexpiredate: cardexpiredate || "2512", // MMYY format
         cardcvc2: cardcvc2 || "123" // 3-digit security code

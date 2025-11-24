@@ -10,6 +10,7 @@ A comprehensive Strapi plugin that integrates the Payone payment gateway into yo
 - [Configuration](#configuration)
 - [Getting Started](#getting-started)
 - [Usage](#usage)
+- [3D Secure (3DS) Authentication](#-3d-secure-3ds-authentication)
 - [Payment Methods & Operations](#-payment-methods--operations)
 - [Supported Payment Methods](#supported-payment-methods)
 
@@ -133,6 +134,117 @@ All responses include:
 - `txid`: Transaction ID (for successful transactions)
 - `errorcode`: Error code (if status is ERROR)
 - `errormessage`: Error message (if status is ERROR)
+
+---
+
+## 🔐 3D Secure (3DS) Authentication
+
+3D Secure (3DS) is a security protocol that adds an extra layer of authentication for credit card payments, ensuring compliance with Strong Customer Authentication (SCA) requirements.
+
+### Enabling 3D Secure
+
+1. Navigate to **Payone Provider** in the Strapi admin panel
+2. Go to the **Configuration** tab
+3. Find the **"Enable 3D Secure"** dropdown
+4. Select **"Enabled"** to activate 3DS for credit card payments
+5. Click **"Save Configuration"**
+
+> ⚠️ **Note**: When 3DS is enabled, it only applies to **credit card** payments (`clearingtype: "cc"`). Other payment methods are not affected.
+
+### Supported Operations
+
+3D Secure works with the following operations:
+
+- ✅ **Preauthorization** (`POST /api/strapi-plugin-payone-provider/preauthorization`)
+- ✅ **Authorization** (`POST /api/strapi-plugin-payone-provider/authorization`)
+- ❌ **Capture** - Not applicable (uses preauthorized transaction)
+- ❌ **Refund** - Not applicable (uses existing transaction)
+
+### Required Parameters for Preauthorization/Authorization with 3DS
+
+When 3DS is enabled and you're making a credit card payment, the following parameters are required:
+
+**Credit Card Details** (required when 3DS is enabled):
+
+- `cardtype`: Card type (`"V"` for VISA, `"M"` for Mastercard, `"A"` for AMEX, etc.)
+- `cardpan`: Card number (PAN)
+- `cardexpiredate`: Expiry date in format `YYMM` (e.g., `"2512"` for December 2025)
+- `cardcvc2`: CVC/CVV code (3 digits for most cards, 4 digits for AMEX)
+
+**Redirect URLs** (required for 3DS authentication flow):
+
+- `successurl`: URL to redirect after successful 3DS authentication
+- `errorurl`: URL to redirect after 3DS authentication error
+- `backurl`: URL to redirect if user cancels 3DS authentication
+
+**Example Request**:
+
+```json
+{
+  "amount": 1000,
+  "currency": "EUR",
+  "reference": "PAY1234567890ABCDEF",
+  "clearingtype": "cc",
+  "cardtype": "V",
+  "cardpan": "4111111111111111",
+  "cardexpiredate": "2512",
+  "cardcvc2": "123",
+  "firstname": "John",
+  "lastname": "Doe",
+  "email": "john.doe@example.com",
+  "street": "Main Street 123",
+  "zip": "12345",
+  "city": "Berlin",
+  "country": "DE",
+  "successurl": "https://www.example.com/success",
+  "errorurl": "https://www.example.com/error",
+  "backurl": "https://www.example.com/back"
+}
+```
+
+### 3DS Response Handling
+
+When 3DS is required, the API response will include:
+
+```json
+{
+  "data": {
+    "status": "REDIRECT",
+    "redirecturl": "https://secure.pay1.de/3ds/...",
+    "requires3DSRedirect": true,
+    "txid": "123456789"
+  }
+}
+```
+
+**Response Fields**:
+
+- `status`: `"REDIRECT"` when 3DS authentication is required
+- `redirecturl`: URL to redirect the customer for 3DS authentication
+- `requires3DSRedirect`: Boolean indicating if redirect is needed
+- `txid`: Transaction ID (if available)
+
+### 3DS Callback Endpoint
+
+After the customer completes 3DS authentication, Payone will send a callback to:
+
+**URL**: `POST /api/strapi-plugin-payone-provider/3ds-callback`
+
+This endpoint processes the 3DS authentication result and updates the transaction status.
+
+> ℹ️ **Note**: The callback endpoint is automatically handled by the plugin. You don't need to manually process it unless you're implementing custom callback handling.
+
+### How It Works
+
+1. **Request**: Send a preauthorization or authorization request with credit card details and redirect URLs
+2. **Response**: If 3DS is required, you'll receive a `REDIRECT` status with a `redirecturl`
+3. **Redirect**: Redirect the customer to the `redirecturl` for 3DS authentication
+4. **Callback**: After authentication, Payone redirects back to your `successurl`, `errorurl`, or `backurl` with transaction data
+5. **Completion**: The transaction is completed based on the authentication result
+
+### Testing 3DS
+
+For testing 3DS authentication, use test cards that trigger 3DS challenges. Refer to the [Payone 3D Secure Documentation](https://docs.payone.com/security-risk-management/3d-secure#/) for test card numbers and scenarios.
 
 ---
 

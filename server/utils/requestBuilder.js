@@ -42,6 +42,8 @@ const buildClientRequestParams = (settings, params, logger = null) => {
     requestParams["3dsecure"] = "yes";
     requestParams.ecommercemode = params.ecommercemode || "internet";
 
+    // Ensure redirect URLs are always provided for 3DS
+    // These are required for 3DS authentication flow
     if (!requestParams.successurl) {
       requestParams.successurl = params.successurl || "https://www.example.com/success";
     }
@@ -50,6 +52,15 @@ const buildClientRequestParams = (settings, params, logger = null) => {
     }
     if (!requestParams.backurl) {
       requestParams.backurl = params.backurl || "https://www.example.com/back";
+    }
+
+    // Log redirect URLs for debugging
+    if (logger) {
+      logger.info("3DS Redirect URLs:", {
+        successurl: requestParams.successurl,
+        errorurl: requestParams.errorurl,
+        backurl: requestParams.backurl
+      });
     }
   } else if (isCreditCard && !enable3DSecure) {
     requestParams["3dsecure"] = "no";

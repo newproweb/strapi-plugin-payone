@@ -41,26 +41,83 @@ const sendRequest = async (strapi, params) => {
 
     const responseData = parseResponse(response.data, strapi.log);
 
-    if (requires3DSRedirect(responseData)) {
+    // Log full response for debugging
+    strapi.log.info("Payone API Response:", JSON.stringify(responseData, null, 2));
+    strapi.log.info("Response Status:", responseData.status || responseData.Status);
+    strapi.log.info("Response Error Code:", responseData.errorcode || responseData.ErrorCode || responseData.Error?.ErrorCode);
+    strapi.log.info("Response Error Message:", responseData.errormessage || responseData.ErrorMessage || responseData.Error?.ErrorMessage);
+
+    // Log all possible redirect URL fields
+    strapi.log.info("Redirect URL fields:", {
+      redirecturl: responseData.redirecturl,
+      RedirectUrl: responseData.RedirectUrl,
+      redirect_url: responseData.redirect_url,
+      redirectUrl: responseData.redirectUrl,
+      url: responseData.url,
+      Url: responseData.Url
+    });
+
+    // Extract error information from various possible fields
+    const errorCode =
+      responseData.errorcode ||
+      responseData.ErrorCode ||
+      responseData.Error?.ErrorCode ||
+      responseData.error_code ||
+      null;
+
+    // Check for 3DS redirect
+    const requires3DSErrorCodes = ["4219", 4219];
+    const is3DSRequiredError = requires3DSErrorCodes.includes(errorCode);
+
+    if (requires3DSRedirect(responseData) || is3DSRequiredError) {
       const redirectUrl = get3DSRedirectUrl(responseData);
       responseData.requires3DSRedirect = true;
       responseData.redirectUrl = redirectUrl;
+      responseData.is3DSRequired = is3DSRequiredError;
+
+      // If 3DS required but no redirect URL, log for debugging
+      if (is3DSRequiredError && !redirectUrl) {
+        strapi.log.warn("3DS authentication required (Error 4219) but no redirect URL found. May need 3dscheck request.");
+        strapi.log.info("Full response data:", JSON.stringify(responseData, null, 2));
+      }
     }
+
+    const errorMessage =
+      responseData.errormessage ||
+      responseData.ErrorMessage ||
+      responseData.Error?.ErrorMessage ||
+      responseData.error_message ||
+      null;
+
+    const customerMessage =
+      responseData.customermessage ||
+      responseData.CustomerMessage ||
+      responseData.Error?.CustomerMessage ||
+      responseData.customer_message ||
+      null;
+
+    const status = (responseData.status || responseData.Status || "unknown").toUpperCase();
 
     // Log transaction
     await logTransaction(strapi, {
       txid: extractTxId(responseData) || params.txid || null,
       reference: params.reference || null,
-      status: responseData.status || responseData.Status || "unknown",
+      status: status,
       request_type: params.request,
       amount: params.amount || null,
       currency: params.currency || "EUR",
       raw_request: requestParams,
       raw_response: responseData,
-      error_code: responseData.Error?.ErrorCode || null,
-      error_message: responseData.Error?.ErrorMessage || null,
-      customer_message: responseData.Error?.CustomerMessage || null
+      error_code: errorCode,
+      error_message: errorMessage,
+      customer_message: customerMessage
     });
+
+    // Add normalized error fields to response
+    responseData.errorCode = errorCode;
+    responseData.errorMessage = errorMessage;
+    responseData.customerMessage = customerMessage;
+    responseData.status = status;
 
     return responseData;
   } catch (error) {

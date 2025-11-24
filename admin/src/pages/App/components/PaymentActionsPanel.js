@@ -35,7 +35,15 @@ const PaymentActionsPanel = ({
   onRefund,
   settings,
   googlePayToken,
-  setGooglePayToken
+  setGooglePayToken,
+  cardtype,
+  setCardtype,
+  cardpan,
+  setCardpan,
+  cardexpiredate,
+  setCardexpiredate,
+  cardcvc2,
+  setCardcvc2
 }) => {
   return (
     <Box
@@ -76,6 +84,14 @@ const PaymentActionsPanel = ({
             settings={settings}
             googlePayToken={googlePayToken}
             setGooglePayToken={setGooglePayToken}
+            cardtype={cardtype}
+            setCardtype={setCardtype}
+            cardpan={cardpan}
+            setCardpan={setCardpan}
+            cardexpiredate={cardexpiredate}
+            setCardexpiredate={setCardexpiredate}
+            cardcvc2={cardcvc2}
+            setCardcvc2={setCardcvc2}
           />
         </Box>
 
@@ -93,6 +109,14 @@ const PaymentActionsPanel = ({
             settings={settings}
             googlePayToken={googlePayToken}
             setGooglePayToken={setGooglePayToken}
+            cardtype={cardtype}
+            setCardtype={setCardtype}
+            cardpan={cardpan}
+            setCardpan={setCardpan}
+            cardexpiredate={cardexpiredate}
+            setCardexpiredate={setCardexpiredate}
+            cardcvc2={cardcvc2}
+            setCardcvc2={setCardcvc2}
           />
         </Box>
 

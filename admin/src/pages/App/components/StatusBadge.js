@@ -6,7 +6,9 @@ const StatusBadge = ({ status }) => {
     APPROVED: "success",
     PENDING: "warning",
     ERROR: "danger",
-    FAILED: "danger"
+    FAILED: "danger",
+    INVALID: "danger",
+    REDIRECT: "secondary"
   };
 
   return (

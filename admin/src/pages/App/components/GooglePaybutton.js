@@ -269,29 +269,29 @@ const GooglePayButton = ({
   };
 
   return (
-    <Box padding={4}>
-      <Flex direction="column" gap={3}>
+    <Box width="100%">
+      <Flex direction="column" gap={3} alignItems="stretch">
         {isLoading && (
-          <Typography variant="pi" textColor="neutral600">
+          <Typography variant="pi" textColor="neutral600" style={{ textAlign: "left" }}>
             Loading Google Pay...
           </Typography>
         )}
         {!isLoading && !isReady && (
-          <Typography variant="pi" textColor="neutral600">
+          <Typography variant="pi" textColor="neutral600" style={{ textAlign: "left" }}>
             Google Pay is not available
           </Typography>
         )}
         {!isLoading && isReady && (
           <>
-            <Typography variant="sigma" textColor="neutral700" fontWeight="semiBold">
+            <Typography variant="sigma" textColor="neutral700" fontWeight="semiBold" style={{ textAlign: "left" }}>
               Google Pay Payment
             </Typography>
-            <Typography variant="pi" textColor="neutral600">
+            <Typography variant="pi" textColor="neutral600" style={{ textAlign: "left" }}>
               Click the button below to pay with Google Pay. The token will be automatically sent to Payone.
             </Typography>
           </>
         )}
-        <Box ref={buttonContainerRef} style={{ minHeight: "40px" }} />
+        <Box ref={buttonContainerRef} style={{ minHeight: "40px", width: "100%", display: "flex", justifyContent: "flex-start" }} />
       </Flex>
     </Box>
   );

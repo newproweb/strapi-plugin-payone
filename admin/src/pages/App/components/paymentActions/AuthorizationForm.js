@@ -2,6 +2,7 @@ import React from "react";
 import { Box, Flex, Typography, TextInput, Button } from "@strapi/design-system";
 import { Play } from "@strapi/icons";
 import GooglePayButton from "../GooglePaybutton";
+import CardDetailsInput from "./CardDetailsInput";
 
 const AuthorizationForm = ({
   paymentAmount,
@@ -13,7 +14,15 @@ const AuthorizationForm = ({
   paymentMethod,
   settings,
   googlePayToken,
-  setGooglePayToken
+  setGooglePayToken,
+  cardtype,
+  setCardtype,
+  cardpan,
+  setCardpan,
+  cardexpiredate,
+  setCardexpiredate,
+  cardcvc2,
+  setCardcvc2
 }) => {
   const handleGooglePayToken = (token, paymentData) => {
     if (!token) {
@@ -57,13 +66,28 @@ const AuthorizationForm = ({
           name="authReference"
           value={authReference}
           onChange={(e) => setAuthReference(e.target.value)}
-          placeholder="Enter reference"
-          hint="Reference for this transaction"
-          required
+          placeholder="Auto-generated if empty"
+          hint="Reference will be auto-generated if left empty"
           className="payment-input"
           style={{ flex: 1, minWidth: "250px" }}
         />
       </Flex>
+
+      {/* Show card details input if 3DS is enabled and payment method is credit card */}
+      {paymentMethod === "cc" && settings?.enable3DSecure !== false && (
+        <Box marginTop={4}>
+          <CardDetailsInput
+            cardtype={cardtype}
+            setCardtype={setCardtype}
+            cardpan={cardpan}
+            setCardpan={setCardpan}
+            cardexpiredate={cardexpiredate}
+            setCardexpiredate={setCardexpiredate}
+            cardcvc2={cardcvc2}
+            setCardcvc2={setCardcvc2}
+          />
+        </Box>
+      )}
 
       {paymentMethod === "gpp" ? (
         <GooglePayButton
@@ -80,7 +104,12 @@ const AuthorizationForm = ({
           loading={isProcessingPayment}
           startIcon={<Play />}
           className="payment-button payment-button-primary"
-          disabled={!paymentAmount.trim() || !authReference.trim()}
+          disabled={
+            !paymentAmount.trim() ||
+            (paymentMethod === "cc" &&
+              settings?.enable3DSecure !== false &&
+              (!cardtype || !cardpan || !cardexpiredate || !cardcvc2))
+          }
         >
           Process Authorization
         </Button>

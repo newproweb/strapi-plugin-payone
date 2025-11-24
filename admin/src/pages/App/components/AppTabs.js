@@ -115,6 +115,14 @@ const AppTabs = ({
             settings={settings}
             googlePayToken={paymentActions.googlePayToken}
             setGooglePayToken={paymentActions.setGooglePayToken}
+            cardtype={paymentActions.cardtype}
+            setCardtype={paymentActions.setCardtype}
+            cardpan={paymentActions.cardpan}
+            setCardpan={paymentActions.setCardpan}
+            cardexpiredate={paymentActions.cardexpiredate}
+            setCardexpiredate={paymentActions.setCardexpiredate}
+            cardcvc2={paymentActions.cardcvc2}
+            setCardcvc2={paymentActions.setCardcvc2}
           />
         </TabPanel>
       </TabPanels>
