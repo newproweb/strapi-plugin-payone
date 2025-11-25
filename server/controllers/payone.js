@@ -43,12 +43,25 @@ module.exports = ({ strapi }) => ({
     }
   },
 
+  async getPublicSettings(ctx) {
+    try {
+      const settings = await getPayoneService(strapi).getSettings();
+      ctx.body = {
+        data: {
+          mid: settings?.mid || null,
+          mode: settings?.mode || null
+        }
+      };
+    } catch (error) {
+      handleError(ctx, error);
+    }
+  },
+
   async updateSettings(ctx) {
     try {
       const { body } = ctx.request;
       const currentSettings = await getPayoneService(strapi).getSettings();
 
-      // Preserve existing key if hidden or not provided
       if (body.key === "***HIDDEN***" || !body.key) {
         body.key = currentSettings?.key;
       }

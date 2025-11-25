@@ -83,6 +83,15 @@ module.exports = {
     type: "content-api",
     routes: [
       {
+        method: "GET",
+        path: "/settings",
+        handler: "payone.getPublicSettings",
+        config: {
+          policies: ["plugin::strapi-plugin-payone-provider.is-auth"],
+          auth: false
+        }
+      },
+      {
         method: "POST",
         path: "/preauthorization",
         handler: "payone.preauthorization",
