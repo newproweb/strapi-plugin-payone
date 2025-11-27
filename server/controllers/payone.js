@@ -137,13 +137,39 @@ module.exports = ({ strapi }) => ({
   /**
    * Handle 3D Secure callback from Payone
    * This endpoint receives the callback after customer completes 3DS authentication
+   * Works with both /admin/ and /content-ui/ paths
    */
   async handle3DSCallback(ctx) {
     try {
-      strapi.log.info("3DS callback received:", ctx.request.body);
+      const isGetRequest = ctx.request.method === "GET";
+      const currentPath = ctx.request.url;
 
-      const callbackData = ctx.request.body;
-      const result = await getPayoneService(strapi).handle3DSCallback(callbackData);
+      let resultType = "callback";
+      if (currentPath.includes("/success")) {
+        resultType = "success";
+      } else if (currentPath.includes("/error")) {
+        resultType = "error";
+      } else if (currentPath.includes("/back")) {
+        resultType = "cancelled";
+      }
+
+      const callbackData = isGetRequest ? ctx.query : ctx.request.body;
+      strapi.log.info(`3DS ${resultType} received (${ctx.request.method}):`, callbackData);
+      const result = await getPayoneService(strapi).handle3DSCallback(callbackData, resultType);
+
+      if (isGetRequest) {
+        const isContentUI = currentPath.includes('/content-ui');
+        const basePath = isContentUI ? '/content-ui' : '/admin';
+        const pluginPath = '/plugins/strapi-plugin-payone-provider';
+
+        const queryParams = new URLSearchParams();
+        queryParams.set('3ds', resultType);
+        if (result.txid) queryParams.set('txid', result.txid);
+        if (result.status) queryParams.set('status', result.status);
+
+        const redirectUrl = `${basePath}${pluginPath}?${queryParams.toString()}`;
+        return ctx.redirect(redirectUrl);
+      }
 
       ctx.body = { data: result };
     } catch (error) {

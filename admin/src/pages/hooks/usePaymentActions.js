@@ -116,9 +116,15 @@ const usePaymentActions = () => {
 
       if (needsRedirectUrls) {
         const baseUrl = window.location.origin;
-        baseParams.successurl = `${baseUrl}/admin/plugins/strapi-plugin-payone-provider/payment/success`;
-        baseParams.errorurl = `${baseUrl}/admin/plugins/strapi-plugin-payone-provider/payment/error`;
-        baseParams.backurl = `${baseUrl}/admin/plugins/strapi-plugin-payone-provider/payment/back`;
+        // Detect current context (admin or content-ui) from pathname
+        const currentPath = window.location.pathname;
+        const isContentUI = currentPath.includes('/content-ui') || currentPath.includes('/content-manager');
+        const basePath = isContentUI ? '/content-ui' : '/admin';
+        const pluginPath = '/plugins/strapi-plugin-payone-provider/payment';
+
+        baseParams.successurl = `${baseUrl}${basePath}${pluginPath}/success`;
+        baseParams.errorurl = `${baseUrl}${basePath}${pluginPath}/error`;
+        baseParams.backurl = `${baseUrl}${basePath}${pluginPath}/back`;
       }
 
       const tokenToUse = tokenParam || googlePayToken;
@@ -252,9 +258,15 @@ const usePaymentActions = () => {
 
       if (needsRedirectUrls) {
         const baseUrl = window.location.origin;
-        baseParams.successurl = `${baseUrl}/admin/plugins/strapi-plugin-payone-provider/payment/success`;
-        baseParams.errorurl = `${baseUrl}/admin/plugins/strapi-plugin-payone-provider/payment/error`;
-        baseParams.backurl = `${baseUrl}/admin/plugins/strapi-plugin-payone-provider/payment/back`;
+        // Detect current context (admin or content-ui) from pathname
+        const currentPath = window.location.pathname;
+        const isContentUI = currentPath.includes('/content-ui') || currentPath.includes('/content-manager');
+        const basePath = isContentUI ? '/content-ui' : '/admin';
+        const pluginPath = '/plugins/strapi-plugin-payone-provider/payment';
+
+        baseParams.successurl = `${baseUrl}${basePath}${pluginPath}/success`;
+        baseParams.errorurl = `${baseUrl}${basePath}${pluginPath}/error`;
+        baseParams.backurl = `${baseUrl}${basePath}${pluginPath}/back`;
       }
 
       const tokenToUse = tokenParam || googlePayToken;

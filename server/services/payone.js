@@ -50,7 +50,7 @@ module.exports = ({ strapi }) => ({
   },
 
   // 3D Secure callback handler
-  async handle3DSCallback(callbackData) {
-    return await paymentService.handle3DSCallback(strapi, callbackData);
+  async handle3DSCallback(callbackData, resultType) {
+    return await paymentService.handle3DSCallback(strapi, callbackData, resultType);
   }
 });

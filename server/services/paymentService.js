@@ -219,36 +219,48 @@ const refund = async (strapi, params) => {
 /**
  * Handle 3D Secure callback from Payone
  * This processes the callback after customer completes 3DS authentication
+ * Note: Payone's redirect callback typically doesn't include transaction details -
+ * the URL path (success/error/back) indicates the result.
  * @param {Object} strapi - Strapi instance
- * @param {Object} callbackData - Callback data from Payone
+ * @param {Object} callbackData - Callback data from Payone (may be empty or minimal)
+ * @param {string} resultType - Result type from URL path: 'success', 'error', 'cancelled', or 'callback'
  * @returns {Promise<Object>} Processed callback result
  */
-const handle3DSCallback = async (strapi, callbackData) => {
+const handle3DSCallback = async (strapi, callbackData, resultType = 'callback') => {
   try {
-    const parsedData = parseResponse(callbackData, strapi.log);
+    // Parse any data that Payone might have sent
+    const parsedData = callbackData && Object.keys(callbackData).length > 0
+      ? parseResponse(callbackData, strapi.log)
+      : {};
 
-    // Extract transaction information
+    // Extract transaction information if available
     const txid = extractTxId(parsedData);
-    const status = parsedData.status || parsedData.Status || "unknown";
     const reference = parsedData.reference || parsedData.Reference || null;
 
-    // Log the callback transaction
-    await logTransaction(strapi, {
-      txid: txid || null,
-      reference: reference || null,
-      status: status,
-      request_type: "3ds_callback",
-      amount: parsedData.amount || null,
-      currency: parsedData.currency || "EUR",
-      raw_request: callbackData,
-      raw_response: parsedData,
-      error_code: parsedData.Error?.ErrorCode || null,
-      error_message: parsedData.Error?.ErrorMessage || null,
-      customer_message: parsedData.Error?.CustomerMessage || null
+    // Determine status from resultType (URL path) since Payone callback may not include status
+    let status;
+    if (resultType === 'success') {
+      status = 'APPROVED';
+    } else if (resultType === 'error') {
+      status = 'ERROR';
+    } else if (resultType === 'cancelled') {
+      status = 'CANCELLED';
+    } else {
+      // Fallback to parsed data if available
+      status = parsedData.status || parsedData.Status || 'PENDING';
+    }
+
+    // Log for debugging purposes only (not saved to transaction history)
+    strapi.log.info("3DS callback processed:", {
+      resultType,
+      status,
+      txid,
+      reference,
+      callbackData
     });
 
     return {
-      success: status.toUpperCase() === "APPROVED" || status.toUpperCase() === "REDIRECT",
+      success: resultType === 'success',
       status: status,
       txid: txid,
       reference: reference,
