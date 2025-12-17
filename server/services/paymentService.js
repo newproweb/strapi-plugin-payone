@@ -1,7 +1,6 @@
 "use strict";
 
 const axios = require("axios");
-const { normalizeReference } = require("../utils/normalize");
 const { buildClientRequestParams, toFormData } = require("../utils/requestBuilder");
 const { addPaymentMethodParams } = require("../utils/paymentMethodParams");
 const { parseResponse, extractTxId, requires3DSRedirect, get3DSRedirectUrl } = require("../utils/responseParser");
@@ -24,12 +23,7 @@ const sendRequest = async (strapi, params) => {
       throw new Error("Payone settings not configured");
     }
 
-    const reqType = params.request;
-    if (["authorization", "preauthorization", "refund"].includes(reqType)) {
-      const prefix =
-        reqType === "refund" ? "REF" : reqType === "preauthorization" ? "PRE" : "AUTH";
-      params.reference = normalizeReference(params.reference, prefix);
-    }
+    // Reference is saved as-is without normalization
 
     const requestParams = buildClientRequestParams(settings, params, strapi.log);
     const formData = toFormData(requestParams);

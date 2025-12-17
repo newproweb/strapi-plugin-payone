@@ -5,7 +5,8 @@ import {
   getPreauthorizationParams,
   getAuthorizationParams,
   getCaptureParams,
-  getRefundParams
+  getRefundParams,
+  generateLagOrderNumber
 } from "../utils/paymentUtils";
 import { DEFAULT_PAYMENT_DATA } from "../constants/paymentConstants";
 
@@ -32,15 +33,16 @@ const usePaymentActions = () => {
   // Payment form state
   const [paymentAmount, setPaymentAmount] = useState("1000");
 
-  // Generate reference automatically
-  const generateReference = (prefix = "REF") => {
-    const timestamp = Date.now().toString(36).toUpperCase();
-    const random = Math.random().toString(36).substring(2, 6).toUpperCase();
-    return `${prefix}-${timestamp}${random}`.slice(0, 20);
+  // Generate order reference using generateLagOrderNumber
+  // Sequence number starts from 1000 and increments based on timestamp
+  const generateOrderReference = () => {
+    // Use timestamp to generate unique sequence (1000 to 99999 range)
+    const sequence = 1000 + Math.floor((Date.now() % 99000));
+    return generateLagOrderNumber(sequence);
   };
 
-  const [preauthReference, setPreauthReference] = useState(generateReference("PRE"));
-  const [authReference, setAuthReference] = useState(generateReference("AUTH"));
+  const [preauthReference, setPreauthReference] = useState(generateOrderReference());
+  const [authReference, setAuthReference] = useState(generateOrderReference());
   const [captureTxid, setCaptureTxid] = useState("");
   const [refundTxid, setRefundTxid] = useState("");
   const [refundSequenceNumber, setRefundSequenceNumber] = useState("2");
@@ -85,7 +87,7 @@ const usePaymentActions = () => {
     setPaymentResult(null);
     try {
       // Auto-generate reference if empty
-      const finalPreauthReference = preauthReference.trim() || generateReference("PRE");
+      const finalPreauthReference = preauthReference.trim() || generateOrderReference();
       if (!preauthReference.trim()) {
         setPreauthReference(finalPreauthReference);
       }
@@ -227,7 +229,7 @@ const usePaymentActions = () => {
 
     try {
       // Auto-generate reference if empty
-      const finalAuthReference = authReference.trim() || generateReference("AUTH");
+      const finalAuthReference = authReference.trim() || generateOrderReference();
       if (!authReference.trim()) {
         setAuthReference(finalAuthReference);
       }

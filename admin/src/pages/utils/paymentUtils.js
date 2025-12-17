@@ -18,6 +18,21 @@
  */
 
 /**
+ * Generate order reference number
+ * @param {number} sequence - Sequence number (default: 1000)
+ * @returns {string} Generated order reference (format: ORD-XXXXX-XXXX)
+ */
+export function generateLagOrderNumber(sequence = 1000) {
+  const paddedSequence = sequence.toString().padStart(5, '0');
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  let randomPart = '';
+  for (let i = 0; i < 4; i++) {
+    randomPart += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return `ORD-${paddedSequence}-${randomPart}`;
+}
+
+/**
  * Get base parameters for all payment methods
  * Based on Payone v1 API Documentation
  * @param {Object} options - Base options
