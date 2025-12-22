@@ -2,6 +2,7 @@ import React from "react";
 import { Box, Flex, Typography, TextInput, Button } from "@strapi/design-system";
 import { Play } from "@strapi/icons";
 import GooglePayButton from "../GooglePaybutton";
+import ApplePayButton from "../ApplePayButton";
 import CardDetailsInput from "./CardDetailsInput";
 
 const AuthorizationForm = ({
@@ -15,6 +16,8 @@ const AuthorizationForm = ({
   settings,
   googlePayToken,
   setGooglePayToken,
+  applePayToken,
+  setApplePayToken,
   cardtype,
   setCardtype,
   cardpan,
@@ -37,6 +40,22 @@ const AuthorizationForm = ({
       onError(error);
     }
   };
+
+  const handleApplePayToken = (token, paymentData) => {
+    if (!token) {
+      return;
+    }
+    setApplePayToken(token);
+    onAuthorization(token);
+  };
+
+  const handleApplePayError = (error) => {
+    if (onError) {
+      onError(error);
+    }
+  };
+
+
   return (
     <Flex direction="column" alignItems="stretch" gap={4}>
       <Flex direction="row" gap={2}>
@@ -73,8 +92,7 @@ const AuthorizationForm = ({
         />
       </Flex>
 
-      {/* Show card details input if 3DS is enabled and payment method is credit card */}
-      {paymentMethod === "cc" && settings?.enable3DSecure !== false && (
+      {paymentMethod === "cc" && settings?.enable3DSecure && (
         <Box marginTop={4}>
           <CardDetailsInput
             cardtype={cardtype}
@@ -97,12 +115,21 @@ const AuthorizationForm = ({
           onError={handleGooglePayError}
           settings={settings}
         />
+      ) : paymentMethod === "apl" ? (
+        <ApplePayButton
+          amount={paymentAmount}
+          currency="EUR"
+          onTokenReceived={handleApplePayToken}
+          onError={handleApplePayError}
+          settings={settings}
+        />
       ) : (
         <Button
           variant="default"
           onClick={onAuthorization}
           loading={isProcessingPayment}
           startIcon={<Play />}
+          style={{ maxWidth: '200px' }}
           className="payment-button payment-button-primary"
           disabled={
             !paymentAmount.trim() ||

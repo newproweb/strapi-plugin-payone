@@ -51,6 +51,7 @@ const CaptureForm = ({
         onClick={onCapture}
         loading={isProcessingPayment}
         startIcon={<Play />}
+        style={{ maxWidth: '200px' }}
         className="payment-button payment-button-primary"
         disabled={!captureTxid.trim() || !paymentAmount.trim()}
       >

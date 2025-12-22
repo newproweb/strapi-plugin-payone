@@ -50,6 +50,7 @@ const usePaymentActions = () => {
   const [paymentMethod, setPaymentMethod] = useState("cc");
   const [captureMode, setCaptureMode] = useState("full");
   const [googlePayToken, setGooglePayToken] = useState(null);
+  const [applePayToken, setApplePayToken] = useState(null);
 
   // Card details for 3DS testing
   const [cardtype, setCardtype] = useState("");
@@ -129,9 +130,12 @@ const usePaymentActions = () => {
         baseParams.backurl = `${baseUrl}${basePath}${pluginPath}/back`;
       }
 
-      const tokenToUse = tokenParam || googlePayToken;
+      const tokenToUse = tokenParam || googlePayToken || applePayToken;
       if (paymentMethod === "gpp" && tokenToUse) {
         baseParams.googlePayToken = tokenToUse;
+        baseParams.settings = settings;
+      } else if (paymentMethod === "apl" && tokenToUse) {
+        baseParams.applePayToken = tokenToUse;
         baseParams.settings = settings;
       }
 
@@ -271,9 +275,12 @@ const usePaymentActions = () => {
         baseParams.backurl = `${baseUrl}${basePath}${pluginPath}/back`;
       }
 
-      const tokenToUse = tokenParam || googlePayToken;
+      const tokenToUse = tokenParam || googlePayToken || applePayToken;
       if (paymentMethod === "gpp" && tokenToUse) {
         baseParams.googlePayToken = tokenToUse;
+        baseParams.settings = settings;
+      } else if (paymentMethod === "apl" && tokenToUse) {
+        baseParams.applePayToken = tokenToUse;
         baseParams.settings = settings;
       }
 
@@ -453,6 +460,10 @@ const usePaymentActions = () => {
     // Google Pay
     googlePayToken,
     setGooglePayToken,
+
+    // Apple Pay
+    applePayToken,
+    setApplePayToken,
 
     // Card details for 3DS
     cardtype,

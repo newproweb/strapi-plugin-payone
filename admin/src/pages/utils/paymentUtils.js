@@ -1,27 +1,4 @@
-/**
- * Payment Utils - Universal functions for different payment methods and operations
- * Based on Payone v1 API Documentation
- * 
- * This file contains all necessary parameters and validations for:
- * - Preauthorization
- * - Authorization  
- * - Capture
- * - Refund
- * 
- * Supported Payment Methods:
- * - Credit Card (cc)
- * - PayPal (wlt)
- * - Google Pay (gpp)
- * - Apple Pay (apl)
- * - Sofort Banking (sb)
- * - SEPA Direct Debit (elv)
- */
 
-/**
- * Generate order reference number
- * @param {number} sequence - Sequence number (default: 1000)
- * @returns {string} Generated order reference (format: ORD-XXXXX-XXXX)
- */
 export function generateLagOrderNumber(sequence = 1000) {
   const paddedSequence = sequence.toString().padStart(5, '0');
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
@@ -32,12 +9,7 @@ export function generateLagOrderNumber(sequence = 1000) {
   return `ORD-${paddedSequence}-${randomPart}`;
 }
 
-/**
- * Get base parameters for all payment methods
- * Based on Payone v1 API Documentation
- * @param {Object} options - Base options
- * @returns {Object} Base parameters with all required fields
- */
+
 export const getBaseParams = (options = {}) => {
   const {
     amount,
@@ -106,13 +78,7 @@ export const getBaseParams = (options = {}) => {
   };
 };
 
-/**
- * Get payment method specific parameters
- * Based on Payone v1 API Documentation
- * @param {string} paymentMethod - Payment method (cc, wlt, sb, elv)
- * @param {Object} options - Additional options
- * @returns {Object} Payment method specific parameters
- */
+
 export const getPaymentMethodParams = (paymentMethod, options = {}) => {
   const {
     cardType,
@@ -191,11 +157,24 @@ export const getPaymentMethodParams = (paymentMethod, options = {}) => {
       return googlePayParams;
 
     case "apl": // Apple Pay
-      return {
+      const applePayParams = {
         clearingtype: "wlt",
         wallettype: "APL", // Apple Pay
         ...getShippingParams()
       };
+
+      if (options.applePayToken) {
+        const gatewayMerchantId = options.settings?.mid || options.settings?.portalid || '';
+        applePayParams["add_paydata[paymentmethod_token_data]"] = options.applePayToken;
+        applePayParams["add_paydata[paymentmethod]"] = "APL";
+        applePayParams["add_paydata[paymentmethod_type]"] = "APPLEPAY";
+        applePayParams["add_paydata[gatewayid]"] = "payonegmbh";
+        if (gatewayMerchantId) {
+          applePayParams["add_paydata[gateway_merchantid]"] = gatewayMerchantId;
+        }
+      }
+
+      return applePayParams;
 
     case "sb": // Sofort Banking
       return {
@@ -225,13 +204,7 @@ export const getPaymentMethodParams = (paymentMethod, options = {}) => {
   }
 };
 
-/**
- * Get preauthorization parameters for specific payment method
- * Based on Payone v1 API Documentation
- * @param {string} paymentMethod - Payment method
- * @param {Object} options - Options including amount, reference, etc.
- * @returns {Object} Complete preauthorization parameters
- */
+
 export const getPreauthorizationParams = (paymentMethod, options = {}) => {
   const baseParams = getBaseParams(options);
   const methodParams = getPaymentMethodParams(paymentMethod, options);
@@ -251,13 +224,7 @@ export const getPreauthorizationParams = (paymentMethod, options = {}) => {
   return params;
 };
 
-/**
- * Get authorization parameters for specific payment method
- * Based on Payone v1 API Documentation
- * @param {string} paymentMethod - Payment method
- * @param {Object} options - Options including amount, reference, etc.
- * @returns {Object} Complete authorization parameters
- */
+
 export const getAuthorizationParams = (paymentMethod, options = {}) => {
   const baseParams = getBaseParams(options);
   const methodParams = getPaymentMethodParams(paymentMethod, options);
@@ -277,13 +244,7 @@ export const getAuthorizationParams = (paymentMethod, options = {}) => {
   return params;
 };
 
-/**
- * Get capture parameters for specific payment method
- * Based on Payone v1 API Documentation
- * @param {string} paymentMethod - Payment method
- * @param {Object} options - Options including txid, amount, captureMode, etc.
- * @returns {Object} Complete capture parameters
- */
+
 export const getCaptureParams = (paymentMethod, options = {}) => {
   const {
     txid,
@@ -339,13 +300,7 @@ export const getCaptureParams = (paymentMethod, options = {}) => {
   };
 };
 
-/**
- * Get refund parameters for specific payment method
- * Based on Payone v1 API Documentation
- * @param {string} paymentMethod - Payment method
- * @param {Object} options - Options including txid, amount, sequencenumber, etc.
- * @returns {Object} Complete refund parameters
- */
+
 export const getRefundParams = (paymentMethod, options = {}) => {
   const {
     txid,
@@ -398,11 +353,7 @@ export const getRefundParams = (paymentMethod, options = {}) => {
   };
 };
 
-/**
- * Get payment method display name
- * @param {string} paymentMethod - Payment method code
- * @returns {string} Display name
- */
+
 export const getPaymentMethodDisplayName = (paymentMethod) => {
   const displayNames = {
     cc: "Credit Card (Visa, Mastercard)",
@@ -416,10 +367,7 @@ export const getPaymentMethodDisplayName = (paymentMethod) => {
   return displayNames[paymentMethod] || "Unknown Payment Method";
 };
 
-/**
- * Get payment method options for dropdown
- * @returns {Array} Array of payment method options
- */
+
 export const getPaymentMethodOptions = () => {
   return [
     { value: "cc", label: "Credit Card (Visa, Mastercard)" },

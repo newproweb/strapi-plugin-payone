@@ -75,6 +75,14 @@ module.exports = {
         config: {
           policies: ["admin::isAuthenticatedAdmin"]
         }
+      },
+      {
+        method: "POST",
+        path: "/validate-apple-pay-merchant",
+        handler: "payone.validateApplePayMerchant",
+        config: {
+          policies: ["admin::isAuthenticatedAdmin"]
+        }
       }
     ]
   },
@@ -140,6 +148,15 @@ module.exports = {
         method: "POST",
         path: "/3ds-callback",
         handler: "payone.handle3DSCallback",
+        config: {
+          policies: ["plugin::strapi-plugin-payone-provider.is-auth"],
+          auth: false
+        }
+      },
+      {
+        method: "POST",
+        path: "/validate-apple-pay-merchant",
+        handler: "payone.validateApplePayMerchant",
         config: {
           policies: ["plugin::strapi-plugin-payone-provider.is-auth"],
           auth: false

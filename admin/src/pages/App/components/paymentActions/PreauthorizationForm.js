@@ -2,6 +2,7 @@ import React from "react";
 import { Box, Flex, Typography, TextInput, Button } from "@strapi/design-system";
 import { Play } from "@strapi/icons";
 import GooglePayButton from "../GooglePaybutton";
+import ApplePayButton from "../ApplePayButton";
 import CardDetailsInput from "./CardDetailsInput";
 
 const PreauthorizationForm = ({
@@ -15,6 +16,8 @@ const PreauthorizationForm = ({
   settings,
   googlePayToken,
   setGooglePayToken,
+  applePayToken,
+  setApplePayToken,
   cardtype,
   setCardtype,
   cardpan,
@@ -33,6 +36,20 @@ const PreauthorizationForm = ({
   };
 
   const handleGooglePayError = (error) => {
+    if (onError) {
+      onError(error);
+    }
+  };
+
+  const handleApplePayToken = (token, paymentData) => {
+    if (!token) {
+      return;
+    }
+    setApplePayToken(token);
+    onPreauthorization(token);
+  };
+
+  const handleApplePayError = (error) => {
     if (onError) {
       onError(error);
     }
@@ -73,8 +90,7 @@ const PreauthorizationForm = ({
         />
       </Flex>
 
-      {/* Show card details input if 3DS is enabled and payment method is credit card */}
-      {paymentMethod === "cc" && settings?.enable3DSecure !== false && (
+      {paymentMethod === "cc" && settings?.enable3DSecure && (
         <Box marginTop={4}>
           <CardDetailsInput
             cardtype={cardtype}
@@ -97,12 +113,38 @@ const PreauthorizationForm = ({
           onError={handleGooglePayError}
           settings={settings}
         />
+      ) : paymentMethod === "apl" ? (
+        <Box>
+          <ApplePayButton
+            amount={paymentAmount}
+            currency="EUR"
+            onTokenReceived={handleApplePayToken}
+            onError={handleApplePayError}
+            settings={settings}
+          />
+          <Box marginTop={3} style={{ width: "100%", display: "flex", flexDirection: "column", alignItems: "flex-start", gap: "8px" }}>
+            <Typography variant="pi" textColor="neutral600" style={{ marginBottom: "8px" }}>
+              Apple Pay is not available on localhost. You can test the payment flow without Apple Pay token:
+            </Typography>
+            <Button
+              variant="secondary"
+              onClick={() => onPreauthorization(null)}
+              loading={isProcessingPayment}
+              startIcon={<Play />}
+              style={{ maxWidth: '200px' }}
+              disabled={!paymentAmount.trim() || !preauthReference.trim()}
+            >
+              Process Preauthorization
+            </Button>
+          </Box>
+        </Box>
       ) : (
         <Button
           variant="default"
           onClick={onPreauthorization}
           loading={isProcessingPayment}
           startIcon={<Play />}
+          style={{ maxWidth: '200px' }}
           className="payment-button payment-button-primary"
           disabled={
             !paymentAmount.trim() ||

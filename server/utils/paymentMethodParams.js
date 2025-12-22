@@ -84,11 +84,28 @@ const addPaymentMethodParams = (params, logger) => {
     }
   });
   
+  // Handle Apple Pay token if present
+  if (updated.applePayToken || updated["add_paydata[paymentmethod_token_data]"]) {
+    const token = updated.applePayToken || updated["add_paydata[paymentmethod_token_data]"];
+    const gatewayMerchantId = updated.mid || updated.portalid || '';
+    
+    updated["add_paydata[paymentmethod_token_data]"] = token;
+    updated["add_paydata[paymentmethod]"] = "APL";
+    updated["add_paydata[paymentmethod_type]"] = "APPLEPAY";
+    updated["add_paydata[gatewayid]"] = "payonegmbh";
+    if (gatewayMerchantId) {
+      updated["add_paydata[gateway_merchantid]"] = gatewayMerchantId;
+    }
+    
+    // Remove applePayToken from params as it's now in add_paydata
+    delete updated.applePayToken;
+  }
+
   // Ensure wallettype is set for wallet payments
   if (updated.clearingtype === "wlt" && !updated.wallettype) {
-    if (clearingtype === "gpp" || updated.paymentMethod === "gpp" || updated["add_paydata[paymentmethod_token_data]"]) {
+    if (clearingtype === "gpp" || updated.paymentMethod === "gpp" || (updated["add_paydata[paymentmethod]"] === "GGP")) {
       updated.wallettype = "GGP";
-    } else if (clearingtype === "apl" || updated.paymentMethod === "apl") {
+    } else if (clearingtype === "apl" || updated.paymentMethod === "apl" || (updated["add_paydata[paymentmethod]"] === "APL")) {
       updated.wallettype = "APL";
     } else {
       updated.wallettype = "PPE";

@@ -10,7 +10,11 @@ module.exports = {
       mid: "",
       key: "",
       mode: "test",
-      api_version: "3.10"
+      api_version: "3.10",
+      merchantName: "",
+      displayName: "",
+      domainName: "",
+      merchantIdentifier: ""
     }
   },
   validator(config) {

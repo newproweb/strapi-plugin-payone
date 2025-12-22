@@ -94,22 +94,24 @@ const CardDetailsInput = ({
   return (
     <Box>
       <Flex direction="column" alignItems="stretch" gap={4}>
-        <Select
-          label="3D Secure Test Cards (Requires Redirect)"
-          name="testCard"
-          value={selectedTestCard}
-          placeholder="Select a 3DS test card to auto-fill"
-          hint="These cards will trigger 3DS authentication redirect. Password: 12345"
-          onChange={handleTestCardSelect}
-          className="payment-input"
-        >
-          <Option value="">-- Select a test card --</Option>
-          {TEST_3DS_CARDS.map((card, index) => (
-            <Option key={index} value={`${card.cardtype}-${card.cardpan}`}>
-              {card.name} - {card.description}
-            </Option>
-          ))}
-        </Select>
+        <Flex direction="row" gap={2} alignItems="flex-start">
+          <Select
+            label="3D Secure Test Cards"
+            name="testCard"
+            value={selectedTestCard}
+            placeholder="Select a 3DS test card to auto-fill"
+            hint="These cards will trigger 3DS authentication redirect. Password: 12345"
+            onChange={handleTestCardSelect}
+            className="payment-input"
+          >
+            <Option value="">-- Select a test card --</Option>
+            {TEST_3DS_CARDS.map((card, index) => (
+              <Option key={index} value={`${card.cardtype}-${card.cardpan}`}>
+                {card.name} - {card.description}
+              </Option>
+            ))}
+          </Select>
+        </Flex>
 
         <Flex gap={4} wrap="wrap" alignItems="flex-start">
           <Select

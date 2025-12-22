@@ -176,5 +176,15 @@ module.exports = ({ strapi }) => ({
       strapi.log.error("3DS callback error:", error);
       handleError(ctx, error);
     }
+  },
+
+  async validateApplePayMerchant(ctx) {
+    try {
+      const params = ctx.request.body;
+      const result = await getPayoneService(strapi).validateApplePayMerchant(params);
+      ctx.body = { data: result };
+    } catch (error) {
+      handleError(ctx, error);
+    }
   }
 });

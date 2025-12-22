@@ -4,6 +4,7 @@ const settingsService = require("./settingsService");
 const transactionService = require("./transactionService");
 const paymentService = require("./paymentService");
 const testConnectionService = require("./testConnectionService");
+const applePayService = require("./applePayService");
 
 /**
  * Main Payone service - aggregates all sub-services
@@ -52,5 +53,14 @@ module.exports = ({ strapi }) => ({
   // 3D Secure callback handler
   async handle3DSCallback(callbackData, resultType) {
     return await paymentService.handle3DSCallback(strapi, callbackData, resultType);
+  },
+
+  // Apple Pay
+  async validateApplePayMerchant(params) {
+    return await applePayService.validateApplePayMerchant(strapi, params);
+  },
+
+  async initializeApplePaySession(params) {
+    return await applePayService.initializeApplePaySession(strapi, params);
   }
 });

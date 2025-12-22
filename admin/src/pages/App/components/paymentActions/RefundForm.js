@@ -76,6 +76,7 @@ const RefundForm = ({
         onClick={onRefund}
         loading={isProcessingPayment}
         startIcon={<Play />}
+        style={{ maxWidth: '200px' }}
         className="payment-button payment-button-primary"
         disabled={!refundTxid.trim() || !paymentAmount.trim()}
       >

@@ -36,6 +36,8 @@ const PaymentActionsPanel = ({
   settings,
   googlePayToken,
   setGooglePayToken,
+  applePayToken,
+  setApplePayToken,
   cardtype,
   setCardtype,
   cardpan,
@@ -84,6 +86,8 @@ const PaymentActionsPanel = ({
             settings={settings}
             googlePayToken={googlePayToken}
             setGooglePayToken={setGooglePayToken}
+            applePayToken={applePayToken}
+            setApplePayToken={setApplePayToken}
             cardtype={cardtype}
             setCardtype={setCardtype}
             cardpan={cardpan}
@@ -109,6 +113,8 @@ const PaymentActionsPanel = ({
             settings={settings}
             googlePayToken={googlePayToken}
             setGooglePayToken={setGooglePayToken}
+            applePayToken={applePayToken}
+            setApplePayToken={setApplePayToken}
             cardtype={cardtype}
             setCardtype={setCardtype}
             cardpan={cardpan}
