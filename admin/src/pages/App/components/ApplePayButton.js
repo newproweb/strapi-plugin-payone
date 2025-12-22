@@ -499,7 +499,16 @@ const ApplePayButton = ({
 
       // Show payment sheet and get response
       console.log("[Apple Pay] Showing payment sheet...");
-      const response = await request.show();
+      let response;
+      try {
+        response = await request.show();
+      } catch (error) {
+        console.error("[Apple Pay] Error showing payment sheet:", error);
+        if (onError) {
+          onError(error);
+        }
+        return;
+      }
 
       console.log("[Apple Pay] Payment response received:", {
         hasDetails: !!response.details,
@@ -512,7 +521,11 @@ const ApplePayButton = ({
 
       if (!paymentToken) {
         console.error("[Apple Pay] Payment token is missing from response");
-        await response.complete("fail");
+        try {
+          await response.complete("fail");
+        } catch (completeError) {
+          console.error("[Apple Pay] Error completing payment with fail:", completeError);
+        }
         if (onError) {
           onError(new Error("Apple Pay token is missing"));
         }
@@ -539,21 +552,41 @@ const ApplePayButton = ({
         tokenString = btoa(unescape(encodeURIComponent(JSON.stringify(paymentToken))));
       }
 
-      // Call the callback with the token
+      // Call the callback with the token BEFORE completing payment
+      // This ensures the token is processed before the dialog closes
       console.log("[Apple Pay] Sending token to callback");
+      let callbackSuccess = true;
       if (onTokenReceived) {
-        onTokenReceived(tokenString, {
-          paymentToken: paymentToken,
-          billingContact: response.payerName || response.details?.billingContact,
-          shippingContact: response.shippingAddress || response.details?.shippingAddress,
-          shippingOption: response.shippingOption || response.details?.shippingOption
-        });
+        try {
+          // If callback is async, wait for it
+          const callbackResult = onTokenReceived(tokenString, {
+            paymentToken: paymentToken,
+            billingContact: response.payerName || response.details?.billingContact,
+            shippingContact: response.shippingAddress || response.details?.shippingAddress,
+            shippingOption: response.shippingOption || response.details?.shippingOption
+          });
+          
+          // If callback returns a promise, wait for it
+          if (callbackResult && typeof callbackResult.then === 'function') {
+            await callbackResult;
+          }
+        } catch (callbackError) {
+          console.error("[Apple Pay] Error in token callback:", callbackError);
+          callbackSuccess = false;
+        }
       }
 
-      // Complete payment with success
-      console.log("[Apple Pay] Completing payment with success status");
-      await response.complete("success");
-      console.log("[Apple Pay] Payment completed successfully");
+      // Complete payment with success or fail based on callback result
+      console.log("[Apple Pay] Completing payment with status:", callbackSuccess ? "success" : "fail");
+      try {
+        await response.complete(callbackSuccess ? "success" : "fail");
+        console.log("[Apple Pay] Payment completed successfully");
+      } catch (completeError) {
+        console.error("[Apple Pay] Error completing payment:", completeError);
+        if (onError) {
+          onError(completeError);
+        }
+      }
 
     } catch (error) {
       console.error("[Apple Pay] Payment error:", {

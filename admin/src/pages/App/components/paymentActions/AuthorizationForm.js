@@ -25,7 +25,8 @@ const AuthorizationForm = ({
   cardexpiredate,
   setCardexpiredate,
   cardcvc2,
-  setCardcvc2
+  setCardcvc2,
+  isLiveMode = false
 }) => {
   const handleGooglePayToken = (token, paymentData) => {
     if (!token) {
@@ -41,12 +42,18 @@ const AuthorizationForm = ({
     }
   };
 
-  const handleApplePayToken = (token, paymentData) => {
+  const handleApplePayToken = async (token, paymentData) => {
     if (!token) {
-      return;
+      return Promise.reject(new Error("Token is missing"));
     }
     setApplePayToken(token);
-    onAuthorization(token);
+    try {
+      await onAuthorization(token);
+      return Promise.resolve();
+    } catch (error) {
+      console.error("[Apple Pay] Error in authorization:", error);
+      return Promise.reject(error);
+    }
   };
 
   const handleApplePayError = (error) => {
@@ -116,13 +123,33 @@ const AuthorizationForm = ({
           settings={settings}
         />
       ) : paymentMethod === "apl" ? (
-        <ApplePayButton
-          amount={paymentAmount}
-          currency="EUR"
-          onTokenReceived={handleApplePayToken}
-          onError={handleApplePayError}
-          settings={settings}
-        />
+        <Box>
+          <ApplePayButton
+            amount={paymentAmount}
+            currency="EUR"
+            onTokenReceived={handleApplePayToken}
+            onError={handleApplePayError}
+            settings={settings}
+          />
+          {applePayToken && (
+            <Box marginTop={3} style={{ width: "100%", display: "flex", flexDirection: "column", alignItems: "flex-start", gap: "8px" }}>
+              <Typography variant="pi" textColor="success600" style={{ marginBottom: "8px", fontWeight: "bold" }}>
+                ✓ Apple Pay token received. You can now process the authorization:
+              </Typography>
+              <Button
+                variant="default"
+                onClick={() => onAuthorization(applePayToken)}
+                loading={isProcessingPayment}
+                startIcon={<Play />}
+                style={{ maxWidth: '200px' }}
+                disabled={!paymentAmount.trim() || !authReference.trim() || isLiveMode}
+                className="payment-button payment-button-primary"
+              >
+                Process Authorization
+              </Button>
+            </Box>
+          )}
+        </Box>
       ) : (
         <Button
           variant="default"
@@ -135,7 +162,9 @@ const AuthorizationForm = ({
             !paymentAmount.trim() ||
             (paymentMethod === "cc" &&
               settings?.enable3DSecure !== false &&
-              (!cardtype || !cardpan || !cardexpiredate || !cardcvc2))
+              (!cardtype || !cardpan || !cardexpiredate || !cardcvc2)) ||
+            (paymentMethod === "apl" && !applePayToken) ||
+            isLiveMode
           }
         >
           Process Authorization

@@ -1,19 +1,87 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useLocation, useHistory } from "react-router-dom";
 import { Layout, ContentLayout, Box } from "@strapi/design-system";
 import useSettings from "../hooks/useSettings";
 import useTransactionHistory from "../hooks/useTransactionHistory";
 import usePaymentActions from "../hooks/usePaymentActions";
 import AppHeader from "./components/AppHeader";
 import AppTabs from "./components/AppTabs";
+import ApplePayConfigPanel from "./components/ApplePayConfigPanel";
+import GooglePayConfigPanel from "./components/GooglePayConfigPanel";
 import "./styles.css";
+import pluginId from "../../pluginId";
 
 const App = () => {
+  const location = useLocation();
+  const history = useHistory();
   const [activeTab, setActiveTab] = useState(0);
 
   // Custom hooks
   const settings = useSettings();
   const transactionHistory = useTransactionHistory();
   const paymentActions = usePaymentActions();
+
+  useEffect(() => {
+    if (location.pathname.includes('/apple-pay-config') || location.pathname.includes('/google-pay-config')) {
+    } else {
+      const tabFromPath = location.pathname.includes('/history') ? 1 :
+        location.pathname.includes('/payment-actions') ? 2 :
+          location.pathname.includes('/documentation') ? 3 : 0;
+      setActiveTab(tabFromPath);
+    }
+  }, [location.pathname]);
+
+  const isApplePayConfigPage = location.pathname.includes('/apple-pay-config');
+  const isGooglePayConfigPage = location.pathname.includes('/google-pay-config');
+
+  if (isApplePayConfigPage) {
+    return (
+      <Layout>
+        <AppHeader
+          title="Apple Pay Configuration"
+          activeTab={null}
+          isSaving={settings.isSaving}
+          onSave={settings.handleSave}
+          onBack={() => history.push(`/plugins/${pluginId}`)}
+        />
+        <ContentLayout>
+          <Box padding={6}>
+            <ApplePayConfigPanel
+              settings={settings.settings}
+              onInputChange={settings.handleInputChange}
+              isSaving={settings.isSaving}
+              onSave={settings.handleSave}
+            />
+          </Box>
+        </ContentLayout>
+      </Layout>
+    );
+  }
+
+  if (isGooglePayConfigPage) {
+    return (
+      <Layout>
+        <AppHeader
+          title="Google Pay Configuration"
+          activeTab={null}
+          isSaving={settings.isSaving}
+          onSave={settings.handleSave}
+          onBack={() => history.push(`/plugins/${pluginId}`)}
+        />
+        <ContentLayout>
+          <Box padding={6}>
+            <GooglePayConfigPanel
+              settings={settings.settings}
+              onInputChange={settings.handleInputChange}
+              isSaving={settings.isSaving}
+              onSave={settings.handleSave}
+              onBack={() => history.push(`/plugins/${pluginId}`)}
+            />
+          </Box>
+        </ContentLayout>
+      </Layout>
+    );
+  }
 
   return (
     <Layout>
@@ -48,6 +116,7 @@ const App = () => {
             selectedTransaction={transactionHistory.selectedTransaction}
             onTransactionSelect={transactionHistory.handleTransactionSelect}
             paymentActions={paymentActions}
+            history={history}
           />
         </Box>
       </ContentLayout>

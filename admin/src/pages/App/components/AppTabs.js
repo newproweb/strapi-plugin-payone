@@ -1,8 +1,10 @@
 import React from "react";
 import { Tabs, Tab, TabGroup, TabPanels, TabPanel } from "@strapi/design-system";
+import pluginId from "../../../pluginId";
 import ConfigurationPanel from "./ConfigurationPanel";
 import HistoryPanel from "./HistoryPanel";
 import PaymentActionsPanel from "./PaymentActionsPanel";
+import DocsPanel from "./DocsPanel";
 
 const AppTabs = ({
   activeTab,
@@ -30,8 +32,18 @@ const AppTabs = ({
   selectedTransaction,
   onTransactionSelect,
   // Payment actions props
-  paymentActions
+  paymentActions,
+  history
 }) => {
+      const handleNavigateToConfig = (configType = "apple-pay") => {
+        if (history) {
+          if (configType === "google-pay") {
+            history.push(`/plugins/${pluginId}/google-pay-config`);
+          } else {
+            history.push(`/plugins/${pluginId}/apple-pay-config`);
+          }
+        }
+      };
   return (
     <TabGroup
       label="Payone Provider Tabs"
@@ -52,6 +64,11 @@ const AppTabs = ({
           className={`payment-tab ${activeTab === 2 ? 'payment-tab-active' : ''}`}
         >
           Payment Actions
+        </Tab>
+        <Tab
+          className={`payment-tab ${activeTab === 3 ? 'payment-tab-active' : ''}`}
+        >
+          Documentation
         </Tab>
       </Tabs>
       <TabPanels>
@@ -125,7 +142,12 @@ const AppTabs = ({
             setCardexpiredate={paymentActions.setCardexpiredate}
             cardcvc2={paymentActions.cardcvc2}
             setCardcvc2={paymentActions.setCardcvc2}
+            onNavigateToConfig={handleNavigateToConfig}
           />
+        </TabPanel>
+
+        <TabPanel>
+          <DocsPanel />
         </TabPanel>
       </TabPanels>
     </TabGroup>

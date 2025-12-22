@@ -85,6 +85,159 @@ After installation, you need to configure your Payone credentials:
 5. Click **"Test Connection"** to verify your credentials
 6. Click **"Save Configuration"** to store your settings
 
+### Apple Pay Configuration
+
+To configure Apple Pay settings:
+
+1. Navigate to **Payone Provider** in the sidebar menu
+2. Go to **Payment Actions** tab
+3. Select **Apple Pay** as the payment method
+4. Click on the Apple Pay configuration link: `/plugins/strapi-plugin-payone-provider/apple-pay-config`
+5. Configure the following settings:
+   - **Country Code**: Select the country where your business operates
+   - **Currency Code**: Select the currency for transactions
+   - **Supported Networks**: Select payment card networks (Visa, Mastercard, Amex, etc.)
+   - **Merchant Capabilities**: Select payment capabilities (3D Secure is recommended)
+   - **Button Style & Type**: Customize the Apple Pay button appearance
+6. Click **"Save Apple Pay Configuration"** to store your settings
+
+> ⚠️ **Important**: Apple Pay requires a registered domain with HTTPS. It does NOT work on localhost. For testing, use a production domain with HTTPS or test on a device with Safari (iOS/macOS).
+
+#### Apple Pay Domain Verification File (.well-known)
+
+Apple Pay requires a domain verification file to be placed on your server. This file must be accessible at:
+
+```
+https://yourdomain.com/.well-known/apple-developer-merchantid-domain-association
+```
+
+**Steps to set up the domain verification file:**
+
+1. **Download the file from Payone:**
+
+   - Download the domain verification file from Payone documentation: [https://docs.payone.com/payment-methods/apple-pay/apple-pay-without-dev](https://docs.payone.com/payment-methods/apple-pay/apple-pay-without-dev)
+   - Alternatively, log into your Payone Merchant Interface (PMI)
+   - Navigate to **Configuration** → **Payment Portals** → **Apple Pay**
+   - Download the `apple-developer-merchantid-domain-association` file
+
+2. **Place the file in Strapi:**
+
+   - Create the directory: `public/.well-known/` (if it doesn't exist)
+   - Place the file at: `public/.well-known/apple-developer-merchantid-domain-association`
+
+3. **Place the file in your Frontend (if separate):**
+
+   - Create the directory: `public/.well-known/` (if it doesn't exist)
+   - Place the file at: `public/.well-known/apple-developer-merchantid-domain-association`
+
+4. **Verify accessibility:**
+   - The file must be accessible via HTTPS at: `https://yourdomain.com/.well-known/apple-developer-merchantid-domain-association`
+   - Test by visiting the URL in your browser - you should see the file content
+
+> ⚠️ **Critical**: Without this file, Apple Pay will NOT work on your domain. The file must be accessible via HTTPS and must match exactly what Payone provides.
+
+#### Middleware Configuration for Apple Pay
+
+Apple Pay requires Content Security Policy (CSP) configuration in `config/middlewares.js` to allow Apple Pay scripts. Without this configuration, Apple Pay will NOT work.
+
+**Required CSP directives:**
+
+```javascript
+module.exports = [
+  "strapi::logger",
+  "strapi::errors",
+  {
+    name: "strapi::security",
+    config: {
+      contentSecurityPolicy: {
+        useDefaults: true,
+        directives: {
+          "script-src": [
+            "'self'",
+            "'unsafe-inline'",
+            "'unsafe-eval'",
+            "https://applepay.cdn-apple.com", // Apple Pay SDK
+            "https://www.apple.com", // Apple Pay manifest
+          ],
+          "connect-src": [
+            "'self'",
+            "https:",
+            "https://applepay.cdn-apple.com", // Apple Pay API
+            "https://www.apple.com", // Apple Pay manifest
+          ],
+          "frame-src": [
+            "'self'",
+            "https://applepay.cdn-apple.com", // Apple Pay iframe
+          ],
+        },
+      },
+    },
+  },
+  // ... other middlewares
+];
+```
+
+> ⚠️ **Important**: Without this middleware configuration, Apple Pay scripts will be blocked and Apple Pay will NOT work!
+
+### Google Pay Configuration
+
+To configure Google Pay settings:
+
+1. Navigate to **Payone Provider** in the sidebar menu
+2. Go to **Payment Actions** tab
+3. Select **Google Pay** as the payment method
+4. Click on the Google Pay configuration link: `/plugins/strapi-plugin-payone-provider/google-pay-config`
+5. Configure the following settings:
+   - **Country Code**: Select the country where your business operates
+   - **Currency Code**: Select the currency for transactions
+   - **Merchant Name**: Enter your business name as it will appear in Google Pay
+   - **Allowed Card Networks**: Select payment card networks (Mastercard, Visa, Amex, etc.)
+   - **Allowed Authentication Methods**: Select authentication methods (PAN Only, 3D Secure)
+6. Click **"Save Google Pay Configuration"** to store your settings
+
+> ℹ️ **Note**: The Gateway Merchant ID will be automatically obtained from your Payone Merchant ID (MID) or Portal ID configured in the main Configuration tab.
+
+#### Middleware Configuration for Google Pay
+
+Google Pay requires Content Security Policy (CSP) configuration in `config/middlewares.js` to allow Google Pay scripts. Without this configuration, Google Pay will NOT work.
+
+**Required CSP directives:**
+
+```javascript
+module.exports = [
+  "strapi::logger",
+  "strapi::errors",
+  {
+    name: "strapi::security",
+    config: {
+      contentSecurityPolicy: {
+        useDefaults: true,
+        directives: {
+          "script-src": [
+            "'self'",
+            "'unsafe-inline'",
+            "'unsafe-eval'",
+            "https://pay.google.com", // Google Pay SDK
+          ],
+          "connect-src": [
+            "'self'",
+            "https:",
+            "https://pay.google.com", // Google Pay API
+          ],
+          "frame-src": [
+            "'self'",
+            "https://pay.google.com", // Google Pay iframe
+          ],
+        },
+      },
+    },
+  },
+  // ... other middlewares
+];
+```
+
+> ⚠️ **Important**: Without this middleware configuration, Google Pay scripts will be blocked and Google Pay will NOT work!
+
 ## 🚀 Getting Started
 
 ### 1. Test Your Connection
@@ -590,7 +743,7 @@ Google Pay integration requires obtaining an encrypted payment token from Google
 
 ```javascript
 const paymentsClient = new google.payments.api.PaymentsClient({
-  environment: 'TEST', // or "PRODUCTION" for live
+  environment: "TEST", // or "PRODUCTION" for live
 });
 
 const baseRequest = {
@@ -598,19 +751,19 @@ const baseRequest = {
   apiVersionMinor: 0,
 };
 
-const allowedCardNetworks = ['MASTERCARD', 'VISA'];
-const allowedAuthMethods = ['PAN_ONLY', 'CRYPTOGRAM_3DS'];
+const allowedCardNetworks = ["MASTERCARD", "VISA"];
+const allowedAuthMethods = ["PAN_ONLY", "CRYPTOGRAM_3DS"];
 
 const tokenizationSpecification = {
-  type: 'PAYMENT_GATEWAY',
+  type: "PAYMENT_GATEWAY",
   parameters: {
-    gateway: 'payonegmbh',
-    gatewayMerchantId: 'YOUR_PAYONE_MERCHANT_ID', // Use your Payone MID or Portal ID
+    gateway: "payonegmbh",
+    gatewayMerchantId: "YOUR_PAYONE_MERCHANT_ID", // Use your Payone MID or Portal ID
   },
 };
 
 const cardPaymentMethod = {
-  type: 'CARD',
+  type: "CARD",
   parameters: {
     allowedCardNetworks,
     allowedAuthMethods,
@@ -634,45 +787,47 @@ paymentsClient.isReadyToPay(isReadyToPayRequest).then(function (response) {
 const paymentDataRequest = Object.assign({}, baseRequest);
 paymentDataRequest.allowedPaymentMethods = [cardPaymentMethod];
 paymentDataRequest.transactionInfo = {
-  totalPriceStatus: 'FINAL',
-  totalPrice: '10.00',
-  currencyCode: 'EUR',
+  totalPriceStatus: "FINAL",
+  totalPrice: "10.00",
+  currencyCode: "EUR",
 };
 paymentDataRequest.merchantInfo = {
-  merchantId: 'YOUR_GOOGLE_MERCHANT_ID', // Optional: from Google Console
-  merchantName: 'Your Merchant Name',
+  merchantId: "YOUR_GOOGLE_MERCHANT_ID", // Optional: from Google Console
+  merchantName: "Your Merchant Name",
 };
 
 const button = paymentsClient.createButton({
   onClick: async () => {
     try {
-      const paymentData = await paymentsClient.loadPaymentData(paymentDataRequest);
+      const paymentData = await paymentsClient.loadPaymentData(
+        paymentDataRequest
+      );
       const token = paymentData.paymentMethodData.tokenizationData.token;
 
       // Token is a JSON string, encode it to Base64 for Payone
       const base64Token = btoa(unescape(encodeURIComponent(token)));
 
       // Send to your backend
-      await fetch('/api/strapi-plugin-payone-provider/preauthorization', {
-        method: 'POST',
+      await fetch("/api/strapi-plugin-payone-provider/preauthorization", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
-          Authorization: 'Bearer YOUR_TOKEN',
+          "Content-Type": "application/json",
+          Authorization: "Bearer YOUR_TOKEN",
         },
         body: JSON.stringify({
           amount: 1000,
-          currency: 'EUR',
-          reference: 'PAY1234567890ABCDEF',
+          currency: "EUR",
+          reference: "PAY1234567890ABCDEF",
           googlePayToken: base64Token,
         }),
       });
     } catch (error) {
-      console.error('Google Pay error:', error);
+      console.error("Google Pay error:", error);
     }
   },
 });
 
-document.getElementById('google-pay-button').appendChild(button);
+document.getElementById("google-pay-button").appendChild(button);
 ```
 
 **Token Format**
@@ -684,7 +839,9 @@ The token from Google Pay is a JSON string with the following structure:
   "signature": "MEUCIFr4ETGzv0uLZX3sR+i1ScARXnRBrncyYFDX/TI/VSLCAiEAvC/Q4dqXMQhwcSdg/ZvXj8+up0wXsfHja3V/6z48/vk=",
   "intermediateSigningKey": {
     "signedKey": "{\"keyValue\":\"MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE7PWUi+e6WPUhNmTSQ2WN006oWlcWy0FtBWizw9sph1wvX9XcXUNRLcfcsmCBfI5IsKQkjAmYxpCSB+L5sIudLw\\u003d\\u003d\",\"keyExpiration\":\"1722393105282\"}",
-    "signatures": ["MEUCIQCpU30A3g2pP93IBE5NxgO9ZcJlGF9YPzCZS7H4/IR1CQIgF6+I5t8olT8YsRDUcj7w3R1bvX4ZCcyFXE2+YXa+3H0="]
+    "signatures": [
+      "MEUCIQCpU30A3g2pP93IBE5NxgO9ZcJlGF9YPzCZS7H4/IR1CQIgF6+I5t8olT8YsRDUcj7w3R1bvX4ZCcyFXE2+YXa+3H0="
+    ]
   },
   "protocolVersion": "ECv2",
   "signedMessage": "{\"encryptedMessage\":\"...\",\"ephemeralPublicKey\":\"...\",\"tag\":\"...\"}"

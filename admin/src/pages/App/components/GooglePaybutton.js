@@ -291,7 +291,7 @@ const GooglePayButton = ({
             </Typography>
           </>
         )}
-        <Box ref={buttonContainerRef} style={{ minHeight: "40px", width: "100%", display: "flex", justifyContent: "flex-start" }} />
+        <Box ref={buttonContainerRef} style={{ minHeight: "40px", width: "100%", maxWidth: "200px", display: "flex", justifyContent: "flex-start", }} />
       </Flex>
     </Box>
   );

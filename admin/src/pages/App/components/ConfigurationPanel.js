@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import {
   Box,
   Button,
@@ -23,6 +23,16 @@ const ConfigurationPanel = ({
   onTestConnection,
   onInputChange
 }) => {
+  const mode = (settings?.mode || "test").toLowerCase();
+
+  useEffect(() => {
+    if (settings?.mode) {
+      const currentMode = (settings.mode || "test").toLowerCase();
+      console.log("[ConfigurationPanel] Mode updated:", currentMode);
+    }
+  }, [settings?.mode]);
+
+
   return (
     <Box
       className="payment-container"
@@ -104,8 +114,8 @@ const ConfigurationPanel = ({
                     className="payment-input"
                     style={{ flex: 1, minWidth: "300px" }}
                   >
-                    <Option value="test">Test Environment</Option>
-                    <Option value="live">Live Environment</Option>
+                    <Option value="test">Test</Option>
+                    <Option value="live">Live</Option>
                   </Select>
 
                   <TextInput
@@ -169,9 +179,15 @@ const ConfigurationPanel = ({
                   loading={isTesting}
                   startIcon={<Play />}
                   className="payment-button payment-button-success"
+                  disabled={mode === 'live'}
                 >
                   {isTesting ? "Testing Connection..." : "Test Connection"}
                 </Button>
+                {mode === 'live' && (
+                  <Typography variant="pi" textColor="neutral600" style={{ marginTop: "8px" }}>
+                    Test Connection is disabled in live mode for security reasons.
+                  </Typography>
+                )}
 
                 {testResult && (
                   <Alert

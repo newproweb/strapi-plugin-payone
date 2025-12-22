@@ -25,7 +25,8 @@ const PreauthorizationForm = ({
   cardexpiredate,
   setCardexpiredate,
   cardcvc2,
-  setCardcvc2
+  setCardcvc2,
+  isLiveMode = false
 }) => {
   const handleGooglePayToken = (token, paymentData) => {
     if (!token) {
@@ -41,12 +42,18 @@ const PreauthorizationForm = ({
     }
   };
 
-  const handleApplePayToken = (token, paymentData) => {
+  const handleApplePayToken = async (token, paymentData) => {
     if (!token) {
-      return;
+      return Promise.reject(new Error("Token is missing"));
     }
     setApplePayToken(token);
-    onPreauthorization(token);
+    try {
+      await onPreauthorization(token);
+      return Promise.resolve();
+    } catch (error) {
+      console.error("[Apple Pay] Error in preauthorization:", error);
+      return Promise.reject(error);
+    }
   };
 
   const handleApplePayError = (error) => {
@@ -122,21 +129,31 @@ const PreauthorizationForm = ({
             onError={handleApplePayError}
             settings={settings}
           />
-          <Box marginTop={3} style={{ width: "100%", display: "flex", flexDirection: "column", alignItems: "flex-start", gap: "8px" }}>
-            <Typography variant="pi" textColor="neutral600" style={{ marginBottom: "8px" }}>
-              Apple Pay is not available on localhost. You can test the payment flow without Apple Pay token:
-            </Typography>
-            <Button
-              variant="secondary"
-              onClick={() => onPreauthorization(null)}
-              loading={isProcessingPayment}
-              startIcon={<Play />}
-              style={{ maxWidth: '200px' }}
-              disabled={!paymentAmount.trim() || !preauthReference.trim()}
-            >
-              Process Preauthorization
-            </Button>
-          </Box>
+          {applePayToken && (
+            <Box marginTop={3} style={{ width: "100%", display: "flex", flexDirection: "column", alignItems: "flex-start", gap: "8px" }}>
+              <Typography variant="pi" textColor="success600" style={{ marginBottom: "8px", fontWeight: "bold" }}>
+                ✓ Apple Pay token received. You can now process the preauthorization:
+              </Typography>
+              <Button
+                variant="default"
+                onClick={() => onPreauthorization(applePayToken)}
+                loading={isProcessingPayment}
+                startIcon={<Play />}
+                style={{ maxWidth: '200px' }}
+                disabled={!paymentAmount.trim() || !preauthReference.trim() || isLiveMode}
+                className="payment-button payment-button-primary"
+              >
+                Process Preauthorization
+              </Button>
+            </Box>
+          )}
+          {!applePayToken && (
+            <Box marginTop={3} style={{ width: "100%", display: "flex", flexDirection: "column", alignItems: "flex-start", gap: "8px" }}>
+              <Typography variant="pi" textColor="neutral600" style={{ marginBottom: "8px" }}>
+                Apple Pay is not available on localhost. You can test the payment flow without Apple Pay token:
+              </Typography>
+            </Box>
+          )}
         </Box>
       ) : (
         <Button
@@ -150,7 +167,8 @@ const PreauthorizationForm = ({
             !paymentAmount.trim() ||
             (paymentMethod === "cc" &&
               settings?.enable3DSecure !== false &&
-              (!cardtype || !cardpan || !cardexpiredate || !cardcvc2))
+              (!cardtype || !cardpan || !cardexpiredate || !cardcvc2)) ||
+            isLiveMode
           }
         >
           Process Preauthorization
