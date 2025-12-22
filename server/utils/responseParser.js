@@ -24,8 +24,20 @@ const parseResponse = (responseText, logger) => {
   const params = new URLSearchParams(responseText);
   const response = {};
   for (const [key, value] of params) {
+    // Store both lowercase and original case
     response[key.toLowerCase()] = value;
     response[key] = value;
+    
+    // Also handle add_paydata fields with brackets
+    // Payone returns: add_paydata[applepay_payment_session]=BASE64_STRING
+    // URLSearchParams handles brackets, but we need to ensure we can access it
+    if (key.includes('add_paydata') || key.includes('addPaydata')) {
+      // Store with original key format
+      response[key] = value;
+      // Also try normalized versions
+      const normalizedKey = key.replace(/\[/g, '_').replace(/\]/g, '');
+      response[normalizedKey] = value;
+    }
   }
   return response;
 };

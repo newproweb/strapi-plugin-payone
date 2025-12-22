@@ -498,16 +498,28 @@ const ApplePayButton = ({
           merchantSessionPromise.then(session => {
             console.log("[Apple Pay] Merchant session received:", {
               hasMerchantIdentifier: !!session.merchantIdentifier,
+              merchantIdentifier: session.merchantIdentifier,
               domainName: session.domainName,
-              displayName: session.displayName
+              displayName: session.displayName,
+              epochTimestamp: session.epochTimestamp,
+              expiresAt: session.expiresAt,
+              fullSession: session
             });
+            
+            // Validate merchant session
+            if (!session || (!session.merchantIdentifier && !session.merchantSessionIdentifier)) {
+              console.error("[Apple Pay] Invalid merchant session - missing merchantIdentifier");
+              console.error("[Apple Pay] Session object:", JSON.stringify(session, null, 2));
+              throw new Error("Invalid merchant session: missing merchantIdentifier");
+            }
           }).catch(err => {
             console.error("[Apple Pay] Merchant session error:", err);
-            // Don't call onError here - let the dialog handle it
+            // Re-throw so Payment Request API knows validation failed
+            throw err;
           });
 
           // Complete with the merchant session promise
-          // If it fails, Apple Pay will handle it gracefully
+          // If the promise rejects, Payment Request API will close the dialog
           event.complete(merchantSessionPromise);
         } catch (error) {
           console.error("[Apple Pay] Merchant validation error:", error);
@@ -550,17 +562,42 @@ const ApplePayButton = ({
       let response;
       try {
         response = await request.show();
+        console.log("[Apple Pay] Payment sheet shown successfully");
       } catch (error) {
-        console.error("[Apple Pay] Error showing payment sheet:", error);
+        console.error("[Apple Pay] Error showing payment sheet:", {
+          name: error.name,
+          message: error.message,
+          stack: error.stack
+        });
+        
         // Check if error is due to cancellation (user cancelled)
-        if (error.message && error.message.includes('Cancelled')) {
+        // Payment Request API throws "AbortError" when user cancels
+        if (error.name === 'AbortError' || 
+            (error.message && (
+              error.message.includes('Cancelled') || 
+              error.message.includes('cancel') ||
+              error.message.includes('abort')
+            ))) {
           console.log("[Apple Pay] User cancelled the payment");
           // Don't call onError for user cancellation
           return;
         }
-        // Only call onError if it's defined and it's not a cancellation
-        if (typeof onError === 'function') {
-          onError(error);
+        
+        // If it's a merchant validation error, log it specifically
+        if (error.message && (
+          error.message.includes('merchant') ||
+          error.message.includes('validation') ||
+          error.message.includes('identifier')
+        )) {
+          console.error("[Apple Pay] Merchant validation failed - this may cause the dialog to close");
+          if (typeof onError === 'function') {
+            onError(new Error("Merchant validation failed. Please check your Apple Pay configuration and merchant identifier in Payone settings."));
+          }
+        } else {
+          // For other errors, call onError
+          if (typeof onError === 'function') {
+            onError(error);
+          }
         }
         return;
       }
