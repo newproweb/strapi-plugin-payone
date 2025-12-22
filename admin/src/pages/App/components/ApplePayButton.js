@@ -1,5 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Box, Flex, Typography } from "@strapi/design-system";
+import { request } from "@strapi/helper-plugin";
+import pluginId from "../../../pluginId";
 import { DEFAULT_APPLE_PAY_CONFIG } from "../../utils/applePayConstants";
 
 /**
@@ -41,13 +43,41 @@ const ApplePayButton = ({
     try {
       console.log("[Apple Pay] Checking availability...");
 
-      // Check if we're on HTTPS (required for Apple Pay JS API)
-      const isSecure = typeof window !== 'undefined' &&
-        (window.location.protocol === 'https:' ||
-          window.location.hostname === 'localhost' ||
-          window.location.hostname === '127.0.0.1');
+      // Check secure context using browser's native property
+      // This is the most reliable way to check if we're in a secure context
+      const isSecureContext = typeof window !== 'undefined' && window.isSecureContext;
+      const protocol = typeof window !== 'undefined' ? window.location.protocol : '';
+      const hostname = typeof window !== 'undefined' ? window.location.hostname : '';
+      const isLocalhost = hostname === 'localhost' || hostname === '127.0.0.1';
 
-      console.log("[Apple Pay] Secure context:", isSecure, "Protocol:", window.location?.protocol);
+      // For Apple Pay, we need a secure context (HTTPS or localhost)
+      // window.isSecureContext is true for:
+      // - HTTPS pages
+      // - localhost (even on HTTP)
+      // - 127.0.0.1 (even on HTTP)
+      // - file:// URLs
+      const isSecure = isSecureContext || isLocalhost;
+
+      console.log("[Apple Pay] Secure context check:", {
+        isSecureContext: isSecureContext,
+        protocol: protocol,
+        hostname: hostname,
+        isLocalhost: isLocalhost,
+        isSecure: isSecure,
+        fullUrl: typeof window !== 'undefined' ? window.location.href : ''
+      });
+
+      // If not secure, log detailed information
+      if (!isSecure) {
+        console.error("[Apple Pay] NOT in secure context!", {
+          isSecureContext: isSecureContext,
+          protocol: protocol,
+          hostname: hostname,
+          isLocalhost: isLocalhost,
+          fullUrl: typeof window !== 'undefined' ? window.location.href : '',
+          reason: !isSecureContext ? "window.isSecureContext is false" : "Unknown"
+        });
+      }
 
       // First, check if Payment Request API is available
       // Payment Request API works on HTTP too, but Apple Pay JS API requires HTTPS
@@ -168,15 +198,23 @@ const ApplePayButton = ({
         }
       }
 
-      // If canMakePayment is not available, assume it's available (for older browsers)
-      // But only if we're in a secure context
-      // Reuse isSecure from line 47
+      // If canMakePayment is not available, check secure context again
+      // Re-check secure context to ensure we have the latest state
+      const isSecureContextFinal = typeof window !== 'undefined' && window.isSecureContext;
+      const hostnameFinal = typeof window !== 'undefined' ? window.location.hostname : '';
+      const isLocalhostFinal = hostnameFinal === 'localhost' || hostnameFinal === '127.0.0.1';
+      const isSecureFinal = isSecureContextFinal || isLocalhostFinal;
 
-      if (isSecure) {
+      if (isSecureFinal) {
         console.log("[Apple Pay] canMakePayment not available, assuming support (secure context)");
         return { available: true, method: 'paymentRequest' };
       } else {
         console.warn("[Apple Pay] canMakePayment not available and insecure context");
+        console.warn("[Apple Pay] Context details:", {
+          isSecureContext: isSecureContextFinal,
+          hostname: hostnameFinal,
+          isLocalhost: isLocalhostFinal
+        });
         return { available: false, method: null, error: 'insecure_context' };
       }
     } catch (error) {
@@ -189,9 +227,13 @@ const ApplePayButton = ({
       }
 
       // Fallback: Try Apple Pay JS API (only on HTTPS)
-      // Reuse isSecure from line 47
+      // Re-check secure context
+      const isSecureContextFallback = typeof window !== 'undefined' && window.isSecureContext;
+      const hostnameFallback = typeof window !== 'undefined' ? window.location.hostname : '';
+      const isLocalhostFallback = hostnameFallback === 'localhost' || hostnameFallback === '127.0.0.1';
+      const isSecureFallback = isSecureContextFallback || isLocalhostFallback;
 
-      if (typeof window !== 'undefined' && window.ApplePaySession && isSecure) {
+      if (typeof window !== 'undefined' && window.ApplePaySession && isSecureFallback) {
         try {
           const canMakePayments = ApplePaySession.canMakePayments();
           return { available: canMakePayments, method: 'applePayJS' };
@@ -461,16 +503,22 @@ const ApplePayButton = ({
             });
           }).catch(err => {
             console.error("[Apple Pay] Merchant session error:", err);
+            // Don't call onError here - let the dialog handle it
           });
 
+          // Complete with the merchant session promise
+          // If it fails, Apple Pay will handle it gracefully
           event.complete(merchantSessionPromise);
         } catch (error) {
           console.error("[Apple Pay] Merchant validation error:", error);
-          if (onError) {
+          // Only call onError if it's defined
+          if (typeof onError === 'function') {
             onError(error);
           }
-          // Complete with empty object - Payone will handle validation
-          event.complete({});
+          // Complete with a promise that resolves to empty object
+          // This allows the dialog to continue even if validation fails
+          // Apple Pay will show an error but won't close immediately
+          event.complete(Promise.resolve({}));
         }
       };
 
@@ -504,7 +552,14 @@ const ApplePayButton = ({
         response = await request.show();
       } catch (error) {
         console.error("[Apple Pay] Error showing payment sheet:", error);
-        if (onError) {
+        // Check if error is due to cancellation (user cancelled)
+        if (error.message && error.message.includes('Cancelled')) {
+          console.log("[Apple Pay] User cancelled the payment");
+          // Don't call onError for user cancellation
+          return;
+        }
+        // Only call onError if it's defined and it's not a cancellation
+        if (typeof onError === 'function') {
           onError(error);
         }
         return;
@@ -630,7 +685,8 @@ const ApplePayButton = ({
         } catch (finalError) {
           console.error("[Apple Pay] Failed to complete payment even with fail status:", finalError);
         }
-        if (onError) {
+        // Only call onError if it's defined
+        if (typeof onError === 'function') {
           onError(completeError);
         }
       }
@@ -641,7 +697,14 @@ const ApplePayButton = ({
         stack: error.stack,
         name: error.name
       });
-      if (onError) {
+      // Check if error is due to cancellation (user cancelled)
+      if (error.message && error.message.includes('Cancelled')) {
+        console.log("[Apple Pay] User cancelled the payment");
+        // Don't call onError for user cancellation
+        return;
+      }
+      // Only call onError if it's defined and it's not a cancellation
+      if (typeof onError === 'function') {
         onError(error);
       }
     }
@@ -660,43 +723,45 @@ const ApplePayButton = ({
     });
 
     try {
-      // Call Strapi backend to validate with Payone
-      const response = await fetch('/api/strapi-plugin-payone-provider/validate-apple-pay-merchant', {
+      console.log("[Apple Pay] Making validation request using Strapi helper...");
+
+      // Use Strapi helper-plugin's request function which automatically handles authentication
+      // This uses the admin API route which requires admin authentication
+      const merchantSession = await request(`/${pluginId}/validate-apple-pay-merchant`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
+        body: {
           validationURL,
           ...config
-        })
+        }
       });
 
-      console.log("[Apple Pay] Validation response status:", response.status);
+      console.log("[Apple Pay] Merchant session received from backend:", {
+        hasData: !!merchantSession.data,
+        merchantIdentifier: merchantSession.data?.merchantIdentifier
+      });
 
-      if (response.ok) {
-        const merchantSession = await response.json();
-        console.log("[Apple Pay] Merchant session received from backend:", {
-          hasData: !!merchantSession.data,
-          merchantIdentifier: merchantSession.data?.merchantIdentifier
-        });
-        return merchantSession.data || merchantSession;
-      } else {
-        // If validation fails, return empty object - Payone will handle it
-        const errorText = await response.text();
-        console.warn("[Apple Pay] Merchant validation failed:", {
-          status: response.status,
-          statusText: response.statusText,
-          error: errorText
-        });
-        return {};
-      }
+      return merchantSession.data || merchantSession;
     } catch (error) {
       console.error("[Apple Pay] Merchant validation error:", {
         message: error.message,
+        status: error.response?.status,
+        statusText: error.response?.statusText,
+        data: error.response?.data,
         stack: error.stack
       });
-      // Return empty object - Payone will handle validation
+
+      // Log specific error details
+      if (error.response?.status === 403) {
+        console.error("[Apple Pay] 403 Forbidden - Authentication failed. Make sure you are logged in as admin.");
+      } else if (error.response?.status === 401) {
+        console.error("[Apple Pay] 401 Unauthorized - Please log in again.");
+      } else if (error.response?.status >= 500) {
+        console.error("[Apple Pay] Server error - Check server logs for details.");
+      }
+
+      // If validation fails, return empty object
+      // This allows the dialog to continue, though Apple Pay may show an error
+      // The user can still proceed with payment if they want
       return {};
     }
   };
@@ -720,12 +785,6 @@ const ApplePayButton = ({
         )}
         {!isLoading && isAvailable && (
           <>
-            <Typography variant="sigma" textColor="neutral700" fontWeight="semiBold" style={{ textAlign: "left" }}>
-              Apple Pay Payment
-            </Typography>
-            <Typography variant="pi" textColor="neutral600" style={{ textAlign: "left" }}>
-              Click the button below to pay with Apple Pay. The token will be automatically sent to Payone.
-            </Typography>
             <Box ref={buttonContainerRef} style={{ minHeight: "40px", width: "100%", display: "flex", justifyContent: "flex-start" }}>
               {typeof window !== 'undefined' && window.customElements && window.customElements.get('apple-pay-button') ? (
                 <apple-pay-button

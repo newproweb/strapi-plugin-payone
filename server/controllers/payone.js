@@ -17,7 +17,7 @@ const getPayoneService = (strapi) => {
  * @param {Error} error - Error object
  */
 const handleError = (ctx, error) => {
-  strapi.log.error("Payone controller error:", error);
+  ctx.strapi.log.error("Payone controller error:", error);
   ctx.throw(500, error);
 };
 
@@ -180,10 +180,28 @@ module.exports = ({ strapi }) => ({
 
   async validateApplePayMerchant(ctx) {
     try {
+      strapi.log.info("[Apple Pay] Merchant validation request received");
+      strapi.log.info("[Apple Pay] Request body:", JSON.stringify(ctx.request.body, null, 2));
+      strapi.log.info("[Apple Pay] User:", ctx.state.user ? {
+        id: ctx.state.user.id,
+        email: ctx.state.user.email,
+        roles: ctx.state.user.roles?.map(r => r.code)
+      } : "No user");
+
       const params = ctx.request.body;
       const result = await getPayoneService(strapi).validateApplePayMerchant(params);
+
+      strapi.log.info("[Apple Pay] Merchant validation result:", {
+        hasResult: !!result,
+        hasMerchantIdentifier: !!result.merchantIdentifier
+      });
+
       ctx.body = { data: result };
     } catch (error) {
+      strapi.log.error("[Apple Pay] Controller error:", {
+        message: error.message,
+        stack: error.stack
+      });
       handleError(ctx, error);
     }
   }

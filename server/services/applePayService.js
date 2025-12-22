@@ -24,7 +24,7 @@ const initializeApplePaySession = async (strapi, params) => {
   try {
     strapi.log.info("[Apple Pay] Initializing Apple Pay session with Payone");
     strapi.log.info("[Apple Pay] Request params:", JSON.stringify(params, null, 2));
-    
+
     const settings = await getSettings(strapi);
 
     if (!validateSettings(settings)) {
@@ -55,9 +55,9 @@ const initializeApplePaySession = async (strapi, params) => {
     const mode = settings.mode || "test"; // test or live
 
     // Get domain from params or settings or server config
-    const domain = domainName || settings.domainName || 
-                   (strapi.config.get("server.url") ? new URL(strapi.config.get("server.url")).hostname : null) ||
-                   "localhost";
+    const domain = domainName || settings.domainName ||
+      (strapi.config.get("server.url") ? new URL(strapi.config.get("server.url")).hostname : null) ||
+      "localhost";
 
     // Build request parameters for Apple Pay session initialization
     // According to Payone documentation: request="genericpayment"
@@ -87,14 +87,38 @@ const initializeApplePaySession = async (strapi, params) => {
 
     const formData = toFormData(requestParams);
 
-    const response = await axios.post(POST_GATEWAY_URL, formData, {
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      timeout: 30000
+    strapi.log.info("[Apple Pay] Sending request to Payone API:", {
+      url: POST_GATEWAY_URL,
+      params: {
+        ...requestParams,
+        key: "***HIDDEN***" // Hide API key in logs
+      }
     });
+
+    let response;
+    try {
+      response = await axios.post(POST_GATEWAY_URL, formData, {
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        timeout: 30000
+      });
+    } catch (axiosError) {
+      strapi.log.error("[Apple Pay] Payone API request failed:", {
+        message: axiosError.message,
+        status: axiosError.response?.status,
+        statusText: axiosError.response?.statusText,
+        data: axiosError.response?.data,
+        config: {
+          url: axiosError.config?.url,
+          method: axiosError.config?.method
+        }
+      });
+      throw axiosError;
+    }
 
     strapi.log.info("[Apple Pay] Payone response received:", {
       status: response.status,
-      statusText: response.statusText
+      statusText: response.statusText,
+      headers: response.headers
     });
 
     // Parse response
@@ -102,7 +126,7 @@ const initializeApplePaySession = async (strapi, params) => {
 
     strapi.log.info("[Apple Pay] Session initialization response:", JSON.stringify(responseData, null, 2));
     strapi.log.info("[Apple Pay] Response status:", responseData.status || responseData.Status);
-    
+
     if (responseData.errorcode || responseData.ErrorCode) {
       strapi.log.warn("[Apple Pay] Response contains error:", {
         errorcode: responseData.errorcode || responseData.ErrorCode,
@@ -135,7 +159,7 @@ const validateApplePayMerchant = async (strapi, params) => {
       mid: params.mid,
       portalid: params.portalid
     }, null, 2));
-    
+
     const settings = await getSettings(strapi);
 
     if (!validateSettings(settings)) {
@@ -155,11 +179,11 @@ const validateApplePayMerchant = async (strapi, params) => {
     const merchantName = displayName || settings.merchantName || settings.displayName || "Test Store";
     const merchantId = mid || settings.mid || settings.merchantIdentifier;
     const portalId = portalid || settings.portalid;
-    
+
     // Get domain from params or settings or server config
-    const domainName = domain || settings.domainName || 
-                       (strapi.config.get("server.url") ? new URL(strapi.config.get("server.url")).hostname : null) ||
-                       "localhost";
+    const domainName = domain || settings.domainName ||
+      (strapi.config.get("server.url") ? new URL(strapi.config.get("server.url")).hostname : null) ||
+      "localhost";
 
     // For Payone integration without developer account,
     // Payone handles merchant validation
@@ -174,24 +198,39 @@ const validateApplePayMerchant = async (strapi, params) => {
     strapi.log.info("[Apple Pay] Initializing session with params:", JSON.stringify(sessionParams, null, 2));
 
     // Initialize Apple Pay session with Payone
-    const sessionResponse = await initializeApplePaySession(strapi, sessionParams);
+    let sessionResponse;
+    try {
+      sessionResponse = await initializeApplePaySession(strapi, sessionParams);
+    } catch (error) {
+      strapi.log.error("[Apple Pay] Failed to initialize session with Payone:", {
+        message: error.message,
+        status: error.response?.status,
+        data: error.response?.data
+      });
+      // Return empty object on error - Payment Request API will handle it
+      return {};
+    }
 
     strapi.log.info("[Apple Pay] Session initialization result:", {
       status: sessionResponse.status || sessionResponse.Status,
-      hasMerchantIdentifier: !!(sessionResponse.merchantIdentifier || sessionResponse.merchantSessionIdentifier)
+      hasMerchantIdentifier: !!(sessionResponse.merchantIdentifier || sessionResponse.merchantSessionIdentifier),
+      fullResponse: JSON.stringify(sessionResponse, null, 2)
     });
 
     // If session initialization is successful, return merchant session
     // Payone will provide the merchant identifier and validation data
-    if (sessionResponse.status === "APPROVED" || sessionResponse.status === "REDIRECT") {
+    // Check for both uppercase and lowercase status
+    const responseStatus = sessionResponse.status || sessionResponse.Status;
+    if (responseStatus === "APPROVED" || responseStatus === "REDIRECT" ||
+      responseStatus === "approved" || responseStatus === "redirect") {
       strapi.log.info("[Apple Pay] Session approved, creating merchant session object");
       // Get merchant identifier from Payone response or settings
-      const merchantIdentifier = sessionResponse.merchantIdentifier || 
-                                  sessionResponse.merchantSessionIdentifier ||
-                                  settings.merchantIdentifier ||
-                                  settings.mid || 
-                                  settings.portalid ||
-                                  `merchant.${domainName}`;
+      const merchantIdentifier = sessionResponse.merchantIdentifier ||
+        sessionResponse.merchantSessionIdentifier ||
+        settings.merchantIdentifier ||
+        settings.mid ||
+        settings.portalid ||
+        `merchant.${domainName}`;
 
       // Return merchant session object
       // In a real implementation, you would get this from Payone's response
@@ -249,8 +288,8 @@ const parseResponse = (responseData, logger) => {
  * Generate nonce for merchant session
  */
 const generateNonce = () => {
-  return Math.random().toString(36).substring(2, 15) + 
-         Math.random().toString(36).substring(2, 15);
+  return Math.random().toString(36).substring(2, 15) +
+    Math.random().toString(36).substring(2, 15);
 };
 
 module.exports = {
