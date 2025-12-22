@@ -83,6 +83,12 @@ const usePaymentActions = () => {
   };
 
   const handlePreauthorization = async (tokenParam = null) => {
+    console.log("[Payment] handlePreauthorization called", {
+      hasToken: !!tokenParam,
+      paymentMethod,
+      amount: paymentAmount
+    });
+    
     setIsProcessingPayment(true);
     setPaymentError(null);
     setPaymentResult(null);
@@ -211,16 +217,31 @@ const usePaymentActions = () => {
 
       setPaymentResult(responseData);
 
+      console.log("[Payment] Preauthorization result:", {
+        status,
+        hasError: !!errorCode,
+        errorCode,
+        errorMessage
+      });
+
       if (status === "APPROVED") {
         handlePaymentSuccess("Preauthorization completed successfully");
+        // Return success result for Apple Pay callback
+        return { success: true, data: responseData };
       } else {
+        const errorMsg = errorMessage || `Unexpected status: ${status}`;
         handlePaymentError(
-          { message: `Unexpected status: ${status}` },
+          { message: errorMsg },
           `Preauthorization completed with status: ${status}`
         );
+        // Return error result for Apple Pay callback
+        throw new Error(errorMsg);
       }
     } catch (error) {
+      console.error("[Payment] Preauthorization error:", error);
       handlePaymentError(error, "Preauthorization failed");
+      // Re-throw error so Apple Pay callback knows it failed
+      throw error;
     } finally {
       setIsProcessingPayment(false);
     }
@@ -356,16 +377,31 @@ const usePaymentActions = () => {
 
       setPaymentResult(responseData);
 
+      console.log("[Payment] Authorization result:", {
+        status,
+        hasError: !!errorCode,
+        errorCode,
+        errorMessage
+      });
+
       if (status === "APPROVED") {
         handlePaymentSuccess("Authorization completed successfully");
+        // Return success result for Apple Pay callback
+        return { success: true, data: responseData };
       } else {
+        const errorMsg = errorMessage || `Unexpected status: ${status}`;
         handlePaymentError(
-          { message: `Unexpected status: ${status}` },
+          { message: errorMsg },
           `Authorization completed with status: ${status}`
         );
+        // Return error result for Apple Pay callback
+        throw new Error(errorMsg);
       }
     } catch (error) {
+      console.error("[Payment] Authorization error:", error);
       handlePaymentError(error, "Authorization failed");
+      // Re-throw error so Apple Pay callback knows it failed
+      throw error;
     } finally {
       setIsProcessingPayment(false);
     }

@@ -44,16 +44,33 @@ const PreauthorizationForm = ({
 
   const handleApplePayToken = async (token, paymentData) => {
     if (!token) {
+      console.error("[Apple Pay] Token is missing in handleApplePayToken");
       return Promise.reject(new Error("Token is missing"));
     }
+
+    console.log("[Apple Pay] handleApplePayToken called with token:", {
+      hasToken: !!token,
+      tokenLength: token?.length,
+      paymentData: !!paymentData
+    });
+
+    // IMPORTANT: Set token in state immediately (synchronously)
+    // This ensures the token is saved before the dialog closes
     setApplePayToken(token);
-    try {
-      await onPreauthorization(token);
-      return Promise.resolve();
-    } catch (error) {
-      console.error("[Apple Pay] Error in preauthorization:", error);
-      return Promise.reject(error);
-    }
+
+    console.log("[Apple Pay] Token saved to state successfully");
+
+    // Don't call onPreauthorization immediately
+    // Let the user manually trigger the payment using the button
+    // This prevents the dialog from closing prematurely if there's an error
+    // The dialog will close with success, and the user will see the "Process Preauthorization" button
+
+    // Return success immediately so the dialog closes properly
+    // The actual payment processing will happen when the user clicks the button
+    return Promise.resolve({
+      success: true,
+      message: "Token received successfully. Please click 'Process Preauthorization' to complete the payment."
+    });
   };
 
   const handleApplePayError = (error) => {

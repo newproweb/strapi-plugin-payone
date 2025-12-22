@@ -553,36 +553,83 @@ const ApplePayButton = ({
       }
 
       // Call the callback with the token BEFORE completing payment
-      // This ensures the token is processed before the dialog closes
+      // This ensures the token is saved before the dialog closes
       console.log("[Apple Pay] Sending token to callback");
       let callbackSuccess = true;
+      let callbackError = null;
+
       if (onTokenReceived) {
         try {
-          // If callback is async, wait for it
+          // Call the callback to save the token
+          // The callback should set the token in state and return success immediately
+          // It should NOT process the payment yet - that will happen when user clicks the button
           const callbackResult = onTokenReceived(tokenString, {
             paymentToken: paymentToken,
             billingContact: response.payerName || response.details?.billingContact,
             shippingContact: response.shippingAddress || response.details?.shippingAddress,
             shippingOption: response.shippingOption || response.details?.shippingOption
           });
-          
-          // If callback returns a promise, wait for it
+
+          // If callback returns a promise, wait for it to resolve or reject
           if (callbackResult && typeof callbackResult.then === 'function') {
-            await callbackResult;
+            try {
+              const result = await callbackResult;
+              console.log("[Apple Pay] Token callback completed successfully:", result);
+              // Check if result indicates success
+              if (result && result.success === false) {
+                callbackSuccess = false;
+                callbackError = new Error(result.message || "Token callback returned failure");
+              }
+            } catch (error) {
+              console.error("[Apple Pay] Token callback promise rejected:", error);
+              callbackSuccess = false;
+              callbackError = error;
+            }
+          } else if (callbackResult === false) {
+            // If callback explicitly returns false, treat as failure
+            callbackSuccess = false;
+            console.warn("[Apple Pay] Token callback returned false");
+          } else {
+            // If callback returns a value (not a promise), assume success
+            console.log("[Apple Pay] Token callback returned synchronously");
           }
-        } catch (callbackError) {
-          console.error("[Apple Pay] Error in token callback:", callbackError);
+        } catch (error) {
+          console.error("[Apple Pay] Error in token callback:", error);
           callbackSuccess = false;
+          callbackError = error;
         }
+      } else {
+        console.warn("[Apple Pay] No onTokenReceived callback provided");
+        // If no callback, we should still complete the payment
+        // But mark as success since we can't determine the result
+        callbackSuccess = true;
       }
 
       // Complete payment with success or fail based on callback result
+      // IMPORTANT: Only call complete() after the callback has fully finished
       console.log("[Apple Pay] Completing payment with status:", callbackSuccess ? "success" : "fail");
+
       try {
-        await response.complete(callbackSuccess ? "success" : "fail");
-        console.log("[Apple Pay] Payment completed successfully");
+        // Use a small delay to ensure state updates are complete
+        // This prevents the dialog from closing before the token is saved
+        await new Promise(resolve => setTimeout(resolve, 200));
+
+        const completionStatus = callbackSuccess ? "success" : "fail";
+        await response.complete(completionStatus);
+        console.log("[Apple Pay] Payment completed with status:", completionStatus);
+
+        // If there was an error, notify the error handler
+        if (!callbackSuccess && callbackError && onError) {
+          onError(callbackError);
+        }
       } catch (completeError) {
         console.error("[Apple Pay] Error completing payment:", completeError);
+        // Try to complete with fail status if there's an error
+        try {
+          await response.complete("fail");
+        } catch (finalError) {
+          console.error("[Apple Pay] Failed to complete payment even with fail status:", finalError);
+        }
         if (onError) {
           onError(completeError);
         }
