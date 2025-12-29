@@ -189,22 +189,51 @@ module.exports = ({ strapi }) => ({
       } : "No user");
 
       const params = ctx.request.body;
-      const result = await getPayoneService(strapi).validateApplePayMerchant(params);
+      let result;
+      try {
+        result = await getPayoneService(strapi).validateApplePayMerchant(params);
+      } catch (serviceError) {
+        // Service threw an error - re-throw it so it's caught by the outer catch block
+        strapi.log.error("[Apple Pay] Service threw error:", {
+          message: serviceError.message,
+          stack: serviceError.stack
+        });
+        throw serviceError;
+      }
 
       strapi.log.info("[Apple Pay] Merchant validation result:", {
         hasResult: !!result,
-        hasMerchantIdentifier: !!result.merchantIdentifier,
-        merchantIdentifier: result.merchantIdentifier,
-        domainName: result.domainName,
-        displayName: result.displayName,
-        epochTimestamp: result.epochTimestamp,
-        expiresAt: result.expiresAt
+        resultType: typeof result,
+        resultIsObject: result instanceof Object,
+        resultKeys: result ? Object.keys(result) : [],
+        resultKeysLength: result ? Object.keys(result).length : 0,
+        hasMerchantIdentifier: !!result?.merchantIdentifier,
+        hasMerchantSessionIdentifier: !!result?.merchantSessionIdentifier,
+        merchantIdentifier: result?.merchantIdentifier,
+        domainName: result?.domainName,
+        displayName: result?.displayName,
+        epochTimestamp: result?.epochTimestamp,
+        expiresAt: result?.expiresAt,
+        fullResult: JSON.stringify(result)
       });
 
       // Validate result before sending
-      if (!result || !result.merchantIdentifier) {
-        strapi.log.error("[Apple Pay] Invalid merchant session returned - missing merchantIdentifier");
-        ctx.throw(500, "Apple Pay merchant validation failed: Invalid merchant session. Please check your Payone Apple Pay configuration in PMI.");
+      // Check if result is null, undefined, empty object, or missing merchantIdentifier
+      if (!result || 
+          (typeof result === 'object' && Object.keys(result).length === 0) ||
+          (!result.merchantIdentifier && !result.merchantSessionIdentifier)) {
+        strapi.log.error("[Apple Pay] CRITICAL: Invalid or empty merchant session returned!");
+        strapi.log.error("[Apple Pay] Result details:", {
+          hasResult: !!result,
+          resultType: typeof result,
+          resultIsObject: result instanceof Object,
+          resultKeys: result ? Object.keys(result) : [],
+          resultKeysLength: result ? Object.keys(result).length : 0,
+          hasMerchantIdentifier: !!result?.merchantIdentifier,
+          hasMerchantSessionIdentifier: !!result?.merchantSessionIdentifier,
+          resultStringified: JSON.stringify(result)
+        });
+        ctx.throw(500, "Apple Pay merchant validation failed: Invalid or empty merchant session received from Payone. Please check your Payone Apple Pay configuration in PMI (CONFIGURATION → PAYMENT PORTALS → [Your Portal] → Apple Pay). The merchant session must come from Payone after successful Apple Pay onboarding. Check server logs for Payone response details.");
       }
 
       ctx.body = { data: result };
