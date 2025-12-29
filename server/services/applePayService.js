@@ -126,6 +126,9 @@ const initializeApplePaySession = async (strapi, params) => {
 
     strapi.log.info("[Apple Pay] Session initialization response:", JSON.stringify(responseData, null, 2));
     strapi.log.info("[Apple Pay] Response status:", responseData.status || responseData.Status);
+    strapi.log.info("[Apple Pay] Response errorcode:", responseData.errorcode || responseData.ErrorCode || "none");
+    strapi.log.info("[Apple Pay] Response errormessage:", responseData.errormessage || responseData.ErrorMessage || responseData.errortxt || responseData.ErrorTxt || "none");
+    strapi.log.info("[Apple Pay] All response keys:", Object.keys(responseData));
 
     if (responseData.errorcode || responseData.ErrorCode) {
       strapi.log.warn("[Apple Pay] Response contains error:", {
@@ -205,10 +208,12 @@ const validateApplePayMerchant = async (strapi, params) => {
       strapi.log.error("[Apple Pay] Failed to initialize session with Payone:", {
         message: error.message,
         status: error.response?.status,
-        data: error.response?.data
+        data: error.response?.data,
+        stack: error.stack
       });
-      // Return empty object on error - Payment Request API will handle it
-      return {};
+      // DO NOT return empty object - throw error instead
+      // Empty object causes Apple Pay to close dialog without proper error message
+      throw new Error(`Failed to initialize Apple Pay session with Payone: ${error.message}. Please check your Payone configuration and ensure Apple Pay is properly set up in PMI.`);
     }
 
     strapi.log.info("[Apple Pay] Session initialization result:", {
@@ -395,9 +400,28 @@ const validateApplePayMerchant = async (strapi, params) => {
     // If initialization failed, we cannot proceed
     // Payment Request API requires a valid merchant session
     strapi.log.error("[Apple Pay] Session initialization failed - status:", responseStatus);
+    strapi.log.error("[Apple Pay] Full Payone response:", JSON.stringify(sessionResponse, null, 2));
     strapi.log.error("[Apple Pay] This means merchant validation will fail.");
-    strapi.log.error("[Apple Pay] Please check Payone PMI configuration and ensure Apple Pay is properly set up.");
-    throw new Error(`Apple Pay session initialization failed with status: ${responseStatus}. Please check your Payone Apple Pay configuration in PMI.`);
+    strapi.log.error("[Apple Pay] Possible causes:");
+    strapi.log.error("[Apple Pay] 1. Payone returned ERROR status - check errorcode and errormessage in response");
+    strapi.log.error("[Apple Pay] 2. Apple Pay not configured in Payone PMI");
+    strapi.log.error("[Apple Pay] 3. Domain not verified in Payone PMI");
+    strapi.log.error("[Apple Pay] 4. Merchant identifier not configured correctly");
+    strapi.log.error("[Apple Pay] 5. Apple Pay onboarding not completed");
+    
+    // Extract error details from Payone response
+    const errorCode = sessionResponse.errorcode || sessionResponse.ErrorCode;
+    const errorMessage = sessionResponse.errormessage || sessionResponse.ErrorMessage || sessionResponse.errortxt || sessionResponse.ErrorTxt;
+    
+    if (errorCode || errorMessage) {
+      strapi.log.error("[Apple Pay] Payone error details:", {
+        errorCode: errorCode,
+        errorMessage: errorMessage
+      });
+      throw new Error(`Payone Apple Pay initialization failed: ${errorCode ? `Error ${errorCode}` : ''} ${errorMessage || 'Unknown error'}. Please check your Payone Apple Pay configuration in PMI (CONFIGURATION → PAYMENT PORTALS → [Your Portal] → Apple Pay).`);
+    } else {
+      throw new Error(`Apple Pay session initialization failed with status: ${responseStatus || 'UNKNOWN'}. Please check your Payone Apple Pay configuration in PMI (CONFIGURATION → PAYMENT PORTALS → [Your Portal] → Apple Pay).`);
+    }
   } catch (error) {
     strapi.log.error("[Apple Pay] Merchant validation error:", {
       message: error.message,
