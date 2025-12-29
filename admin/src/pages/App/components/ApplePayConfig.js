@@ -41,16 +41,16 @@ const ApplePayConfig = ({
       ...config,
       countryCode: value
     };
-
+    
     // Auto-update currency if current currency is not supported in new country
     const newSupportedCurrencies = getSupportedCurrenciesForCountry(value);
     if (!newSupportedCurrencies.find(c => c.code === currencyCode)) {
       newConfig.currencyCode = newSupportedCurrencies[0]?.code || "USD";
     }
-
+    
     // Auto-update networks based on country
     newConfig.supportedNetworks = getSupportedNetworksForCountry(value);
-
+    
     onConfigChange(newConfig);
   };
 
@@ -66,7 +66,7 @@ const ApplePayConfig = ({
     const newNetworks = currentNetworks.includes(networkCode)
       ? currentNetworks.filter(n => n !== networkCode)
       : [...currentNetworks, networkCode];
-
+    
     onConfigChange({
       ...config,
       supportedNetworks: newNetworks
@@ -78,7 +78,7 @@ const ApplePayConfig = ({
     const newCapabilities = currentCapabilities.includes(capabilityCode)
       ? currentCapabilities.filter(c => c !== capabilityCode)
       : [...currentCapabilities, capabilityCode];
-
+    
     onConfigChange({
       ...config,
       merchantCapabilities: newCapabilities
@@ -100,43 +100,43 @@ const ApplePayConfig = ({
         {/* Country and Currency */}
         <Flex gap={4} wrap="wrap">
           <Box style={{ flex: 1, minWidth: "300px" }}>
-            <Select
+          <Select
               label="Country Code"
-              name="countryCode"
-              value={countryCode}
-              onChange={handleCountryChange}
-              hint="Select the country where your business operates"
-              required
-            >
-              {APPLE_PAY_SUPPORTED_COUNTRIES.map(country => (
-                <Option key={country.code} value={country.code}>
-                  {country.name} ({country.code})
-                </Option>
-              ))}
-            </Select>
-          </Box>
+            name="countryCode"
+            value={countryCode}
+            onChange={handleCountryChange}
+            hint="Select the country where your business operates"
+            required
+          >
+            {APPLE_PAY_SUPPORTED_COUNTRIES.map(country => (
+              <Option key={country.code} value={country.code}>
+                {country.name} ({country.code})
+              </Option>
+            ))}
+          </Select>
+        </Box>
 
           <Box style={{ flex: 1, minWidth: "300px" }}>
-            <Select
+          <Select
               label="Currency Code"
-              name="currencyCode"
-              value={currencyCode}
-              onChange={handleCurrencyChange}
+            name="currencyCode"
+            value={currencyCode}
+            onChange={handleCurrencyChange}
               hint={`Supported currencies for ${countryCode}`}
-              required
-            >
-              {supportedCurrencies.map(currency => (
-                <Option key={currency.code} value={currency.code}>
-                  {currency.name} ({currency.code}) {currency.symbol}
-                </Option>
-              ))}
-            </Select>
-            {supportedCurrencies.length === 0 && (
-              <Typography variant="pi" textColor="danger600" style={{ marginTop: "4px" }}>
-                No supported currencies for this country. Please select a different country.
-              </Typography>
-            )}
-          </Box>
+            required
+          >
+            {supportedCurrencies.map(currency => (
+              <Option key={currency.code} value={currency.code}>
+                {currency.name} ({currency.code}) {currency.symbol}
+              </Option>
+            ))}
+          </Select>
+          {supportedCurrencies.length === 0 && (
+            <Typography variant="pi" textColor="danger600" style={{ marginTop: "4px" }}>
+              No supported currencies for this country. Please select a different country.
+            </Typography>
+          )}
+        </Box>
         </Flex>
 
         {/* Button Style and Type */}
@@ -186,23 +186,23 @@ const ApplePayConfig = ({
             {APPLE_PAY_SUPPORTED_NETWORKS.map(network => {
               const isSupported = supportedNetworksForCountry.includes(network.code);
               const isSelected = supportedNetworks?.includes(network.code);
-
+              
               return (
                 <Box key={network.code} style={{ flex: "0 0 calc(50% - 8px)", minWidth: "250px" }}>
-                  <Checkbox
-                    name={`network-${network.code}`}
-                    checked={isSelected}
-                    onChange={() => handleNetworkToggle(network.code)}
-                    disabled={!isSupported}
-                    hint={!isSupported ? `Not supported in ${countryCode}` : undefined}
-                  >
-                    {network.name} ({network.code})
-                    {!isSupported && (
-                      <Typography variant="sigma" textColor="neutral500" style={{ marginLeft: "8px" }}>
+                <Checkbox
+                  name={`network-${network.code}`}
+                  checked={isSelected}
+                  onChange={() => handleNetworkToggle(network.code)}
+                  disabled={!isSupported}
+                  hint={!isSupported ? `Not supported in ${countryCode}` : undefined}
+                >
+                  {network.name} ({network.code})
+                  {!isSupported && (
+                    <Typography variant="sigma" textColor="neutral500" style={{ marginLeft: "8px" }}>
                         (Not available)
-                      </Typography>
-                    )}
-                  </Checkbox>
+                    </Typography>
+                  )}
+                </Checkbox>
                 </Box>
               );
             })}
@@ -225,16 +225,16 @@ const ApplePayConfig = ({
           <Flex wrap="wrap" gap={4} style={{ marginTop: "12px" }}>
             {APPLE_PAY_MERCHANT_CAPABILITIES.map(capability => {
               const isSelected = merchantCapabilities?.includes(capability.code);
-
+              
               return (
                 <Box key={capability.code} style={{ flex: "0 0 calc(50% - 8px)", minWidth: "250px" }}>
-                  <Checkbox
-                    name={`capability-${capability.code}`}
-                    checked={isSelected}
-                    onChange={() => handleCapabilityToggle(capability.code)}
-                  >
-                    {capability.name} - {capability.description}
-                  </Checkbox>
+                <Checkbox
+                  name={`capability-${capability.code}`}
+                  checked={isSelected}
+                  onChange={() => handleCapabilityToggle(capability.code)}
+                >
+                  {capability.name} - {capability.description}
+                </Checkbox>
                 </Box>
               );
             })}
@@ -256,49 +256,49 @@ const ApplePayConfig = ({
           </Typography>
           <Flex wrap="wrap" gap={4} style={{ marginTop: "12px" }}>
             <Box style={{ flex: "0 0 calc(33.333% - 11px)", minWidth: "200px" }}>
-              <Checkbox
-                name="requestPayerName"
-                checked={requestPayerName}
-                onChange={(checked) => onConfigChange({ ...config, requestPayerName: checked })}
-              >
-                Request Payer Name
-              </Checkbox>
+            <Checkbox
+              name="requestPayerName"
+              checked={requestPayerName}
+              onChange={(checked) => onConfigChange({ ...config, requestPayerName: checked })}
+            >
+              Request Payer Name
+            </Checkbox>
             </Box>
             <Box style={{ flex: "0 0 calc(33.333% - 11px)", minWidth: "200px" }}>
-              <Checkbox
-                name="requestBillingAddress"
-                checked={requestBillingAddress}
-                onChange={(checked) => onConfigChange({ ...config, requestBillingAddress: checked })}
-              >
-                Request Billing Address
-              </Checkbox>
+            <Checkbox
+              name="requestBillingAddress"
+              checked={requestBillingAddress}
+              onChange={(checked) => onConfigChange({ ...config, requestBillingAddress: checked })}
+            >
+              Request Billing Address
+            </Checkbox>
             </Box>
             <Box style={{ flex: "0 0 calc(33.333% - 11px)", minWidth: "200px" }}>
-              <Checkbox
-                name="requestPayerEmail"
-                checked={requestPayerEmail}
-                onChange={(checked) => onConfigChange({ ...config, requestPayerEmail: checked })}
-              >
-                Request Payer Email
-              </Checkbox>
+            <Checkbox
+              name="requestPayerEmail"
+              checked={requestPayerEmail}
+              onChange={(checked) => onConfigChange({ ...config, requestPayerEmail: checked })}
+            >
+              Request Payer Email
+            </Checkbox>
             </Box>
             <Box style={{ flex: "0 0 calc(33.333% - 11px)", minWidth: "200px" }}>
-              <Checkbox
-                name="requestPayerPhone"
-                checked={requestPayerPhone}
-                onChange={(checked) => onConfigChange({ ...config, requestPayerPhone: checked })}
-              >
-                Request Payer Phone
-              </Checkbox>
+            <Checkbox
+              name="requestPayerPhone"
+              checked={requestPayerPhone}
+              onChange={(checked) => onConfigChange({ ...config, requestPayerPhone: checked })}
+            >
+              Request Payer Phone
+            </Checkbox>
             </Box>
             <Box style={{ flex: "0 0 calc(33.333% - 11px)", minWidth: "200px" }}>
-              <Checkbox
-                name="requestShipping"
-                checked={requestShipping}
-                onChange={(checked) => onConfigChange({ ...config, requestShipping: checked })}
-              >
-                Request Shipping Address
-              </Checkbox>
+            <Checkbox
+              name="requestShipping"
+              checked={requestShipping}
+              onChange={(checked) => onConfigChange({ ...config, requestShipping: checked })}
+            >
+              Request Shipping Address
+            </Checkbox>
             </Box>
           </Flex>
         </Box> */}
@@ -309,7 +309,7 @@ const ApplePayConfig = ({
             Merchant Identifier
           </Typography>
           <Typography variant="pi" textColor="neutral600">
-            {settings?.mid || settings?.portalid
+            {settings?.mid || settings?.portalid 
               ? `Using: ${settings.mid || settings.portalid}`
               : "Merchant identifier will be obtained from Payone after domain verification. See documentation for setup instructions."
             }

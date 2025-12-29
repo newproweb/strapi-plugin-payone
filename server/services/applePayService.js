@@ -250,10 +250,12 @@ const validateApplePayMerchant = async (strapi, params) => {
       strapi.log.info("[Apple Pay] Extracted Apple Pay session data:", {
         hasBase64Session: !!applePaySessionBase64,
         sessionLength: applePaySessionBase64?.length,
-        workorderid: sessionResponse.workorderid
+        workorderid: sessionResponse.workorderid,
+        allResponseKeys: Object.keys(sessionResponse),
+        responseSample: JSON.stringify(sessionResponse).substring(0, 500)
       });
 
-      if (applePaySessionBase64) {
+      if (applePaySessionBase64 && applePaySessionBase64.length > 0) {
         try {
           // Decode BASE64 merchant session
           const merchantSessionJson = Buffer.from(applePaySessionBase64, 'base64').toString('utf-8');
@@ -312,10 +314,22 @@ const validateApplePayMerchant = async (strapi, params) => {
           throw new Error(`Failed to decode Apple Pay merchant session: ${decodeError.message}`);
         }
       } else {
-        // If no session data in response, we need to create a valid merchant session
-        // According to Payone docs, merchant identifier should be obtained from PMI
-        // after domain verification and onboarding
-        strapi.log.warn("[Apple Pay] No Apple Pay session data in response, creating merchant session from settings");
+        // CRITICAL: If Payone doesn't return merchant session, we cannot proceed
+        // Apple Pay requires the merchant session to be validated by Apple's servers
+        // Payone should return add_paydata[applepay_payment_session] after successful initialization
+        strapi.log.error("[Apple Pay] CRITICAL: No Apple Pay session data in Payone response!");
+        strapi.log.error("[Apple Pay] This means merchant validation will fail. Possible causes:");
+        strapi.log.error("[Apple Pay] 1. Apple Pay not properly configured in Payone PMI");
+        strapi.log.error("[Apple Pay] 2. Domain not verified in Payone PMI");
+        strapi.log.error("[Apple Pay] 3. Merchant identifier not configured in Payone PMI");
+        strapi.log.error("[Apple Pay] 4. Apple Pay onboarding not completed in Payone PMI");
+        strapi.log.error("[Apple Pay] Response status:", responseStatus);
+        strapi.log.error("[Apple Pay] Full response keys:", Object.keys(sessionResponse));
+        strapi.log.error("[Apple Pay] Response sample:", JSON.stringify(sessionResponse).substring(0, 1000));
+
+        // DO NOT create a fallback session - it will fail validation
+        // Instead, throw an error so the frontend knows validation failed
+        throw new Error("Payone did not return Apple Pay merchant session. Please ensure Apple Pay is properly configured in Payone Merchant Interface (PMI): CONFIGURATION → PAYMENT PORTALS → [Your Portal] → Apple Pay configuration. The merchant session must come from Payone after successful Apple Pay onboarding.");
 
         // Get merchant identifier from settings
         // According to Payone docs, merchant identifier should be visible in PMI after onboarding
@@ -378,18 +392,24 @@ const validateApplePayMerchant = async (strapi, params) => {
       }
     }
 
-    // If initialization failed, return empty object
-    // Payment Request API will handle it
-    strapi.log.warn("[Apple Pay] Session initialization failed, returning empty object");
-    return {};
+    // If initialization failed, we cannot proceed
+    // Payment Request API requires a valid merchant session
+    strapi.log.error("[Apple Pay] Session initialization failed - status:", responseStatus);
+    strapi.log.error("[Apple Pay] This means merchant validation will fail.");
+    strapi.log.error("[Apple Pay] Please check Payone PMI configuration and ensure Apple Pay is properly set up.");
+    throw new Error(`Apple Pay session initialization failed with status: ${responseStatus}. Please check your Payone Apple Pay configuration in PMI.`);
   } catch (error) {
     strapi.log.error("[Apple Pay] Merchant validation error:", {
       message: error.message,
       stack: error.stack,
-      response: error.response?.data
+      response: error.response?.data,
+      status: error.response?.status
     });
-    // Return empty object on error - Payone will handle validation
-    return {};
+
+    // DO NOT return empty object - this causes Apple Pay to close the dialog
+    // Instead, re-throw the error so the frontend can handle it properly
+    // The error message will help the user understand what went wrong
+    throw error;
   }
 };
 
