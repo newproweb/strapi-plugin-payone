@@ -193,16 +193,37 @@ module.exports = ({ strapi }) => ({
 
       strapi.log.info("[Apple Pay] Merchant validation result:", {
         hasResult: !!result,
-        hasMerchantIdentifier: !!result.merchantIdentifier
+        hasMerchantIdentifier: !!result.merchantIdentifier,
+        merchantIdentifier: result.merchantIdentifier,
+        domainName: result.domainName,
+        displayName: result.displayName,
+        epochTimestamp: result.epochTimestamp,
+        expiresAt: result.expiresAt
       });
+
+      // Validate result before sending
+      if (!result || !result.merchantIdentifier) {
+        strapi.log.error("[Apple Pay] Invalid merchant session returned - missing merchantIdentifier");
+        ctx.throw(500, "Apple Pay merchant validation failed: Invalid merchant session. Please check your Payone Apple Pay configuration in PMI.");
+      }
 
       ctx.body = { data: result };
     } catch (error) {
       strapi.log.error("[Apple Pay] Controller error:", {
         message: error.message,
-        stack: error.stack
+        stack: error.stack,
+        name: error.name
       });
-      handleError(ctx, error);
+      
+      // Return error response instead of empty object
+      // This will help frontend understand what went wrong
+      ctx.status = error.status || 500;
+      ctx.body = { 
+        error: {
+          message: error.message || "Apple Pay merchant validation failed",
+          details: "Please check your Payone Apple Pay configuration in PMI (CONFIGURATION → PAYMENT PORTALS → [Your Portal] → Apple Pay)"
+        }
+      };
     }
   }
 });

@@ -781,10 +781,27 @@ const ApplePayButton = ({
 
         console.log("[Apple Pay] Merchant session received from backend:", {
           hasData: !!merchantSession.data,
-          merchantIdentifier: merchantSession.data?.merchantIdentifier
+          merchantIdentifier: merchantSession.data?.merchantIdentifier,
+          hasError: !!merchantSession.error,
+          errorMessage: merchantSession.error?.message,
+          fullResponse: merchantSession
         });
 
-        return merchantSession.data || merchantSession;
+        // Check if there's an error in the response
+        if (merchantSession.error) {
+          console.error("[Apple Pay] Backend returned error:", merchantSession.error);
+          throw new Error(merchantSession.error.message || "Apple Pay merchant validation failed");
+        }
+
+        // Validate merchant session
+        const session = merchantSession.data || merchantSession;
+        if (!session || !session.merchantIdentifier) {
+          console.error("[Apple Pay] Invalid merchant session - missing merchantIdentifier");
+          console.error("[Apple Pay] Session object:", JSON.stringify(session, null, 2));
+          throw new Error("Invalid merchant session: missing merchantIdentifier. Please check your Payone Apple Pay configuration in PMI.");
+        }
+
+        return session;
     } catch (error) {
       console.error("[Apple Pay] Merchant validation error:", {
         message: error.message,

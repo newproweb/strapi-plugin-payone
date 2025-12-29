@@ -125,10 +125,11 @@ const initializeApplePaySession = async (strapi, params) => {
     const responseData = parseResponse(response.data, strapi.log);
 
     strapi.log.info("[Apple Pay] Session initialization response:", JSON.stringify(responseData, null, 2));
-    strapi.log.info("[Apple Pay] Response status:", responseData.status || responseData.Status);
-    strapi.log.info("[Apple Pay] Response errorcode:", responseData.errorcode || responseData.ErrorCode || "none");
-    strapi.log.info("[Apple Pay] Response errormessage:", responseData.errormessage || responseData.ErrorMessage || responseData.errortxt || responseData.ErrorTxt || "none");
+    strapi.log.info("[Apple Pay] Response status:", responseData.status || responseData.Status || "NOT_SET");
+    strapi.log.info("[Apple Pay] Response errorcode:", responseData.errorcode || responseData.ErrorCode || responseData.error_code || "none");
+    strapi.log.info("[Apple Pay] Response errormessage:", responseData.errormessage || responseData.ErrorMessage || responseData.errortxt || responseData.ErrorTxt || responseData.error_message || "none");
     strapi.log.info("[Apple Pay] All response keys:", Object.keys(responseData));
+    strapi.log.info("[Apple Pay] Full response for debugging:", JSON.stringify(responseData));
 
     if (responseData.errorcode || responseData.ErrorCode) {
       strapi.log.warn("[Apple Pay] Response contains error:", {
@@ -408,11 +409,11 @@ const validateApplePayMerchant = async (strapi, params) => {
     strapi.log.error("[Apple Pay] 3. Domain not verified in Payone PMI");
     strapi.log.error("[Apple Pay] 4. Merchant identifier not configured correctly");
     strapi.log.error("[Apple Pay] 5. Apple Pay onboarding not completed");
-    
+
     // Extract error details from Payone response
     const errorCode = sessionResponse.errorcode || sessionResponse.ErrorCode;
     const errorMessage = sessionResponse.errormessage || sessionResponse.ErrorMessage || sessionResponse.errortxt || sessionResponse.ErrorTxt;
-    
+
     if (errorCode || errorMessage) {
       strapi.log.error("[Apple Pay] Payone error details:", {
         errorCode: errorCode,
