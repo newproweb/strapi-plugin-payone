@@ -31,7 +31,6 @@ const AuthorizationForm = ({
   setCardexpiredate,
   cardcvc2,
   setCardcvc2,
-  isLiveMode = false,
 }) => {
   const handleGooglePayToken = (token, paymentData) => {
     if (!token) {
@@ -42,9 +41,7 @@ const AuthorizationForm = ({
   };
 
   const handleGooglePayError = (error) => {
-    if (onError) {
-      onError(error);
-    }
+    console.error("[AuthorizationForm] Google Pay error:", error);
   };
 
   const handleApplePayToken = async (token, paymentData) => {
@@ -62,9 +59,7 @@ const AuthorizationForm = ({
   };
 
   const handleApplePayError = (error) => {
-    if (onError) {
-      onError(error);
-    }
+    console.error("[AuthorizationForm] Apple Pay error:", error);
   };
 
   return (
@@ -168,9 +163,7 @@ const AuthorizationForm = ({
                 loading={isProcessingPayment}
                 startIcon={<Play />}
                 style={{ maxWidth: "200px" }}
-                disabled={
-                  !paymentAmount.trim() || !authReference.trim() || isLiveMode
-                }
+                disabled={!paymentAmount.trim() || !authReference.trim()}
                 className="payment-button payment-button-primary"
               >
                 Process Authorization
@@ -191,8 +184,7 @@ const AuthorizationForm = ({
             (paymentMethod === "cc" &&
               settings?.enable3DSecure !== false &&
               (!cardtype || !cardpan || !cardexpiredate || !cardcvc2)) ||
-            (paymentMethod === "apl" && !applePayToken) ||
-            isLiveMode
+            (paymentMethod === "apl" && !applePayToken)
           }
         >
           Process Authorization

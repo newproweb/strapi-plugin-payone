@@ -1,5 +1,11 @@
 import React from "react";
-import { Box, Flex, Typography, TextInput, Button } from "@strapi/design-system";
+import {
+  Box,
+  Flex,
+  Typography,
+  TextInput,
+  Button,
+} from "@strapi/design-system";
 import { Play } from "@strapi/icons";
 import GooglePayButton from "../GooglePaybutton";
 import CardDetailsInput from "./CardDetailsInput";
@@ -22,7 +28,7 @@ const PreauthorizationForm = ({
   setCardexpiredate,
   cardcvc2,
   setCardcvc2,
-  isLiveMode = false
+  isLiveMode = false,
 }) => {
   const handleGooglePayToken = (token, paymentData) => {
     if (!token) {
@@ -33,20 +39,25 @@ const PreauthorizationForm = ({
   };
 
   const handleGooglePayError = (error) => {
-    if (onError) {
-      onError(error);
-    }
+    console.error("[PreauthorizationForm] Google Pay error:", error);
   };
-
-
 
   return (
     <Flex direction="column" alignItems="stretch" gap={4}>
       <Flex direction="row" gap={2}>
-        <Typography variant="omega" fontWeight="semiBold" textColor="neutral800" className="payment-form-title">
+        <Typography
+          variant="omega"
+          fontWeight="semiBold"
+          textColor="neutral800"
+          className="payment-form-title"
+        >
           Preauthorization
         </Typography>
-        <Typography variant="pi" textColor="neutral600" className="payment-form-description">
+        <Typography
+          variant="pi"
+          textColor="neutral600"
+          className="payment-form-description"
+        >
           Reserve an amount on a credit card without capturing it immediately.
         </Typography>
       </Flex>
@@ -111,7 +122,7 @@ const PreauthorizationForm = ({
           onClick={onPreauthorization}
           loading={isProcessingPayment}
           startIcon={<Play />}
-          style={{ maxWidth: '200px' }}
+          style={{ maxWidth: "200px" }}
           className="payment-button payment-button-primary"
           disabled={
             !paymentAmount.trim() ||
@@ -129,4 +140,3 @@ const PreauthorizationForm = ({
 };
 
 export default PreauthorizationForm;
-

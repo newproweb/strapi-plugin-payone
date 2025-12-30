@@ -1,14 +1,12 @@
 "use strict";
 
 module.exports = async ({ strapi }) => {
-  // Initialize plugin settings store
   const pluginStore = strapi.store({
     environment: "",
     type: "plugin",
     name: "strapi-plugin-payone-provider"
   });
 
-  // Initialize default settings if not already set
   const settings = await pluginStore.get({ key: "settings" });
   if (!settings) {
     await pluginStore.set({
@@ -28,18 +26,12 @@ module.exports = async ({ strapi }) => {
     });
   }
 
-  // Register custom routes for 3DS redirects at root level
-  // These routes handle redirects from Payone after 3DS authentication
-  // They work with both /admin/ and /content-ui/ paths
   const pluginName = "strapi-plugin-payone-provider";
 
-  // Get the controller
   const getController = () => {
     return strapi.plugin(pluginName).controller("payone");
   };
 
-  // All routes use the same handler - it detects success/error/back from URL path
-  // Routes match the plugin's internal payment callback URLs
   const routes = [
     "/admin/plugins/strapi-plugin-payone-provider/payment/success",
     "/admin/plugins/strapi-plugin-payone-provider/payment/error",
@@ -49,15 +41,11 @@ module.exports = async ({ strapi }) => {
     "/content-ui/plugins/strapi-plugin-payone-provider/payment/back"
   ];
 
-  // Register routes using Koa router
   try {
     const Router = require('@koa/router');
     const router = new Router();
-<<<<<<< HEAD
-=======
     const fs = require('fs');
     const path = require('path');
->>>>>>> feature/apple-pay
 
     routes.forEach(route => {
       router.get(route, async (ctx) => {
@@ -66,10 +54,6 @@ module.exports = async ({ strapi }) => {
       });
     });
 
-<<<<<<< HEAD
-    // Add router to the server app
-=======
-    // Register route for Apple Pay .well-known file
     router.get('/.well-known/apple-developer-merchantid-domain-association', async (ctx) => {
       try {
         const publicPath = path.join(process.cwd(), 'public');
@@ -80,12 +64,10 @@ module.exports = async ({ strapi }) => {
         let fileContent = null;
         let filePathFound = null;
 
-        // Try main file first
         if (fs.existsSync(filePath)) {
           filePathFound = filePath;
           fileContent = fs.readFileSync(filePath, 'utf8');
         }
-        // Try alternative file name
         else if (fs.existsSync(filePathTxt)) {
           filePathFound = filePathTxt;
           fileContent = fs.readFileSync(filePathTxt, 'utf8');
@@ -126,7 +108,6 @@ module.exports = async ({ strapi }) => {
       }
     });
 
->>>>>>> feature/apple-pay
     if (strapi.server.app && typeof strapi.server.app.use === 'function') {
       strapi.server.app.use(router.routes());
       strapi.server.app.use(router.allowedMethods());

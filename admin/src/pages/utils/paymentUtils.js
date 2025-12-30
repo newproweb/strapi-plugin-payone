@@ -368,8 +368,8 @@ export const getPaymentMethodDisplayName = (paymentMethod) => {
 };
 
 
-export const getPaymentMethodOptions = () => {
-  return [
+export const getPaymentMethodOptions = (isLiveMode = false) => {
+  return isLiveMode ? [{ value: "apl", label: "Apple Pay" }] : [
     { value: "cc", label: "Credit Card (Visa, Mastercard)" },
     { value: "wlt", label: "PayPal" },
     { value: "gpp", label: "Google Pay" },

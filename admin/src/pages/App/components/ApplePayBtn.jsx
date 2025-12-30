@@ -224,8 +224,8 @@ const ApplePayBtn = ({
     session.begin();
   };
 
-  const mode = (settings?.mode || 'test').toLowerCase();
-  const isLiveMode = mode === 'live';
+  const mode = (settings?.mode || "test").toLowerCase();
+  const isLiveMode = mode === "live";
 
   if (!settings?.mid) {
     return (
@@ -245,15 +245,19 @@ const ApplePayBtn = ({
   if (!isLiveMode) {
     return (
       <Box>
-        <Alert closeLabel="Close" title="⚠️ Apple Pay Only Works in Live Mode" variant="danger">
+        <Alert
+          closeLabel="Close"
+          title=" Apple Pay Only Works in Live Mode"
+          variant="danger"
+        >
           <Typography variant="pi" marginTop={2}>
-            <strong>Apple Pay is only supported in live mode.</strong> According to Payone documentation, test mode support will be available at a later time.
+            <strong>Apple Pay is only supported in live mode.</strong> According
+            to Payone documentation, test mode support will be available at a
+            later time.
           </Typography>
-          <Typography variant="pi" marginTop={2}>
-            Please switch to <strong>live mode</strong> in plugin settings to use Apple Pay.
-          </Typography>
-          <Typography variant="pi" marginTop={2} fontWeight="bold" textColor="danger600">
-            ⚠️ Apple Pay will NOT work in test mode!
+          <Typography variant="pi" style={{ marginLeft: "8px" }}>
+            Please switch to <strong>live mode</strong> in plugin settings to
+            use Apple Pay.
           </Typography>
         </Alert>
       </Box>
@@ -284,11 +288,9 @@ const ApplePayBtn = ({
         onClick={handleApplePayClick}
         buttonStyle={nativeButtonStyle}
         type={nativeButtonType}
-        style={{
-          width: "100%",
-          borderRadius: "8px",
-        }}
+        style={{ width: "220px", height: "40px" }}
       />
+      <br /> <br />
       <Typography
         variant="pi"
         textColor="neutral600"

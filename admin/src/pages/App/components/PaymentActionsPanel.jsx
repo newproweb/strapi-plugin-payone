@@ -51,6 +51,72 @@ const PaymentActionsPanel = ({
   const mode = (settings?.mode || "test").toLowerCase();
   const isLiveMode = mode === "live";
 
+  if (isLiveMode) {
+    return (
+      <Box
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "flex-start",
+          gap: "16px",
+          marginTop: "24px",
+          width: "100%",
+        }}
+      >
+        <Typography
+          variant="pi"
+          textColor="danger600"
+          style={{
+            fontSize: "14px",
+            marginTop: "12px",
+            marginBottom: "12px",
+            fontWeight: "bold",
+          }}
+        >
+          ⚠️ Payment Actions are disabled in live mode for security reasons. but
+          you can test apple pay in live mode. For testing other payment
+          methods, please use test mode.
+        </Typography>
+
+        <PaymentMethodSelector
+          paymentMethod={paymentMethod}
+          setPaymentMethod={setPaymentMethod}
+          captureMode={captureMode}
+          setCaptureMode={setCaptureMode}
+          onNavigateToConfig={onNavigateToConfig}
+          settings={settings}
+          isLiveMode={isLiveMode}
+        />
+
+        <hr className="payment-divider" />
+        <Box className="payment-form-section">
+          <AuthorizationForm
+            paymentAmount={paymentAmount}
+            setPaymentAmount={setPaymentAmount}
+            authReference={authReference}
+            setAuthReference={setAuthReference}
+            isProcessingPayment={isProcessingPayment}
+            onAuthorization={onAuthorization}
+            paymentMethod={paymentMethod}
+            settings={settings}
+            googlePayToken={googlePayToken}
+            setGooglePayToken={setGooglePayToken}
+            applePayToken={applePayToken}
+            setApplePayToken={setApplePayToken}
+            cardtype={cardtype}
+            setCardtype={setCardtype}
+            cardpan={cardpan}
+            setCardpan={setCardpan}
+            cardexpiredate={cardexpiredate}
+            setCardexpiredate={setCardexpiredate}
+            cardcvc2={cardcvc2}
+            setCardcvc2={setCardcvc2}
+          />
+        </Box>
+      </Box>
+    );
+  }
+
   return (
     <Box
       className="payment-container"
@@ -85,16 +151,6 @@ const PaymentActionsPanel = ({
             Process payments, captures, and refunds with multiple payment
             methods
           </Typography>
-          {isLiveMode && (
-            <Typography
-              variant="pi"
-              textColor="danger600"
-              style={{ fontSize: "14px", marginTop: "8px", fontWeight: "bold" }}
-            >
-              ⚠️ Payment Actions are disabled in live mode for security reasons.
-              Please use test mode for testing.
-            </Typography>
-          )}
         </Box>
 
         <PaymentMethodSelector
@@ -104,6 +160,7 @@ const PaymentActionsPanel = ({
           setCaptureMode={setCaptureMode}
           onNavigateToConfig={onNavigateToConfig}
           settings={settings}
+          isLiveMode={isLiveMode}
         />
 
         <hr className="payment-divider" />
@@ -142,13 +199,7 @@ const PaymentActionsPanel = ({
 
         <hr className="payment-divider" />
 
-        <Box
-          className="payment-form-section"
-          style={{
-            opacity: isLiveMode ? 0.5 : 1,
-            pointerEvents: isLiveMode ? "none" : "auto",
-          }}
-        >
+        <Box className="payment-form-section">
           <AuthorizationForm
             paymentAmount={paymentAmount}
             setPaymentAmount={setPaymentAmount}
