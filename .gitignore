@@ -1,0 +1,15 @@
+node_modules
+.node_modules
+.node_history
+package-lock.json
+dist
+build
+.strapi
+.strapi-updater.json
+.strapi-cloud.json
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.npmrc

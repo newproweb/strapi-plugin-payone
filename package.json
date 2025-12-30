@@ -1,0 +1,49 @@
+{
+  "name": "strapi-plugin-payone-provider",
+  "version": "1.6.0",
+  "description": "Strapi plugin for Payone payment gateway integration",
+  "license": "MIT",
+  "maintainers": [
+    {
+      "name": "NewProWeb Community",
+      "email": "abror.abdullaev@newproweb.com"
+    }
+  ],
+  "dependencies": {
+    "axios": "^1.6.3",
+    "prop-types": "^15.7.2"
+  },
+  "devDependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-router-dom": "^5.3.4",
+    "styled-components": "^5.3.6"
+  },
+  "peerDependencies": {
+    "@strapi/strapi": "^4.0",
+    "react": "^17.0.0 || ^18.0.0",
+    "react-dom": "^17.0.0 || ^18.0.0",
+    "react-router-dom": "^5.2.0",
+    "styled-components": "^5.2.1"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=6.0.0"
+  },
+  "authors": [
+    {
+      "name": "NewProWeb <Aliev Davlatbek>",
+      "email": "mamurjonov.davlatbek@newproweb.com"
+    },
+    {
+      "name": "Akromjon Rahimjonov",
+      "email": "akromjon.rahimjonov@newproweb.com"
+    }
+  ],
+  "strapi": {
+    "name": "strapi-plugin-payone-provider",
+    "description": "Integrates Strapi Payone payment gateway with Strapi",
+    "kind": "plugin",
+    "displayName": "Strapi Payone Provider"
+  }
+}
