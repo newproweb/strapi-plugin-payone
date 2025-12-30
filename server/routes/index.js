@@ -161,7 +161,7 @@ module.exports = {
           policies: ["plugin::strapi-plugin-payone-provider.is-auth"],
           auth: false
         }
-      }
+      },
     ]
   }
 };

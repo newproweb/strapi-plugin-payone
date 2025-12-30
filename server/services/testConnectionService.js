@@ -7,11 +7,6 @@ const { getSettings, validateSettings } = require("./settingsService");
 
 const POST_GATEWAY_URL = "https://api.pay1.de/post-gateway/";
 
-/**
- * Test Payone connection
- * @param {Object} strapi - Strapi instance
- * @returns {Promise<Object>} Test result
- */
 const testConnection = async (strapi) => {
   try {
     const settings = await getSettings(strapi);
@@ -79,11 +74,7 @@ const testConnection = async (strapi) => {
       result.Error?.CustomerMessage ||
       "";
 
-    strapi.log.info("Payone test connection response:", { status, errorCode });
-
-    // Handle error status
     if (status === "ERROR" || status === "error") {
-      // Authentication errors
       if (["2006", "920", "921", "922", "401", "403"].includes(errorCode)) {
         return {
           success: false,
@@ -92,7 +83,6 @@ const testConnection = async (strapi) => {
         };
       }
 
-      // Check for invalid credentials in message
       const errorMessageStr = typeof errorMessage === "string" ? errorMessage : JSON.stringify(errorMessage);
       const errorMessageLower = (errorMessageStr || "").toLowerCase();
       const authErrorKeywords = [
@@ -118,7 +108,6 @@ const testConnection = async (strapi) => {
         };
       }
 
-      // Reference already exists (911) means credentials are working
       if (errorCode === "911") {
         return {
           success: true,
@@ -132,7 +121,6 @@ const testConnection = async (strapi) => {
         };
       }
 
-      // Other errors
       return {
         success: false,
         message: `Connection failed: ${customErrorMessage || errorMessageStr || "Unknown error"}`,
@@ -145,7 +133,6 @@ const testConnection = async (strapi) => {
       };
     }
 
-    // APPROVED status means connection is OK
     if (status === "APPROVED" || status === "approved") {
       return {
         success: true,
@@ -159,7 +146,6 @@ const testConnection = async (strapi) => {
       };
     }
 
-    // Unexpected response format
     return {
       success: false,
       message: "Unexpected response format from Payone API",

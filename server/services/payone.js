@@ -6,9 +6,6 @@ const paymentService = require("./paymentService");
 const testConnectionService = require("./testConnectionService");
 const applePayService = require("./applePayService");
 
-/**
- * Main Payone service - aggregates all sub-services
- */
 module.exports = ({ strapi }) => ({
   // Settings
   async getSettings() {

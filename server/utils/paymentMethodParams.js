@@ -1,11 +1,6 @@
 "use strict";
 
-/**
- * Add payment method specific parameters
- * @param {Object} params - Request parameters
- * @param {Object} logger - Logger instance
- * @returns {Object} Updated parameters with payment method defaults
- */
+
 const addPaymentMethodParams = (params, logger) => {
   const updated = { ...params };
   const clearingtype = updated.clearingtype || "cc";
@@ -62,7 +57,6 @@ const addPaymentMethodParams = (params, logger) => {
     }
   };
 
-  // Handle special cases (gpp, apl) FIRST - set wallettype BEFORE changing clearingtype
   if (clearingtype === "gpp" || clearingtype === "apl") {
     if (clearingtype === "gpp") {
       updated.wallettype = "GGP";
@@ -74,34 +68,76 @@ const addPaymentMethodParams = (params, logger) => {
 
   const defaults = methodDefaults[clearingtype] || methodDefaults.cc;
 
-  // Apply defaults (but don't override wallettype if already set)
   Object.entries(defaults).forEach(([key, value]) => {
     if (key === "wallettype" && updated.wallettype) {
-      return; // Don't override wallettype if already set
+      return;
     }
     if (!updated[key]) {
       updated[key] = value;
     }
   });
-  
-  // Handle Apple Pay token if present
-  if (updated.applePayToken || updated["add_paydata[paymentmethod_token_data]"]) {
-    const token = updated.applePayToken || updated["add_paydata[paymentmethod_token_data]"];
-    const gatewayMerchantId = updated.mid || updated.portalid || '';
-    
-    updated["add_paydata[paymentmethod_token_data]"] = token;
-    updated["add_paydata[paymentmethod]"] = "APL";
-    updated["add_paydata[paymentmethod_type]"] = "APPLEPAY";
-    updated["add_paydata[gatewayid]"] = "payonegmbh";
-    if (gatewayMerchantId) {
-      updated["add_paydata[gateway_merchantid]"] = gatewayMerchantId;
+
+  if (updated.applePayToken) {
+    let tokenData;
+    try {
+      // Decode Base64 token
+      const tokenString = Buffer.from(updated.applePayToken, 'base64').toString('utf-8');
+      tokenData = JSON.parse(tokenString);
+    } catch (e) {
+      try {
+        // Try parsing as JSON string directly
+        tokenData = typeof updated.applePayToken === 'string'
+          ? JSON.parse(updated.applePayToken)
+          : updated.applePayToken;
+      } catch (e2) {
+        // If already an object, use as-is
+        tokenData = updated.applePayToken;
+      }
     }
-    
-    // Remove applePayToken from params as it's now in add_paydata
+
+    if (tokenData && typeof tokenData === 'object') {
+      const paymentData = tokenData.paymentData;
+
+      if (!paymentData) {
+        if (logger) {
+          logger.error("[Apple Pay] Invalid token structure: missing paymentData field");
+        }
+        delete updated.applePayToken;
+        return updated;
+      }
+
+      const header = paymentData.header || {};
+
+      // Payone required fields according to docs
+      updated["add_paydata[paymentdata_token_version]"] = paymentData.version || "EC_v1";
+      updated["add_paydata[paymentdata_token_data]"] = paymentData.data || "";
+      updated["add_paydata[paymentdata_token_signature]"] = paymentData.signature || "";
+      updated["add_paydata[paymentdata_token_ephemeral_publickey]"] = header.ephemeralPublicKey || "";
+      updated["add_paydata[paymentdata_token_publickey_hash]"] = header.publicKeyHash || "";
+
+      // Transaction ID is optional according to Payone docs
+      if (paymentData.transactionId || header.transactionId) {
+        updated["add_paydata[paymentdata_token_transaction_id]"] = paymentData.transactionId || header.transactionId || "";
+      }
+
+      if (!updated["add_paydata[paymentdata_token_data]"] ||
+        !updated["add_paydata[paymentdata_token_signature]"] ||
+        !updated["add_paydata[paymentdata_token_ephemeral_publickey]"] ||
+        !updated["add_paydata[paymentdata_token_publickey_hash]"]) {
+        if (logger) {
+          logger.error("[Apple Pay] Missing required token fields:", {
+            hasData: !!updated["add_paydata[paymentdata_token_data]"],
+            hasSignature: !!updated["add_paydata[paymentdata_token_signature]"],
+            hasEphemeralPublicKey: !!updated["add_paydata[paymentdata_token_ephemeral_publickey]"],
+            hasPublicKeyHash: !!updated["add_paydata[paymentdata_token_publickey_hash]"]
+          });
+        }
+      }
+    }
+
     delete updated.applePayToken;
   }
 
-  // Ensure wallettype is set for wallet payments
   if (updated.clearingtype === "wlt" && !updated.wallettype) {
     if (clearingtype === "gpp" || updated.paymentMethod === "gpp" || (updated["add_paydata[paymentmethod]"] === "GGP")) {
       updated.wallettype = "GGP";
@@ -111,14 +147,11 @@ const addPaymentMethodParams = (params, logger) => {
       updated.wallettype = "PPE";
     }
   }
-  
-  // Remove cardtype if clearingtype is wallet payment
   if (updated.clearingtype === "wlt" && updated.cardtype) {
     delete updated.cardtype;
   }
 
 
-  // Common defaults
   const commonDefaults = {
     salutation: "Herr",
     gender: "m",

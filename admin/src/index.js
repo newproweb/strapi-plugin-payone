@@ -1,7 +1,7 @@
 import pluginPkg from "../../package.json";
 import pluginId from "./pluginId";
-import Initializer from "./components/Initializer";
-import PluginIcon from "./components/PluginIcon";
+import Initializer from "./components/Initializer/index.jsx";
+import PluginIcon from "./components/PluginIcon/index.jsx";
 import { injectGooglePayScript } from "./pages/utils/injectGooglePayScript";
 
 const name = pluginPkg.strapi.name;
@@ -16,7 +16,7 @@ export default {
         defaultMessage: "Payone Provider"
       },
       Component: async () => {
-        const component = await import("./pages/App");
+        const component = await import("./pages/App/index.jsx");
         return component;
       },
       permissions: []

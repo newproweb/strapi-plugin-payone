@@ -2,30 +2,15 @@
 
 const PLUGIN_NAME = "strapi-plugin-payone-provider";
 
-/**
- * Get Payone service
- * @param {Object} strapi - Strapi instance
- * @returns {Object} Payone service
- */
 const getPayoneService = (strapi) => {
   return strapi.plugin(PLUGIN_NAME).service("payone");
 };
 
-/**
- * Handle error response
- * @param {Object} ctx - Koa context
- * @param {Error} error - Error object
- */
 const handleError = (ctx, error) => {
   ctx.strapi.log.error("Payone controller error:", error);
   ctx.throw(500, error);
 };
 
-/**
- * Hide sensitive key in settings
- * @param {Object} settings - Settings object
- * @returns {Object} Settings with hidden key
- */
 const hideKey = (settings) => {
   if (settings && settings.key) {
     settings.key = "***HIDDEN***";
@@ -134,11 +119,6 @@ module.exports = ({ strapi }) => ({
     }
   },
 
-  /**
-   * Handle 3D Secure callback from Payone
-   * This endpoint receives the callback after customer completes 3DS authentication
-   * Works with both /admin/ and /content-ui/ paths
-   */
   async handle3DSCallback(ctx) {
     try {
       const isGetRequest = ctx.request.method === "GET";
@@ -180,62 +160,11 @@ module.exports = ({ strapi }) => ({
 
   async validateApplePayMerchant(ctx) {
     try {
-      strapi.log.info("[Apple Pay] Merchant validation request received");
       strapi.log.info("[Apple Pay] Request body:", JSON.stringify(ctx.request.body, null, 2));
-      strapi.log.info("[Apple Pay] User:", ctx.state.user ? {
-        id: ctx.state.user.id,
-        email: ctx.state.user.email,
-        roles: ctx.state.user.roles?.map(r => r.code)
-      } : "No user");
 
       const params = ctx.request.body;
-      let result;
-      try {
-        result = await getPayoneService(strapi).validateApplePayMerchant(params);
-      } catch (serviceError) {
-        // Service threw an error - re-throw it so it's caught by the outer catch block
-        strapi.log.error("[Apple Pay] Service threw error:", {
-          message: serviceError.message,
-          stack: serviceError.stack
-        });
-        throw serviceError;
-      }
-
-      strapi.log.info("[Apple Pay] Merchant validation result:", {
-        hasResult: !!result,
-        resultType: typeof result,
-        resultIsObject: result instanceof Object,
-        resultKeys: result ? Object.keys(result) : [],
-        resultKeysLength: result ? Object.keys(result).length : 0,
-        hasMerchantIdentifier: !!result?.merchantIdentifier,
-        hasMerchantSessionIdentifier: !!result?.merchantSessionIdentifier,
-        merchantIdentifier: result?.merchantIdentifier,
-        domainName: result?.domainName,
-        displayName: result?.displayName,
-        epochTimestamp: result?.epochTimestamp,
-        expiresAt: result?.expiresAt,
-        fullResult: JSON.stringify(result)
-      });
-
-      // Validate result before sending
-      // Check if result is null, undefined, empty object, or missing merchantIdentifier
-      if (!result || 
-          (typeof result === 'object' && Object.keys(result).length === 0) ||
-          (!result.merchantIdentifier && !result.merchantSessionIdentifier)) {
-        strapi.log.error("[Apple Pay] CRITICAL: Invalid or empty merchant session returned!");
-        strapi.log.error("[Apple Pay] Result details:", {
-          hasResult: !!result,
-          resultType: typeof result,
-          resultIsObject: result instanceof Object,
-          resultKeys: result ? Object.keys(result) : [],
-          resultKeysLength: result ? Object.keys(result).length : 0,
-          hasMerchantIdentifier: !!result?.merchantIdentifier,
-          hasMerchantSessionIdentifier: !!result?.merchantSessionIdentifier,
-          resultStringified: JSON.stringify(result)
-        });
-        ctx.throw(500, "Apple Pay merchant validation failed: Invalid or empty merchant session received from Payone. Please check your Payone Apple Pay configuration in PMI (CONFIGURATION → PAYMENT PORTALS → [Your Portal] → Apple Pay). The merchant session must come from Payone after successful Apple Pay onboarding. Check server logs for Payone response details.");
-      }
-
+      let result = await getPayoneService(strapi).validateApplePayMerchant(params);
+      strapi.log.info("[Apple Pay] Merchant validation result:", JSON.stringify(result, null, 2));
       ctx.body = { data: result };
     } catch (error) {
       strapi.log.error("[Apple Pay] Controller error:", {
@@ -243,11 +172,9 @@ module.exports = ({ strapi }) => ({
         stack: error.stack,
         name: error.name
       });
-      
-      // Return error response instead of empty object
-      // This will help frontend understand what went wrong
+
       ctx.status = error.status || 500;
-      ctx.body = { 
+      ctx.body = {
         error: {
           message: error.message || "Apple Pay merchant validation failed",
           details: "Please check your Payone Apple Pay configuration in PMI (CONFIGURATION → PAYMENT PORTALS → [Your Portal] → Apple Pay)"

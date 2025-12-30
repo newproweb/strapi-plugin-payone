@@ -13,7 +13,10 @@ import { DEFAULT_PAYMENT_DATA } from "../constants/paymentConstants";
 const usePaymentActions = () => {
   const toggleNotification = useNotification();
 
+<<<<<<< HEAD
   // Load settings to get enable3DSecure value
+=======
+>>>>>>> feature/apple-pay
   const [settings, setSettings] = useState({ enable3DSecure: false });
 
   useEffect(() => {
@@ -24,12 +27,16 @@ const usePaymentActions = () => {
           setSettings(response.data);
         }
       } catch (error) {
+<<<<<<< HEAD
         // Silent fail
+=======
+>>>>>>> feature/apple-pay
       }
     };
     loadSettings();
   }, []);
 
+<<<<<<< HEAD
   // Payment form state
   const [paymentAmount, setPaymentAmount] = useState("1000");
 
@@ -37,6 +44,11 @@ const usePaymentActions = () => {
   // Sequence number starts from 1000 and increments based on timestamp
   const generateOrderReference = () => {
     // Use timestamp to generate unique sequence (1000 to 99999 range)
+=======
+  const [paymentAmount, setPaymentAmount] = useState("1000");
+
+  const generateOrderReference = () => {
+>>>>>>> feature/apple-pay
     const sequence = 1000 + Math.floor((Date.now() % 99000));
     return generateLagOrderNumber(sequence);
   };
@@ -52,13 +64,19 @@ const usePaymentActions = () => {
   const [googlePayToken, setGooglePayToken] = useState(null);
   const [applePayToken, setApplePayToken] = useState(null);
 
+<<<<<<< HEAD
   // Card details for 3DS testing
+=======
+>>>>>>> feature/apple-pay
   const [cardtype, setCardtype] = useState("");
   const [cardpan, setCardpan] = useState("");
   const [cardexpiredate, setCardexpiredate] = useState("");
   const [cardcvc2, setCardcvc2] = useState("");
 
+<<<<<<< HEAD
   // Payment processing state
+=======
+>>>>>>> feature/apple-pay
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   const [paymentResult, setPaymentResult] = useState(null);
   const [paymentError, setPaymentError] = useState(null);
@@ -88,19 +106,29 @@ const usePaymentActions = () => {
       paymentMethod,
       amount: paymentAmount
     });
+<<<<<<< HEAD
     
+=======
+
+>>>>>>> feature/apple-pay
     setIsProcessingPayment(true);
     setPaymentError(null);
     setPaymentResult(null);
     try {
+<<<<<<< HEAD
       // Auto-generate reference if empty
+=======
+>>>>>>> feature/apple-pay
       const finalPreauthReference = preauthReference.trim() || generateOrderReference();
       if (!preauthReference.trim()) {
         setPreauthReference(finalPreauthReference);
       }
 
+<<<<<<< HEAD
       // Determine currency based on card type
       // American Express typically requires USD, other cards use EUR
+=======
+>>>>>>> feature/apple-pay
       const currency = (paymentMethod === "cc" && cardtype === "A") ? "USD" : "EUR";
 
       const baseParams = {
@@ -111,7 +139,10 @@ const usePaymentActions = () => {
         ...DEFAULT_PAYMENT_DATA
       };
 
+<<<<<<< HEAD
       // Add card details if credit card payment and 3DS enabled
+=======
+>>>>>>> feature/apple-pay
       if (paymentMethod === "cc" && settings.enable3DSecure !== false) {
         if (cardtype) baseParams.cardtype = cardtype;
         if (cardpan) baseParams.cardpan = cardpan;
@@ -125,7 +156,10 @@ const usePaymentActions = () => {
 
       if (needsRedirectUrls) {
         const baseUrl = window.location.origin;
+<<<<<<< HEAD
         // Detect current context (admin or content-ui) from pathname
+=======
+>>>>>>> feature/apple-pay
         const currentPath = window.location.pathname;
         const isContentUI = currentPath.includes('/content-ui') || currentPath.includes('/content-manager');
         const basePath = isContentUI ? '/content-ui' : '/admin';
@@ -149,6 +183,7 @@ const usePaymentActions = () => {
 
       const result = await payoneRequests.preauthorization(params);
       const responseData = result?.data || result;
+<<<<<<< HEAD
 
       // Log full response
       console.log("Preauthorization Response:", responseData);
@@ -164,15 +199,23 @@ const usePaymentActions = () => {
         Url: responseData.Url
       });
 
+=======
+>>>>>>> feature/apple-pay
       const status = (responseData.status || responseData.Status || "").toUpperCase();
       const errorCode = responseData.errorcode || responseData.errorCode || responseData.ErrorCode;
       const errorMessage = responseData.errormessage || responseData.errorMessage || responseData.ErrorMessage;
 
+<<<<<<< HEAD
       // Check for 3DS required error (4219)
       const requires3DSErrorCodes = ["4219", 4219];
       const is3DSRequiredError = requires3DSErrorCodes.includes(errorCode);
 
       // Check all possible redirect URL fields
+=======
+      const requires3DSErrorCodes = ["4219", 4219];
+      const is3DSRequiredError = requires3DSErrorCodes.includes(errorCode);
+
+>>>>>>> feature/apple-pay
       const redirectUrl =
         responseData.redirectUrl ||
         responseData.redirecturl ||
@@ -182,7 +225,10 @@ const usePaymentActions = () => {
         responseData.Url ||
         null;
 
+<<<<<<< HEAD
       // If 3DS required but no redirect URL, show helpful message
+=======
+>>>>>>> feature/apple-pay
       if (is3DSRequiredError && !redirectUrl) {
         console.warn("3DS authentication required (Error 4219) but no redirect URL found in response");
         console.log("Full response:", JSON.stringify(responseData, null, 2));
@@ -194,7 +240,10 @@ const usePaymentActions = () => {
         return;
       }
 
+<<<<<<< HEAD
       // Check for other errors (but not 3DS required)
+=======
+>>>>>>> feature/apple-pay
       if ((status === "ERROR" || status === "INVALID" || errorCode) && !is3DSRequiredError) {
         setPaymentError(
           errorMessage ||
@@ -217,6 +266,7 @@ const usePaymentActions = () => {
 
       setPaymentResult(responseData);
 
+<<<<<<< HEAD
       console.log("[Payment] Preauthorization result:", {
         status,
         hasError: !!errorCode,
@@ -227,6 +277,10 @@ const usePaymentActions = () => {
       if (status === "APPROVED") {
         handlePaymentSuccess("Preauthorization completed successfully");
         // Return success result for Apple Pay callback
+=======
+      if (status === "APPROVED") {
+        handlePaymentSuccess("Preauthorization completed successfully");
+>>>>>>> feature/apple-pay
         return { success: true, data: responseData };
       } else {
         const errorMsg = errorMessage || `Unexpected status: ${status}`;
@@ -234,13 +288,19 @@ const usePaymentActions = () => {
           { message: errorMsg },
           `Preauthorization completed with status: ${status}`
         );
+<<<<<<< HEAD
         // Return error result for Apple Pay callback
+=======
+>>>>>>> feature/apple-pay
         throw new Error(errorMsg);
       }
     } catch (error) {
       console.error("[Payment] Preauthorization error:", error);
       handlePaymentError(error, "Preauthorization failed");
+<<<<<<< HEAD
       // Re-throw error so Apple Pay callback knows it failed
+=======
+>>>>>>> feature/apple-pay
       throw error;
     } finally {
       setIsProcessingPayment(false);
@@ -253,14 +313,20 @@ const usePaymentActions = () => {
     setPaymentResult(null);
 
     try {
+<<<<<<< HEAD
       // Auto-generate reference if empty
+=======
+>>>>>>> feature/apple-pay
       const finalAuthReference = authReference.trim() || generateOrderReference();
       if (!authReference.trim()) {
         setAuthReference(finalAuthReference);
       }
 
+<<<<<<< HEAD
       // Determine currency based on card type
       // American Express typically requires USD, other cards use EUR
+=======
+>>>>>>> feature/apple-pay
       const currency = (paymentMethod === "cc" && cardtype === "A") ? "USD" : "EUR";
 
       const baseParams = {
@@ -271,7 +337,10 @@ const usePaymentActions = () => {
         ...DEFAULT_PAYMENT_DATA
       };
 
+<<<<<<< HEAD
       // Add card details if credit card payment and 3DS enabled
+=======
+>>>>>>> feature/apple-pay
       if (paymentMethod === "cc" && settings.enable3DSecure !== false) {
         if (cardtype) baseParams.cardtype = cardtype;
         if (cardpan) baseParams.cardpan = cardpan;
@@ -285,7 +354,10 @@ const usePaymentActions = () => {
 
       if (needsRedirectUrls) {
         const baseUrl = window.location.origin;
+<<<<<<< HEAD
         // Detect current context (admin or content-ui) from pathname
+=======
+>>>>>>> feature/apple-pay
         const currentPath = window.location.pathname;
         const isContentUI = currentPath.includes('/content-ui') || currentPath.includes('/content-manager');
         const basePath = isContentUI ? '/content-ui' : '/admin';
@@ -309,6 +381,7 @@ const usePaymentActions = () => {
 
       const result = await payoneRequests.authorization(params);
       const responseData = result?.data || result;
+<<<<<<< HEAD
 
       // Log full response
       console.log("Authorization Response:", responseData);
@@ -324,15 +397,23 @@ const usePaymentActions = () => {
         Url: responseData.Url
       });
 
+=======
+>>>>>>> feature/apple-pay
       const status = (responseData.status || responseData.Status || "").toUpperCase();
       const errorCode = responseData.errorcode || responseData.errorCode || responseData.ErrorCode;
       const errorMessage = responseData.errormessage || responseData.errorMessage || responseData.ErrorMessage;
 
+<<<<<<< HEAD
       // Check for 3DS required error (4219)
       const requires3DSErrorCodes = ["4219", 4219];
       const is3DSRequiredError = requires3DSErrorCodes.includes(errorCode);
 
       // Check all possible redirect URL fields
+=======
+      const requires3DSErrorCodes = ["4219", 4219];
+      const is3DSRequiredError = requires3DSErrorCodes.includes(errorCode);
+
+>>>>>>> feature/apple-pay
       const redirectUrl =
         responseData.redirectUrl ||
         responseData.redirecturl ||
@@ -342,7 +423,10 @@ const usePaymentActions = () => {
         responseData.Url ||
         null;
 
+<<<<<<< HEAD
       // If 3DS required but no redirect URL, show helpful message
+=======
+>>>>>>> feature/apple-pay
       if (is3DSRequiredError && !redirectUrl) {
         console.warn("3DS authentication required (Error 4219) but no redirect URL found in response");
         console.log("Full response:", JSON.stringify(responseData, null, 2));
@@ -354,7 +438,10 @@ const usePaymentActions = () => {
         return;
       }
 
+<<<<<<< HEAD
       // Check for other errors (but not 3DS required)
+=======
+>>>>>>> feature/apple-pay
       if ((status === "ERROR" || status === "INVALID" || errorCode) && !is3DSRequiredError) {
         setPaymentError(
           errorMessage ||
@@ -377,6 +464,7 @@ const usePaymentActions = () => {
 
       setPaymentResult(responseData);
 
+<<<<<<< HEAD
       console.log("[Payment] Authorization result:", {
         status,
         hasError: !!errorCode,
@@ -384,6 +472,8 @@ const usePaymentActions = () => {
         errorMessage
       });
 
+=======
+>>>>>>> feature/apple-pay
       if (status === "APPROVED") {
         handlePaymentSuccess("Authorization completed successfully");
         // Return success result for Apple Pay callback
@@ -394,13 +484,19 @@ const usePaymentActions = () => {
           { message: errorMsg },
           `Authorization completed with status: ${status}`
         );
+<<<<<<< HEAD
         // Return error result for Apple Pay callback
+=======
+>>>>>>> feature/apple-pay
         throw new Error(errorMsg);
       }
     } catch (error) {
       console.error("[Payment] Authorization error:", error);
       handlePaymentError(error, "Authorization failed");
+<<<<<<< HEAD
       // Re-throw error so Apple Pay callback knows it failed
+=======
+>>>>>>> feature/apple-pay
       throw error;
     } finally {
       setIsProcessingPayment(false);

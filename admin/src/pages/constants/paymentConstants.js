@@ -22,11 +22,10 @@ export const DEFAULT_PAYMENT_DATA = {
   ip: "127.0.0.1",
   customer_is_present: "yes",
   language: "de"
-  // Note: successurl, errorurl, backurl are added conditionally based on 3DS setting
 };
 
 /**
- * Default currency
+ * Default currency 
  */
 export const DEFAULT_CURRENCY = "EUR";
 

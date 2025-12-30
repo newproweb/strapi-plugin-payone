@@ -2,11 +2,6 @@
 
 const PLUGIN_NAME = "strapi-plugin-payone-provider";
 
-/**
- * Get plugin store instance
- * @param {Object} strapi - Strapi instance
- * @returns {Object} Plugin store
- */
 const getPluginStore = (strapi) => {
   return strapi.store({
     environment: "",
@@ -15,22 +10,11 @@ const getPluginStore = (strapi) => {
   });
 };
 
-/**
- * Get Payone settings
- * @param {Object} strapi - Strapi instance
- * @returns {Promise<Object>} Settings
- */
 const getSettings = async (strapi) => {
   const pluginStore = getPluginStore(strapi);
   return await pluginStore.get({ key: "settings" });
 };
 
-/**
- * Update Payone settings
- * @param {Object} strapi - Strapi instance
- * @param {Object} settings - Settings to update
- * @returns {Promise<Object>} Updated settings
- */
 const updateSettings = async (strapi, settings) => {
   const pluginStore = getPluginStore(strapi);
   await pluginStore.set({
@@ -40,11 +24,6 @@ const updateSettings = async (strapi, settings) => {
   return settings;
 };
 
-/**
- * Validate settings
- * @param {Object} settings - Settings to validate
- * @returns {boolean} True if valid
- */
 const validateSettings = (settings) => {
   return !!(settings && settings.aid && settings.portalid && settings.key);
 };
