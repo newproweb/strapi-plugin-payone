@@ -3,6 +3,7 @@ import pluginId from "./pluginId";
 import Initializer from "./components/Initializer/index.jsx";
 import PluginIcon from "./components/PluginIcon/index.jsx";
 import { injectGooglePayScript } from "./pages/utils/injectGooglePayScript";
+import { injectApplePayScript } from "./pages/utils/injectApplePayScript";
 
 const name = pluginPkg.strapi.name;
 
@@ -32,6 +33,7 @@ export default {
 
   bootstrap(app) {
     injectGooglePayScript();
+    injectApplePayScript();
   },
 
   async registerTrads() {

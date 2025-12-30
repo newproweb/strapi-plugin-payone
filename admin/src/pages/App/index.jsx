@@ -22,17 +22,25 @@ const App = () => {
   const paymentActions = usePaymentActions();
 
   useEffect(() => {
-    if (location.pathname.includes('/apple-pay-config') || location.pathname.includes('/google-pay-config')) {
+    if (
+      location.pathname.includes("/apple-pay-config") ||
+      location.pathname.includes("/google-pay-config")
+    ) {
     } else {
-      const tabFromPath = location.pathname.includes('/history') ? 1 :
-        location.pathname.includes('/payment-actions') ? 2 :
-          location.pathname.includes('/documentation') ? 3 : 0;
+      const tabFromPath = location.pathname.includes("/history")
+        ? 1
+        : location.pathname.includes("/payment-actions")
+        ? 2
+        : location.pathname.includes("/documentation")
+        ? 3
+        : 0;
       setActiveTab(tabFromPath);
     }
   }, [location.pathname]);
 
-  const isApplePayConfigPage = location.pathname.includes('/apple-pay-config');
-  const isGooglePayConfigPage = location.pathname.includes('/google-pay-config');
+  const isApplePayConfigPage = location.pathname.includes("/apple-pay-config");
+  const isGooglePayConfigPage =
+    location.pathname.includes("/google-pay-config");
 
   if (isApplePayConfigPage) {
     return (

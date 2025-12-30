@@ -1,6 +1,6 @@
 {
   "name": "strapi-plugin-payone-provider",
-  "version": "1.6.2",
+  "version": "1.6.3",
   "description": "Strapi plugin for Payone payment gateway integration",
   "license": "MIT",
   "maintainers": [
@@ -10,6 +10,7 @@
     }
   ],
   "dependencies": {
+    "apple-pay-button": "^1.2.1",
     "axios": "^1.6.3",
     "prop-types": "^15.7.2"
   },
