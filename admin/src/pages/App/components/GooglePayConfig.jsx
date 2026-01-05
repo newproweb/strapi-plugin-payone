@@ -1,7 +1,4 @@
 import React from "react";
-<<<<<<< HEAD
-import { Box, Flex, Typography, Select, Option, Checkbox, Stack } from "@strapi/design-system";
-=======
 import {
   Box,
   Flex,
@@ -11,47 +8,27 @@ import {
   Checkbox,
   Stack,
 } from "@strapi/design-system";
->>>>>>> release/1.6.4
 import {
   GOOGLE_PAY_SUPPORTED_COUNTRIES,
   GOOGLE_PAY_SUPPORTED_CURRENCIES,
   GOOGLE_PAY_SUPPORTED_NETWORKS,
   GOOGLE_PAY_AUTH_METHODS,
-<<<<<<< HEAD
-  DEFAULT_GOOGLE_PAY_CONFIG
-} from "../../utils/googlePayConstants";
-
-const GooglePayConfig = ({
-  config,
-  onConfigChange,
-  settings
-}) => {
-=======
   DEFAULT_GOOGLE_PAY_CONFIG,
 } from "../../utils/googlePayConstants";
 
 const GooglePayConfig = ({ config, onConfigChange, settings }) => {
->>>>>>> release/1.6.4
   const {
     countryCode = DEFAULT_GOOGLE_PAY_CONFIG.countryCode,
     currencyCode = DEFAULT_GOOGLE_PAY_CONFIG.currencyCode,
     allowedCardNetworks = DEFAULT_GOOGLE_PAY_CONFIG.allowedCardNetworks,
     allowedAuthMethods = DEFAULT_GOOGLE_PAY_CONFIG.allowedAuthMethods,
-<<<<<<< HEAD
-    merchantName = DEFAULT_GOOGLE_PAY_CONFIG.merchantName
-=======
     merchantName = DEFAULT_GOOGLE_PAY_CONFIG.merchantName,
->>>>>>> release/1.6.4
   } = config || {};
 
   const handleCountryChange = (value) => {
     onConfigChange({
       ...config,
-<<<<<<< HEAD
-      countryCode: value
-=======
       countryCode: value,
->>>>>>> release/1.6.4
     });
   };
 

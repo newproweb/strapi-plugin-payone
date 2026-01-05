@@ -76,14 +76,6 @@ const usePaymentActions = () => {
   };
 
   const handlePreauthorization = async (tokenParam = null) => {
-<<<<<<< HEAD
-    console.log("[Payment] handlePreauthorization called", {
-      hasToken: !!tokenParam,
-      paymentMethod,
-      amount: paymentAmount
-    });
-=======
->>>>>>> release/1.6.4
     setIsProcessingPayment(true);
     setPaymentError(null);
     setPaymentResult(null);
