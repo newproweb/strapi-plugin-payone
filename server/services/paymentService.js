@@ -26,7 +26,6 @@ const sendRequest = async (strapi, params) => {
     });
 
     const responseData = parseResponse(response.data, strapi.log);
-
     const errorCode =
       responseData.errorcode ||
       responseData.ErrorCode ||
@@ -43,10 +42,6 @@ const sendRequest = async (strapi, params) => {
       responseData.redirectUrl = redirectUrl;
       responseData.is3DSRequired = is3DSRequiredError;
 
-      if (is3DSRequiredError && !redirectUrl) {
-        strapi.log.warn("3DS authentication required (Error 4219) but no redirect URL found. May need 3dscheck request.");
-        strapi.log.info("Full response data:", JSON.stringify(responseData, null, 2));
-      }
     }
 
     const errorMessage =
@@ -176,14 +171,6 @@ const handle3DSCallback = async (strapi, callbackData, resultType = 'callback') 
     } else {
       status = parsedData.status || parsedData.Status || 'PENDING';
     }
-
-    strapi.log.info("3DS callback processed:", {
-      resultType,
-      status,
-      txid,
-      reference,
-      callbackData
-    });
 
     return {
       success: resultType === 'success',

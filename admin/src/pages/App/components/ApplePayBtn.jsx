@@ -15,45 +15,71 @@ const ApplePayBtn = ({
   const handleEventsForApplePay = (session, amountValue, currencyCode) => {
     session.onvalidatemerchant = async (event) => {
       try {
+        const applePayConfig = settings?.applePayConfig || {};
+        const requestCurrency =
+          currencyCode || applePayConfig.currencyCode || "EUR";
+        const requestCountryCode = applePayConfig.countryCode || "DE";
+
         const merchantSession = await request(
           `/${pluginId}/validate-apple-pay-merchant`,
           {
             method: "POST",
             body: {
               domain: window.location.hostname,
+              domainName: window.location.hostname,
               displayName: settings?.merchantName || "Store",
-              currency: currencyCode,
+              currency: requestCurrency,
+              countryCode: requestCountryCode,
             },
           }
         );
 
         if (merchantSession.error) {
+          const errorMessage =
+            merchantSession.error.message || "Merchant validation failed";
+          const errorDetails = merchantSession.error.details || "";
+
+          // If it's a 403 error, provide more specific guidance
+          if (merchantSession.error.status === 403) {
+            throw new Error(
+              `403 Forbidden: Authentication failed with Payone. ` +
+                `Please check your Payone credentials (aid, portalid, mid, key) in plugin settings. ` +
+                `Also ensure that: 1) Mode is set to "live" (Apple Pay only works in live mode), ` +
+                `2) Your domain is registered with Payone Merchant Services, ` +
+                `3) Merchant ID (mid) matches your merchantIdentifier in PMI. ` +
+                `Details: ${errorDetails || errorMessage}`
+            );
+          }
+
           throw new Error(
-            merchantSession.error.message || "Merchant validation failed"
+            errorMessage + (errorDetails ? ` - ${errorDetails}` : "")
           );
         }
 
         const sessionData = merchantSession.data || merchantSession;
 
         if (!sessionData || !sessionData.merchantIdentifier) {
-          console.error(
-            "[Apple Pay Button] Invalid merchant session: missing merchantIdentifier"
-          );
           throw new Error(
-            "Invalid merchant session: missing merchantIdentifier"
+            "Invalid merchant session: missing merchantIdentifier. " +
+              "Please check your Payone Apple Pay configuration in PMI (CONFIGURATION → PAYMENT PORTALS → [Your Portal] → Payment type configuration tab)."
           );
         }
 
         session.completeMerchantValidation(sessionData);
-        console.log(
-          "[Apple Pay Button] Merchant validation completed successfully"
-        );
       } catch (error) {
-        console.error("[Apple Pay Button] Merchant validation error:", error);
+
+        // Don't call completeMerchantValidation with empty object - this causes user cancellation
+        // Instead, let the error propagate so user can see what went wrong
         if (onError) {
           onError(error);
         }
-        session.completeMerchantValidation({});
+
+        // Complete with failure status to show error to user
+        try {
+          session.completeMerchantValidation({});
+        } catch (completeError) {
+          // Silent fail
+        }
       }
     };
 
@@ -108,9 +134,6 @@ const ApplePayBtn = ({
         const tokenObject = paymentData.token;
 
         if (!tokenObject.paymentData) {
-          console.error(
-            "[Apple Pay] Invalid token structure: missing paymentData"
-          );
           const result = {
             status: window.ApplePaySession.STATUS_FAILURE,
           };
@@ -128,7 +151,6 @@ const ApplePayBtn = ({
             unescape(encodeURIComponent(JSON.stringify(tokenObject)))
           );
         } catch (e) {
-          console.error("[Apple Pay] Token encoding error:", e);
           tokenString = btoa(
             unescape(encodeURIComponent(JSON.stringify(tokenObject)))
           );
@@ -158,7 +180,6 @@ const ApplePayBtn = ({
           session.completePayment(paymentResult);
         }
       } catch (error) {
-        console.error("[Apple Pay] Payment authorization error:", error);
         const result = {
           status: window.ApplePaySession.STATUS_FAILURE,
         };
@@ -170,7 +191,7 @@ const ApplePayBtn = ({
     };
 
     session.oncancel = (event) => {
-      console.log("[Apple Pay Button] Session cancelled by user");
+      // Session cancelled by user
     };
   };
 

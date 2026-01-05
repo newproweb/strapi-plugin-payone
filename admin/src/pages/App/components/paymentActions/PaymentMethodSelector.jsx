@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React from "react";
 import {
   Box,
   Flex,
@@ -24,13 +24,6 @@ const PaymentMethodSelector = ({
   onNavigateToConfig,
   isLiveMode,
 }) => {
-  useEffect(() => {
-    if (isLiveMode && paymentMethod !== "apl") {
-      setPaymentMethod("apl");
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isLiveMode]);
-
   return (
     <Box>
       <Flex direction="column" alignItems="stretch" gap={4}>
@@ -290,7 +283,7 @@ const PaymentMethodSelector = ({
             </Box>
           </>
         )}
-        {supportsCaptureMode(paymentMethod) && (
+        {paymentMethod !== "apl" && supportsCaptureMode(paymentMethod) && (
           <Select
             label="Capture Mode"
             name="captureMode"

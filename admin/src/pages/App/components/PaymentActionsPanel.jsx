@@ -6,6 +6,7 @@ import AuthorizationForm from "./paymentActions/AuthorizationForm";
 import CaptureForm from "./paymentActions/CaptureForm";
 import RefundForm from "./paymentActions/RefundForm";
 import PaymentResult from "./paymentActions/PaymentResult";
+import ApplePayPanel from "./paymentActions/ApplePayPanel";
 
 const PaymentActionsPanel = ({
   paymentAmount,
@@ -57,63 +58,49 @@ const PaymentActionsPanel = ({
         style={{
           display: "flex",
           flexDirection: "column",
-          alignItems: "flex-start",
-          gap: "16px",
-          marginTop: "24px",
-          width: "100%",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: "8px",
+          marginTop: "44px",
         }}
       >
-        <Typography
-          variant="pi"
-          textColor="danger600"
-          style={{
-            fontSize: "14px",
-            marginTop: "12px",
-            marginBottom: "12px",
-            fontWeight: "bold",
-          }}
-        >
-          ⚠️ Payment Actions are disabled in live mode for security reasons. but
-          you can test apple pay in live mode. For testing other payment
-          methods, please use test mode.
+        <Typography variant="pi" textColor="neutral600">
+          Test Payments are only works in test mode.
         </Typography>
-
-        <PaymentMethodSelector
-          paymentMethod={paymentMethod}
-          setPaymentMethod={setPaymentMethod}
-          captureMode={captureMode}
-          setCaptureMode={setCaptureMode}
-          onNavigateToConfig={onNavigateToConfig}
-          settings={settings}
-          isLiveMode={isLiveMode}
-        />
-
-        <hr className="payment-divider" />
-        <Box className="payment-form-section">
-          <AuthorizationForm
-            paymentAmount={paymentAmount}
-            setPaymentAmount={setPaymentAmount}
-            authReference={authReference}
-            setAuthReference={setAuthReference}
-            isProcessingPayment={isProcessingPayment}
-            onAuthorization={onAuthorization}
-            paymentMethod={paymentMethod}
-            settings={settings}
-            googlePayToken={googlePayToken}
-            setGooglePayToken={setGooglePayToken}
-            applePayToken={applePayToken}
-            setApplePayToken={setApplePayToken}
-            cardtype={cardtype}
-            setCardtype={setCardtype}
-            cardpan={cardpan}
-            setCardpan={setCardpan}
-            cardexpiredate={cardexpiredate}
-            setCardexpiredate={setCardexpiredate}
-            cardcvc2={cardcvc2}
-            setCardcvc2={setCardcvc2}
-          />
-        </Box>
+        <Typography variant="pi" textColor="neutral600">
+          Please switch to test mode in plugin settings to use test payments.
+        </Typography>
       </Box>
+    );
+  }
+
+  if (paymentMethod === "apl") {
+    return (
+      <ApplePayPanel
+        paymentAmount={paymentAmount}
+        setPaymentAmount={setPaymentAmount}
+        authReference={authReference}
+        setAuthReference={setAuthReference}
+        isProcessingPayment={isProcessingPayment}
+        onAuthorization={onAuthorization}
+        paymentMethod={paymentMethod}
+        setPaymentMethod={setPaymentMethod}
+        captureMode={captureMode}
+        setCaptureMode={setCaptureMode}
+        settings={settings}
+        setGooglePayToken={setGooglePayToken}
+        applePayToken={applePayToken}
+        setApplePayToken={setApplePayToken}
+        cardtype={cardtype}
+        setCardtype={setCardtype}
+        cardpan={cardpan}
+        setCardpan={setCardpan}
+        cardexpiredate={cardexpiredate}
+        setCardexpiredate={setCardexpiredate}
+        cardcvc2={cardcvc2}
+        setCardcvc2={setCardcvc2}
+        onNavigateToConfig={onNavigateToConfig}
+      />
     );
   }
 
@@ -181,7 +168,6 @@ const PaymentActionsPanel = ({
             onPreauthorization={onPreauthorization}
             paymentMethod={paymentMethod}
             settings={settings}
-            googlePayToken={googlePayToken}
             setGooglePayToken={setGooglePayToken}
             applePayToken={applePayToken}
             setApplePayToken={setApplePayToken}
@@ -209,7 +195,6 @@ const PaymentActionsPanel = ({
             onAuthorization={onAuthorization}
             paymentMethod={paymentMethod}
             settings={settings}
-            googlePayToken={googlePayToken}
             setGooglePayToken={setGooglePayToken}
             applePayToken={applePayToken}
             setApplePayToken={setApplePayToken}

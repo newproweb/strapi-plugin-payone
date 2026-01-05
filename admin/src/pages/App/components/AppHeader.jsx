@@ -7,25 +7,32 @@ import pluginId from "../../../pluginId";
 const AppHeader = ({ activeTab, isSaving, onSave }) => {
   const history = useHistory();
   const location = useLocation();
-  const isApplePayConfigPage = location.pathname.includes('/apple-pay-config');
+  const isApplePayConfigPage = location.pathname.includes("/apple-pay-config");
+  const isGooglePayConfigPage = location.pathname.includes("/google-pay-config");
 
   return (
     <HeaderLayout
       title={
         <Box>
-          <Typography variant="alpha" as="h1" fontWeight="bold" className="payment-title">
-            {isApplePayConfigPage ? "Apple Pay Configuration" : "Payone Provider"}
+          <Typography
+            variant="alpha"
+            as="h1"
+            fontWeight="bold"
+            className="payment-title"
+          >
+            {isApplePayConfigPage
+              ? "Apple Pay Configuration"
+              : "Payone Provider"}
           </Typography>
           <Typography variant="pi" marginTop={2} className="payment-subtitle">
-            {isApplePayConfigPage 
+            {isApplePayConfigPage
               ? "Configure Apple Pay settings for your payment gateway"
-              : "Configure your Payone integration and manage payment transactions"
-            }
+              : "Configure your Payone integration and manage payment transactions"}
           </Typography>
         </Box>
       }
       primaryAction={
-        isApplePayConfigPage ? (
+        isApplePayConfigPage || isGooglePayConfigPage ? (
           <Button
             onClick={() => history.push(`/plugins/${pluginId}`)}
             startIcon={<ArrowLeft />}
@@ -52,4 +59,3 @@ const AppHeader = ({ activeTab, isSaving, onSave }) => {
 };
 
 export default AppHeader;
-

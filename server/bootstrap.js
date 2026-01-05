@@ -58,53 +58,37 @@ module.exports = async ({ strapi }) => {
       try {
         const publicPath = path.join(process.cwd(), 'public');
         const wellKnownPath = path.join(publicPath, '.well-known');
-        const filePath = path.join(wellKnownPath, 'apple-developer-merchantid-domain-association');
-        const filePathTxt = path.join(wellKnownPath, 'apple-developer-merchant-id-domain-association.txt');
+        const possiblePaths = [
+          path.join(wellKnownPath, 'apple-developer-merchantid-domain-association'),
+          path.join(wellKnownPath, 'apple-developer-merchantid-domain-association.txt'),
+          path.join(wellKnownPath, 'apple-developer-merchant-id-domain-association.txt'),
+        ];
 
         let fileContent = null;
         let filePathFound = null;
 
-        if (fs.existsSync(filePath)) {
-          filePathFound = filePath;
-          fileContent = fs.readFileSync(filePath, 'utf8');
-        }
-        else if (fs.existsSync(filePathTxt)) {
-          filePathFound = filePathTxt;
-          fileContent = fs.readFileSync(filePathTxt, 'utf8');
+        for (const filePath of possiblePaths) {
+          if (fs.existsSync(filePath)) {
+            filePathFound = filePath;
+            fileContent = fs.readFileSync(filePath, 'utf8');
+            break;
+          }
         }
 
         if (fileContent) {
           ctx.type = 'text/plain';
-          ctx.body = fileContent;
-          strapi.log.info(`[Apple Pay] Served well-known file from: ${filePathFound}`);
+          ctx.set('Content-Type', 'text/plain');
+          ctx.set('Cache-Control', 'public, max-age=31536000');
+          ctx.body = fileContent.trim();
         } else {
-          strapi.log.warn(`[Apple Pay] Well-known file not found. Tried: ${filePath} and ${filePathTxt}`);
           ctx.status = 404;
-          ctx.body = {
-            error: {
-              status: 404,
-              name: "NotFoundError",
-              message: "Apple Pay domain verification file not found",
-              details: {
-                expectedPaths: [
-                  filePath,
-                  filePathTxt
-                ]
-              }
-            }
-          };
+          ctx.type = 'text/plain';
+          ctx.body = 'File not found';
         }
       } catch (error) {
-        strapi.log.error("[Apple Pay] Serve well-known file error:", error);
         ctx.status = 500;
-        ctx.body = {
-          error: {
-            status: 500,
-            name: "InternalServerError",
-            message: error.message || "Failed to serve well-known file",
-            details: error.stack
-          }
-        };
+        ctx.type = 'text/plain';
+        ctx.body = 'Internal server error';
       }
     });
 
@@ -113,6 +97,6 @@ module.exports = async ({ strapi }) => {
       strapi.server.app.use(router.allowedMethods());
     }
   } catch (error) {
-    strapi.log.warn('Could not register 3DS callback routes:', error.message);
+    // Silent fail
   }
 };

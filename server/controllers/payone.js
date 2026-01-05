@@ -7,7 +7,12 @@ const getPayoneService = (strapi) => {
 };
 
 const handleError = (ctx, error) => {
-  ctx.strapi.log.error("Payone controller error:", error);
+  if (error.response || error.status >= 400) {
+    ctx.strapi.log.error("Payone controller error:", {
+      status: error.status || error.response?.status,
+      message: error.message
+    });
+  }
   ctx.throw(500, error);
 };
 
@@ -71,11 +76,9 @@ module.exports = ({ strapi }) => ({
   async authorization(ctx) {
     try {
       const params = ctx.request.body;
-      strapi.log.info("Payone authorization controller called with:", params);
       const result = await getPayoneService(strapi).authorization(params);
       ctx.body = { data: result };
     } catch (error) {
-      strapi.log.error("Payone authorization error:", error);
       handleError(ctx, error);
     }
   },
@@ -134,7 +137,6 @@ module.exports = ({ strapi }) => ({
       }
 
       const callbackData = isGetRequest ? ctx.query : ctx.request.body;
-      strapi.log.info(`3DS ${resultType} received (${ctx.request.method}):`, callbackData);
       const result = await getPayoneService(strapi).handle3DSCallback(callbackData, resultType);
 
       if (isGetRequest) {
@@ -153,31 +155,81 @@ module.exports = ({ strapi }) => ({
 
       ctx.body = { data: result };
     } catch (error) {
-      strapi.log.error("3DS callback error:", error);
       handleError(ctx, error);
     }
   },
 
   async validateApplePayMerchant(ctx) {
     try {
-      strapi.log.info("[Apple Pay] Request body:", JSON.stringify(ctx.request.body, null, 2));
+      const settings = await getPayoneService(strapi).getSettings();
+      const applePayConfig = settings?.applePayConfig || {};
 
       const params = ctx.request.body;
+
+      if (!params) {
+        throw new Error("Request body is missing");
+      }
+
+      // Ensure domain is set
+      if (!params.domain && !params.domainName) {
+        params.domain = ctx.request.hostname || ctx.request.host || 'localhost';
+        params.domainName = params.domain;
+      } else if (params.domain && !params.domainName) {
+        params.domainName = params.domain;
+      } else if (params.domainName && !params.domain) {
+        params.domain = params.domainName;
+      }
+
+      if (!params.displayName) {
+        params.displayName = settings?.merchantName || "Store";
+      }
+
+      if (!params.currency) {
+        params.currency = applePayConfig.currencyCode || "EUR";
+      }
+      if (!params.countryCode) {
+        params.countryCode = applePayConfig.countryCode || "DE";
+      }
+
       let result = await getPayoneService(strapi).validateApplePayMerchant(params);
-      strapi.log.info("[Apple Pay] Merchant validation result:", JSON.stringify(result, null, 2));
+
+      if (!result) {
+        throw new Error("Merchant validation returned null. Please check your Payone Apple Pay configuration.");
+      }
+
       ctx.body = { data: result };
     } catch (error) {
-      strapi.log.error("[Apple Pay] Controller error:", {
-        message: error.message,
-        stack: error.stack,
-        name: error.name
-      });
+      const errorStatus = error.status || (error.message?.includes('403') ? 403 : 500);
 
-      ctx.status = error.status || 500;
+      // Only log if it's a response error
+      if (error.response || errorStatus === 403 || errorStatus === 401 || errorStatus >= 500) {
+        strapi.log.error("[Apple Pay] Controller error:", {
+          status: errorStatus,
+          message: error.message
+        });
+      }
+
+      // Extract detailed error message if available
+      let errorMessage = error.message || "Apple Pay merchant validation failed";
+      let errorDetails = "Please check your Payone Apple Pay configuration in PMI (CONFIGURATION → PAYMENT PORTALS → [Your Portal] → Apple Pay). Ensure that Merchant ID (mid) is correctly configured and Apple Pay is enabled for your portal.";
+
+      // If it's a 403 error, provide more specific guidance
+      if (errorStatus === 403 || error.message?.includes('403')) {
+        errorDetails = "403 Forbidden: Authentication failed with Payone. " +
+          "Please check: 1) Your Payone credentials (aid, portalid, mid, key) in plugin settings, " +
+          "2) Mode is set to 'live' (Apple Pay only works in live mode), " +
+          "3) Your domain is registered with Payone Merchant Services, " +
+          "4) Merchant ID (mid) matches your merchantIdentifier in PMI, " +
+          "5) Apple Pay is enabled for your portal in PMI.";
+      }
+
+      ctx.status = errorStatus;
       ctx.body = {
         error: {
-          message: error.message || "Apple Pay merchant validation failed",
-          details: "Please check your Payone Apple Pay configuration in PMI (CONFIGURATION → PAYMENT PORTALS → [Your Portal] → Apple Pay)"
+          status: errorStatus,
+          name: error.name || "Error",
+          message: errorMessage,
+          details: errorDetails
         }
       };
     }

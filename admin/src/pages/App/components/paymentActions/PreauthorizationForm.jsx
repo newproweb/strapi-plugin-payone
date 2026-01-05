@@ -39,7 +39,7 @@ const PreauthorizationForm = ({
   };
 
   const handleGooglePayError = (error) => {
-    console.error("[PreauthorizationForm] Google Pay error:", error);
+    console.error("Google Pay error:", error);
   };
 
   return (

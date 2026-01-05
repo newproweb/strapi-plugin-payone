@@ -10,9 +10,11 @@ import {
   TextInput,
   Select,
   Option,
-  Alert
+  Alert,
 } from "@strapi/design-system";
-import { Play } from "@strapi/icons";
+import { Play, Cog } from "@strapi/icons";
+import { useHistory } from "react-router-dom";
+import pluginId from "../../../pluginId";
 
 const ConfigurationPanel = ({
   settings,
@@ -21,17 +23,22 @@ const ConfigurationPanel = ({
   testResult,
   onSave,
   onTestConnection,
-  onInputChange
+  onInputChange,
 }) => {
+  const history = useHistory();
   const mode = (settings?.mode || "test").toLowerCase();
 
   useEffect(() => {
-    if (settings?.mode) {
-      const currentMode = (settings.mode || "test").toLowerCase();
-      console.log("[ConfigurationPanel] Mode updated:", currentMode);
-    }
+    // Mode updated
   }, [settings?.mode]);
 
+  const handleNavigateToApplePayConfig = () => {
+    history.push(`/plugins/${pluginId}/apple-pay-config`);
+  };
+
+  const handleNavigateToGooglePayConfig = () => {
+    history.push(`/plugins/${pluginId}/google-pay-config`);
+  };
 
   return (
     <Box
@@ -43,10 +50,22 @@ const ConfigurationPanel = ({
     >
       <Flex direction="column" alignItems="stretch" gap={8}>
         <Box>
-          <Typography variant="beta" as="h2" fontWeight="bold" className="payment-title" style={{ fontSize: '20px', marginBottom: '4px' }}>
+          <Typography
+            variant="beta"
+            as="h2"
+            fontWeight="bold"
+            className="payment-title"
+            style={{ fontSize: "20px", marginBottom: "4px" }}
+          >
             Payone API Configuration
           </Typography>
-          <Typography variant="pi" textColor="neutral600" marginTop={2} className="payment-subtitle" style={{ fontSize: '14px' }}>
+          <Typography
+            variant="pi"
+            textColor="neutral600"
+            marginTop={2}
+            className="payment-subtitle"
+            style={{ fontSize: "14px" }}
+          >
             Configure your Payone payment gateway settings
           </Typography>
         </Box>
@@ -131,7 +150,12 @@ const ConfigurationPanel = ({
                   />
                 </Flex>
 
-                <Flex direction="column" wrap="wrap" gap={1} alignItems="flex-start">
+                <Flex
+                  direction="column"
+                  wrap="wrap"
+                  gap={1}
+                  alignItems="flex-start"
+                >
                   <Select
                     label="Enable 3D Secure"
                     name="enable3DSecure"
@@ -146,8 +170,34 @@ const ConfigurationPanel = ({
                     <Option value="no">Disabled</Option>
                   </Select>
                   <Typography variant="pi" textColor="neutral600" marginTop={1}>
-                    When enabled, credit card payments will require 3D Secure authentication (SCA compliance)
+                    When enabled, credit card payments will require 3D Secure
+                    authentication (SCA compliance)
                   </Typography>
+                </Flex>
+
+                <Flex
+                  direction="row"
+                  gap={2}
+                  wrap="wrap"
+                  alignItems="flex-start"
+                  marginTop={2}
+                >
+                  <Button
+                    variant="secondary"
+                    startIcon={<Cog />}
+                    onClick={handleNavigateToApplePayConfig}
+                    className="payment-button"
+                  >
+                    Apple Pay Config
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    startIcon={<Cog />}
+                    onClick={handleNavigateToGooglePayConfig}
+                    className="payment-button"
+                  >
+                    Google Pay Config
+                  </Button>
                 </Flex>
               </Stack>
             </CardBody>
@@ -179,13 +229,18 @@ const ConfigurationPanel = ({
                   loading={isTesting}
                   startIcon={<Play />}
                   className="payment-button payment-button-success"
-                  disabled={mode === 'live'}
+                  disabled={mode === "live"}
                 >
                   {isTesting ? "Testing Connection..." : "Test Connection"}
                 </Button>
-                {mode === 'live' && (
-                  <Typography variant="pi" textColor="neutral600" style={{ marginTop: "8px" }}>
-                    Test Connection is disabled in live mode for security reasons.
+                {mode === "live" && (
+                  <Typography
+                    variant="pi"
+                    textColor="neutral600"
+                    style={{ marginTop: "8px" }}
+                  >
+                    Test Connection is disabled in live mode for security
+                    reasons.
                   </Typography>
                 )}
 
@@ -222,7 +277,10 @@ const ConfigurationPanel = ({
                             </CardBody>
                           </Card>
                         ) : (
-                          <Card className="payment-card" style={{ background: "#fff5f5" }}>
+                          <Card
+                            className="payment-card"
+                            style={{ background: "#fff5f5" }}
+                          >
                             <CardBody padding={4}>
                               <Stack spacing={2}>
                                 {testResult.errorcode && (

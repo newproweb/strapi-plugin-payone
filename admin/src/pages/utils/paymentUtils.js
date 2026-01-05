@@ -1,3 +1,43 @@
+export function getValidCardExpiryDate(cardexpiredate) {
+  const now = new Date();
+  const currentYear = now.getFullYear() % 100;
+  const currentMonth = now.getMonth() + 1;
+
+  if (!cardexpiredate || cardexpiredate.trim() === "") {
+    const nextYear = currentYear + 1;
+    const monthStr = String(currentMonth).padStart(2, '0');
+    return `${nextYear}${monthStr}`;
+  }
+
+  // Validate format (must be 4 digits)
+  if (!/^\d{4}$/.test(cardexpiredate)) {
+    const nextYear = currentYear + 1;
+    const monthStr = String(currentMonth).padStart(2, '0');
+    return `${nextYear}${monthStr}`;
+  }
+
+  // Parse YYMM format
+  const year = parseInt(cardexpiredate.substring(0, 2), 10);
+  const month = parseInt(cardexpiredate.substring(2, 4), 10);
+
+  // Validate month (1-12)
+  if (month < 1 || month > 12) {
+    const nextYear = currentYear + 1;
+    const monthStr = String(currentMonth).padStart(2, '0');
+    return `${nextYear}${monthStr}`;
+  }
+
+  const currentDate = new Date(2000 + currentYear, currentMonth - 1);
+  const expiryDate = new Date(2000 + year, month - 1);
+
+  if (expiryDate < currentDate) {
+    const nextYear = currentYear + 1;
+    const monthStr = String(currentMonth).padStart(2, '0');
+    return `${nextYear}${monthStr}`;
+  }
+
+  return cardexpiredate;
+}
 
 export function generateLagOrderNumber(sequence = 1000) {
   const paddedSequence = sequence.toString().padStart(5, '0');
@@ -125,7 +165,7 @@ export const getPaymentMethodParams = (paymentMethod, options = {}) => {
         clearingtype: "cc",
         cardtype: finalCardType, // V = Visa, M = Mastercard, A = Amex
         cardpan: cardpan || "4111111111111111", // Test Visa card
-        cardexpiredate: cardexpiredate || "2512", // MMYY format
+        cardexpiredate: getValidCardExpiryDate(cardexpiredate),
         cardcvc2: cardcvc2 || "123" // 3-digit security code
       };
 
@@ -374,24 +414,16 @@ export const getPaymentMethodOptions = (isLiveMode = false) => {
     { value: "wlt", label: "PayPal" },
     { value: "gpp", label: "Google Pay" },
     { value: "apl", label: "Apple Pay" },
-    { value: "sb", label: "Sofort Banking" },
     { value: "elv", label: "SEPA Direct Debit" }
   ];
 };
 
-/**
- * Check if payment method supports capture mode
- * @param {string} paymentMethod - Payment method
- * @returns {boolean} True if supports capture mode
- */
+
 export const supportsCaptureMode = (paymentMethod) => {
-  return paymentMethod === "wlt" || paymentMethod === "gpp" || paymentMethod === "apl"; // PayPal, Google Pay, and Apple Pay support capture mode
+  return paymentMethod === "wlt" || paymentMethod === "gpp" || paymentMethod === "apl";
 };
 
-/**
- * Get capture mode options
- * @returns {Array} Array of capture mode options
- */
+
 export const getCaptureModeOptions = () => {
   return [
     { value: "full", label: "Full Capture" },
@@ -399,14 +431,6 @@ export const getCaptureModeOptions = () => {
   ];
 };
 
-/**
- * Validate payment parameters based on Payone v1 documentation
- * Comprehensive validation for all operations and payment methods
- * @param {string} operation - Operation type (preauthorization, authorization, capture, refund)
- * @param {string} paymentMethod - Payment method
- * @param {Object} params - Parameters to validate
- * @returns {Object} Validation result with detailed error messages
- */
 export const validatePaymentParams = (operation, paymentMethod, params) => {
   const errors = [];
 
@@ -419,12 +443,10 @@ export const validatePaymentParams = (operation, paymentMethod, params) => {
     errors.push("Currency is required");
   }
 
-  // Validate currency format (ISO 4217)
   if (params.currency && !/^[A-Z]{3}$/.test(params.currency)) {
     errors.push("Currency must be in ISO 4217 format (e.g., EUR, USD)");
   }
 
-  // Operation specific validations (Payone v1 documentation)
   switch (operation) {
     case "preauthorization":
       if (!params.reference) {
@@ -504,7 +526,6 @@ export const validatePaymentParams = (operation, paymentMethod, params) => {
       break;
   }
 
-  // Payment method specific validations (Payone v1 documentation)
   switch (paymentMethod) {
     case "cc":
       if (!params.cardpan || !params.cardexpiredate || !params.cardcvc2) {
@@ -517,9 +538,9 @@ export const validatePaymentParams = (operation, paymentMethod, params) => {
       if (params.cardpan && !/^\d{13,19}$/.test(params.cardpan.replace(/\s/g, ''))) {
         errors.push("Card number must be 13-19 digits");
       }
-      // Validate expiry date format (MMYY)
+      // Validate expiry date format (YYMM)
       if (params.cardexpiredate && !/^\d{4}$/.test(params.cardexpiredate)) {
-        errors.push("Card expiry date must be in MMYY format");
+        errors.push("Card expiry date must be in YYMM format (e.g., 2512 = December 2025)");
       }
       // Validate CVC format (3-4 digits)
       if (params.cardcvc2 && !/^\d{3,4}$/.test(params.cardcvc2)) {

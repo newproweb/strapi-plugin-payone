@@ -425,7 +425,6 @@ function PaymentForm() {
     });
     
     const result = await response.json();
-    console.log('Payment result:', result);
   };
 
   return (

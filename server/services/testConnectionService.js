@@ -4,6 +4,7 @@ const axios = require("axios");
 const { buildClientRequestParams, toFormData } = require("../utils/requestBuilder");
 const { parseResponse } = require("../utils/responseParser");
 const { getSettings, validateSettings } = require("./settingsService");
+const { addPaymentMethodParams } = require("../utils/paymentMethodParams");
 
 const POST_GATEWAY_URL = "https://api.pay1.de/post-gateway/";
 
@@ -27,7 +28,6 @@ const testConnection = async (strapi) => {
       clearingtype: "cc",
       cardtype: "V",
       cardpan: "4111111111111111",
-      cardexpiredate: "2512",
       cardcvc2: "123",
       firstname: "Test",
       lastname: "User",
@@ -44,7 +44,8 @@ const testConnection = async (strapi) => {
       language: "de"
     };
 
-    const requestParams = buildClientRequestParams(settings, testParams, strapi.log);
+    const updatedParams = addPaymentMethodParams(testParams, strapi.log);
+    const requestParams = buildClientRequestParams(settings, updatedParams, strapi.log);
     const formData = toFormData(requestParams);
 
     const response = await axios.post(POST_GATEWAY_URL, formData, {

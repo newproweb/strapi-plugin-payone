@@ -5,18 +5,15 @@ import {
   CardBody,
   Flex,
   Typography,
-  Button
+  Button,
 } from "@strapi/design-system";
 import { Check } from "@strapi/icons";
 import ApplePayConfig from "./ApplePayConfig";
 
-const ApplePayConfigPanel = ({
-  settings,
-  onInputChange,
-  isSaving,
-  onSave
-}) => {
-  const [applePayConfig, setApplePayConfig] = useState(settings?.applePayConfig || {});
+const ApplePayConfigPanel = ({ settings, onInputChange, isSaving, onSave }) => {
+  const [applePayConfig, setApplePayConfig] = useState(
+    settings?.applePayConfig || {}
+  );
 
   useEffect(() => {
     setApplePayConfig(settings?.applePayConfig || {});
@@ -31,15 +28,6 @@ const ApplePayConfigPanel = ({
       paddingRight={8}
     >
       <Flex direction="column" alignItems="stretch" gap={8}>
-        <Box>
-          <Typography variant="beta" as="h2" fontWeight="bold" className="payment-title" style={{ fontSize: '20px', marginBottom: '4px' }}>
-            Apple Pay Configuration
-          </Typography>
-          <Typography variant="pi" textColor="neutral600" marginTop={2} className="payment-subtitle" style={{ fontSize: '14px' }}>
-            Configure Apple Pay settings for your payment gateway
-          </Typography>
-        </Box>
-
         <Box>
           <Card className="payment-card">
             <CardBody padding={6}>
@@ -68,7 +56,9 @@ const ApplePayConfigPanel = ({
               Save Apple Pay Configuration
             </Button>
             <Typography variant="sigma" textColor="neutral600">
-              Note: Apple Pay configuration is used for Apple Pay payment requests. Make sure to configure the correct merchant identifier, supported networks, and capabilities for your region.
+              Note: Apple Pay configuration is used for Apple Pay payment
+              requests. Make sure to configure the correct merchant identifier,
+              supported networks, and capabilities for your region.
             </Typography>
           </Flex>
         </Box>
@@ -78,4 +68,3 @@ const ApplePayConfigPanel = ({
 };
 
 export default ApplePayConfigPanel;
-
