@@ -43,6 +43,26 @@ const addPaymentMethodParams = (params, logger) => {
   const updated = { ...params };
   const clearingtype = updated.clearingtype || "cc";
 
+  const customParams = {};
+  const knownParams = new Set([
+    'cardpan', 'cardexpiredate', 'cardcvc2', 'cardtype', 'wallettype',
+    'bankcountry', 'iban', 'bic', 'bankaccountholder', 'onlinebanktransfertype',
+    'recurrence', 'financingtype', 'invoicetype',
+    // Common defaults
+    'salutation', 'gender', 'telephonenumber', 'ip', 'language', 'customer_is_present',
+    // Payment method tokens
+    'applePayToken', 'googlePayToken',
+    // Other known params
+    'clearingtype', 'paymentMethod', 'settings', 'enable3DSecure', 'ecommercemode'
+  ]);
+
+  // Extract custom params that are not in known params
+  Object.keys(updated).forEach(key => {
+    if (!knownParams.has(key) && !key.startsWith('add_paydata[')) {
+      customParams[key] = updated[key];
+    }
+  });
+
   const methodDefaults = {
     cc: {
       cardpan: "4111111111111111",
@@ -123,7 +143,6 @@ const addPaymentMethodParams = (params, logger) => {
   if (updated.applePayToken) {
     let tokenData;
     try {
-      // Decode Base64 token
       const tokenString = Buffer.from(updated.applePayToken, 'base64').toString('utf-8');
       tokenData = JSON.parse(tokenString);
     } catch (e) {
@@ -209,6 +228,8 @@ const addPaymentMethodParams = (params, logger) => {
       updated[key] = value;
     }
   });
+
+  Object.assign(updated, customParams);
 
   return updated;
 };

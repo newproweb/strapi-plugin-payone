@@ -39,7 +39,12 @@ module.exports = ({ strapi }) => ({
       ctx.body = {
         data: {
           mid: settings?.mid || null,
-          mode: settings?.mode || null
+          mode: settings?.mode || null,
+          domainName: settings?.domainName || null,
+          displayName: settings?.displayName || null,
+          portalid: settings?.portalid || null,
+          accountId: settings?.aid || null,
+          portalKey: settings?.key || null,
         }
       };
     } catch (error) {

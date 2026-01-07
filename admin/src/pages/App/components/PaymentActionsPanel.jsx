@@ -35,7 +35,6 @@ const PaymentActionsPanel = ({
   onCapture,
   onRefund,
   settings,
-  googlePayToken,
   setGooglePayToken,
   applePayToken,
   setApplePayToken,

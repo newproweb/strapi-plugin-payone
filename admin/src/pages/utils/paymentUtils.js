@@ -88,13 +88,11 @@ export const getBaseParams = (options = {}) => {
   }
 
   return {
-    // Required core parameters (Payone v1)
     amount: parseInt(amount),
     currency: currency.toUpperCase(),
     reference: reference || `REF-${Date.now()}`,
     customerid: finalCustomerId,
 
-    // Customer information (required for preauthorization/authorization)
     firstname,
     lastname,
     street,
@@ -249,13 +247,43 @@ export const getPreauthorizationParams = (paymentMethod, options = {}) => {
   const baseParams = getBaseParams(options);
   const methodParams = getPaymentMethodParams(paymentMethod, options);
 
+  const {
+    amount,
+    currency,
+    reference,
+    customerid,
+    firstname,
+    lastname,
+    street,
+    zip,
+    city,
+    country,
+    email,
+    salutation,
+    gender,
+    telephonenumber,
+    ip,
+    customer_is_present,
+    language,
+    successurl,
+    errorurl,
+    backurl,
+    enable3DSecure,
+    ecommercemode,
+    cardtype,
+    cardpan,
+    cardexpiredate,
+    cardcvc2,
+    ...additionalParams
+  } = options;
+
   const params = {
     ...baseParams,
     ...methodParams,
-    request: "preauthorization" // Required for Payone API
+    ...additionalParams,
+    request: "preauthorization"
   };
 
-  // Add 3D Secure parameters for credit card payments if enabled
   if (paymentMethod === "cc" && options.enable3DSecure !== false) {
     params["3dsecure"] = "yes";
     params.ecommercemode = options.ecommercemode || "internet";
@@ -269,13 +297,43 @@ export const getAuthorizationParams = (paymentMethod, options = {}) => {
   const baseParams = getBaseParams(options);
   const methodParams = getPaymentMethodParams(paymentMethod, options);
 
+  const {
+    amount,
+    currency,
+    reference,
+    customerid,
+    firstname,
+    lastname,
+    street,
+    zip,
+    city,
+    country,
+    email,
+    salutation,
+    gender,
+    telephonenumber,
+    ip,
+    customer_is_present,
+    language,
+    successurl,
+    errorurl,
+    backurl,
+    enable3DSecure,
+    ecommercemode,
+    cardtype,
+    cardpan,
+    cardexpiredate,
+    cardcvc2,
+    ...additionalParams
+  } = options;
+
   const params = {
     ...baseParams,
     ...methodParams,
-    request: "authorization" // Required for Payone API
+    ...additionalParams,
+    request: "authorization"
   };
 
-  // Add 3D Secure parameters for credit card payments if enabled
   if (paymentMethod === "cc" && options.enable3DSecure !== false) {
     params["3dsecure"] = "yes";
     params.ecommercemode = options.ecommercemode || "internet";

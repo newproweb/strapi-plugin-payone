@@ -8,7 +8,7 @@ import {
   Stack,
   Typography,
   TextInput,
-  Divider
+  Divider,
 } from "@strapi/design-system";
 import { Search } from "@strapi/icons";
 import TransactionHistoryItem from "./TransactionHistoryItem";
@@ -24,9 +24,8 @@ const HistoryPanel = ({
   totalPages,
   pageSize,
   onRefresh,
-  onPageChange
+  onPageChange,
 }) => {
-
   return (
     <Box
       className="payment-container"
@@ -37,10 +36,20 @@ const HistoryPanel = ({
     >
       <Flex direction="column" alignItems="stretch" gap={8}>
         <Box>
-          <Typography variant="beta" as="h2" className="payment-title" style={{ fontSize: '20px', marginBottom: '4px' }}>
+          <Typography
+            variant="beta"
+            as="h2"
+            className="payment-title"
+            style={{ fontSize: "20px", marginBottom: "4px" }}
+          >
             Transaction Management
           </Typography>
-          <Typography variant="pi" textColor="neutral600" className="payment-subtitle" style={{ fontSize: '14px', marginTop: '4px' }}>
+          <Typography
+            variant="pi"
+            textColor="neutral600"
+            className="payment-subtitle"
+            style={{ fontSize: "14px", marginTop: "4px" }}
+          >
             View and filter all payment transactions processed through Payone
           </Typography>
         </Box>
@@ -193,7 +202,7 @@ const HistoryPanel = ({
                   <CardBody padding={4}>
                     <Flex justifyContent="space-between" alignItems="center">
                       {transactionHistory.length > pageSize &&
-                        totalPages > 1 ? (
+                      totalPages > 1 ? (
                         <Flex gap={3} alignItems="center">
                           <Button
                             variant="default"
@@ -202,10 +211,13 @@ const HistoryPanel = ({
                               onPageChange(Math.max(1, currentPage - 1))
                             }
                             disabled={currentPage === 1}
-                            className={`payment-button ${currentPage === 1 ? '' : 'payment-button-success'}`}
+                            className={`payment-button ${
+                              currentPage === 1 ? "" : "payment-button-success"
+                            }`}
                             style={{
-                              background: currentPage === 1 ? "#f6f6f9" : undefined,
-                              color: currentPage === 1 ? "#666687" : undefined
+                              background:
+                                currentPage === 1 ? "#f6f6f9" : undefined,
+                              color: currentPage === 1 ? "#666687" : undefined,
                             }}
                           >
                             ← Previous
@@ -234,10 +246,20 @@ const HistoryPanel = ({
                               )
                             }
                             disabled={currentPage === totalPages}
-                            className={`payment-button ${currentPage === totalPages ? '' : 'payment-button-success'}`}
+                            className={`payment-button ${
+                              currentPage === totalPages
+                                ? ""
+                                : "payment-button-success"
+                            }`}
                             style={{
-                              background: currentPage === totalPages ? "#f6f6f9" : undefined,
-                              color: currentPage === totalPages ? "#666687" : undefined
+                              background:
+                                currentPage === totalPages
+                                  ? "#f6f6f9"
+                                  : undefined,
+                              color:
+                                currentPage === totalPages
+                                  ? "#666687"
+                                  : undefined,
                             }}
                           >
                             Next →

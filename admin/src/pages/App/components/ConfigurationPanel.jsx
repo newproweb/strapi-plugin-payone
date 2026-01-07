@@ -124,6 +124,32 @@ const ConfigurationPanel = ({
                 </Flex>
 
                 <Flex gap={4} wrap="wrap">
+                  <TextInput
+                    label="Domain Name"
+                    name="domainName"
+                    value={settings.domainName || ""}
+                    onChange={(e) =>
+                      onInputChange("domainName", e.target.value)
+                    }
+                    hint="Your domain name (optional)"
+                    className="payment-input"
+                    style={{ flex: 1, minWidth: "300px" }}
+                  />
+
+                  <TextInput
+                    label="Display Name"
+                    name="displayName"
+                    value={settings.displayName || ""}
+                    onChange={(e) =>
+                      onInputChange("displayName", e.target.value)
+                    }
+                    hint="Display name for payment methods (optional)"
+                    className="payment-input"
+                    style={{ flex: 1, minWidth: "300px" }}
+                  />
+                </Flex>
+
+                <Flex gap={4} wrap="wrap">
                   <Select
                     label="Mode"
                     name="mode"

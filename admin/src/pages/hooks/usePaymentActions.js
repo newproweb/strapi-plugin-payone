@@ -92,6 +92,8 @@ const usePaymentActions = () => {
         currency: currency,
         reference: finalPreauthReference,
         enable3DSecure: settings.enable3DSecure !== false,
+        invoiceid: finalPreauthReference,
+        narrative_text: "Preauthorization for order " + finalPreauthReference,
         ...DEFAULT_PAYMENT_DATA
       };
 
@@ -215,6 +217,8 @@ const usePaymentActions = () => {
         currency: currency,
         reference: finalAuthReference,
         enable3DSecure: settings.enable3DSecure !== false,
+        invoiceid: finalAuthReference,
+        narrative_text: "Authorization for order " + finalAuthReference,
         ...DEFAULT_PAYMENT_DATA
       };
 

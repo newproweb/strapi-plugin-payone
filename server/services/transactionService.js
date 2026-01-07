@@ -12,6 +12,7 @@ const logTransaction = async (strapi, transactionData) => {
     timestamp: new Date().toISOString(),
     txid: transactionData.txid || null,
     reference: transactionData.reference || null,
+    invoiceid: transactionData.invoiceid || null,
     request_type:
       transactionData.request_type || transactionData.request || "unknown",
     amount: transactionData.amount || null,
@@ -27,6 +28,7 @@ const logTransaction = async (strapi, transactionData) => {
       transactionData.customer_message ||
       transactionData.Error?.CustomerMessage ||
       null,
+    body: transactionData || null,
     raw_request: transactionData.raw_request || null,
     raw_response: transactionData.raw_response || transactionData,
     created_at: new Date().toISOString(),

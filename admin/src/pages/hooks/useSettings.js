@@ -49,7 +49,6 @@ const useSettings = () => {
         type: "success",
         message: "Settings saved successfully"
       });
-      // Reload settings after save to ensure consistency
       await loadSettings();
     } catch (error) {
       toggleNotification({
