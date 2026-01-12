@@ -8,6 +8,8 @@ import {
   Stack,
   Typography,
   TextInput,
+  Select,
+  Option,
   Divider,
 } from "@strapi/design-system";
 import { Search } from "@strapi/icons";
@@ -68,66 +70,69 @@ const HistoryPanel = ({
               <Stack spacing={4}>
                 <Flex gap={4} wrap="wrap" alignItems="center">
                   <TextInput
-                    label="Status"
-                    name="status"
-                    value={filters.status}
-                    onChange={(e) => onFilterChange("status", e.target.value)}
-                    placeholder="APPROVED, ERROR, etc."
+                    label="Search"
+                    name="search"
+                    value={filters.search || ""}
+                    onChange={(e) => onFilterChange("search", e.target.value)}
+                    placeholder="Search by Status, Transaction ID, or Reference"
                     className="payment-input"
-                    style={{ flex: 1, minWidth: "200px" }}
+                    style={{ flex: 1, minWidth: "250px" }}
                   />
-                  <TextInput
+                  <Select
                     label="Request Type"
                     name="request_type"
-                    value={filters.request_type}
-                    onChange={(e) =>
-                      onFilterChange("request_type", e.target.value)
+                    value={filters.request_type || ""}
+                    onChange={(value) => onFilterChange("request_type", value)}
+                    placeholder="Select request type"
+                    className="payment-input"
+                    style={{ flex: 1, minWidth: "200px" }}
+                  >
+                    <Option value="">All Types</Option>
+                    <Option value="preauthorization">Preauthorization</Option>
+                    <Option value="authorization">Authorization</Option>
+                    <Option value="capture">Capture</Option>
+                    <Option value="refund">Refund</Option>
+                  </Select>
+                  <Select
+                    label="Payment Method"
+                    name="payment_method"
+                    value={filters.payment_method || ""}
+                    onChange={(value) =>
+                      onFilterChange("payment_method", value)
                     }
-                    placeholder="preauthorization, authorization, etc."
+                    placeholder="Select payment method"
                     className="payment-input"
                     style={{ flex: 1, minWidth: "200px" }}
-                  />
-                  <TextInput
-                    label="Transaction ID"
-                    name="txid"
-                    value={filters.txid}
-                    onChange={(e) => onFilterChange("txid", e.target.value)}
-                    placeholder="Enter TxId"
-                    className="payment-input"
-                    style={{ flex: 1, minWidth: "200px" }}
-                  />
-                  <TextInput
-                    label="Reference"
-                    name="reference"
-                    value={filters.reference}
-                    onChange={(e) =>
-                      onFilterChange("reference", e.target.value)
-                    }
-                    placeholder="Enter reference"
-                    className="payment-input"
-                    style={{ flex: 1, minWidth: "200px" }}
-                  />
+                  >
+                    <Option value="">All Methods</Option>
+                    <Option value="credit_card">Credit Card</Option>
+                    <Option value="paypal">PayPal</Option>
+                    <Option value="google_pay">Google Pay</Option>
+                    <Option value="apple_pay">Apple Pay</Option>
+                    <Option value="sofort">Sofort Banking</Option>
+                    <Option value="sepa">SEPA Direct Debit</Option>
+                  </Select>
                   <TextInput
                     label="Date From"
                     name="date_from"
-                    value={filters.date_from}
+                    value={filters.date_from || ""}
                     onChange={(e) =>
                       onFilterChange("date_from", e.target.value)
                     }
                     placeholder="YYYY-MM-DD"
                     type="date"
                     className="payment-input"
-                    style={{ flex: 1, minWidth: "200px" }}
+                    style={{ flex: 1, minWidth: "150px" }}
                   />
                   <TextInput
                     label="Date To"
                     name="date_to"
-                    value={filters.date_to}
+                    value={filters.date_to || ""}
                     onChange={(e) => onFilterChange("date_to", e.target.value)}
                     placeholder="YYYY-MM-DD"
                     type="date"
                     className="payment-input"
-                    style={{ flex: 1, minWidth: "200px" }}
+                    style={{ flex: 1, minWidth: "150px" }}
                   />
                   <Button
                     variant="default"

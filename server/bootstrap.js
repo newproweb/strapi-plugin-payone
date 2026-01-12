@@ -21,7 +21,13 @@ module.exports = async ({ strapi }) => {
         merchantName: "",
         displayName: "",
         domainName: "",
-        merchantIdentifier: ""
+        merchantIdentifier: "",
+        enableCreditCard: true,
+        enablePayPal: true,
+        enableGooglePay: true,
+        enableApplePay: true,
+        enableSofort: true,
+        enableSepaDirectDebit: true
       }
     });
   }
@@ -56,8 +62,8 @@ module.exports = async ({ strapi }) => {
 
     router.get('/.well-known/apple-developer-merchantid-domain-association', async (ctx) => {
       try {
-        const publicPath = path.join(process.cwd(), 'public');
-        const wellKnownPath = path.join(publicPath, '.well-known');
+        const pluginRoot = path.resolve(__dirname, '..');
+        const wellKnownPath = path.join(pluginRoot, '.well-known');
         const possiblePaths = [
           path.join(wellKnownPath, 'apple-developer-merchantid-domain-association'),
           path.join(wellKnownPath, 'apple-developer-merchantid-domain-association.txt'),

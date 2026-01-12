@@ -45,6 +45,14 @@ module.exports = ({ strapi }) => ({
           portalid: settings?.portalid || null,
           accountId: settings?.aid || null,
           portalKey: settings?.key || null,
+          paymentMethods: {
+            creditCard: settings?.enableCreditCard,
+            paypal: settings?.enablePayPal,
+            googlePay: settings?.enableGooglePay,
+            applePay: settings?.enableApplePay,
+            sofort: settings?.enableSofort,
+            sepa: settings?.enableSepaDirectDebit,
+          },
         }
       };
     } catch (error) {

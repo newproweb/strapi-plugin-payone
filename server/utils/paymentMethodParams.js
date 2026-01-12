@@ -145,15 +145,25 @@ const addPaymentMethodParams = (params, logger) => {
     try {
       const tokenString = Buffer.from(updated.applePayToken, 'base64').toString('utf-8');
       tokenData = JSON.parse(tokenString);
+
+      if (logger) {
+        logger.info("[Apple Pay] Token decoded from Base64 successfully");
+      }
     } catch (e) {
       try {
-        // Try parsing as JSON string directly
         tokenData = typeof updated.applePayToken === 'string'
           ? JSON.parse(updated.applePayToken)
           : updated.applePayToken;
+
+        if (logger) {
+          logger.info("[Apple Pay] Token parsed as JSON string directly");
+        }
       } catch (e2) {
-        // If already an object, use as-is
         tokenData = updated.applePayToken;
+
+        if (logger) {
+          logger.info("[Apple Pay] Token used as-is (already an object)");
+        }
       }
     }
 
@@ -162,7 +172,10 @@ const addPaymentMethodParams = (params, logger) => {
 
       if (!paymentData) {
         if (logger) {
-          logger.error("[Apple Pay] Invalid token structure: missing paymentData field");
+          logger.error("[Apple Pay] Invalid token structure: missing paymentData field", {
+            tokenKeys: Object.keys(tokenData),
+            tokenStructure: JSON.stringify(tokenData).substring(0, 500)
+          });
         }
         delete updated.applePayToken;
         return updated;
@@ -171,29 +184,65 @@ const addPaymentMethodParams = (params, logger) => {
       const header = paymentData.header || {};
 
       // Payone required fields according to docs
-      updated["add_paydata[paymentdata_token_version]"] = paymentData.version || "EC_v1";
-      updated["add_paydata[paymentdata_token_data]"] = paymentData.data || "";
-      updated["add_paydata[paymentdata_token_signature]"] = paymentData.signature || "";
-      updated["add_paydata[paymentdata_token_ephemeral_publickey]"] = header.ephemeralPublicKey || "";
-      updated["add_paydata[paymentdata_token_publickey_hash]"] = header.publicKeyHash || "";
+      // Extract version, data, signature from paymentData
+      const tokenVersion = paymentData.version || "EC_v1";
+      const tokenDataValue = paymentData.data || "";
+      const tokenSignature = paymentData.signature || "";
+
+      // Extract from header
+      const ephemeralPublicKey = header.ephemeralPublicKey || "";
+      const publicKeyHash = header.publicKeyHash || "";
+      const transactionId = paymentData.transactionId || header.transactionId || "";
+
+      // Set Payone required fields
+      updated["add_paydata[paymentdata_token_version]"] = tokenVersion;
+      updated["add_paydata[paymentdata_token_data]"] = tokenDataValue;
+      updated["add_paydata[paymentdata_token_signature]"] = tokenSignature;
+      updated["add_paydata[paymentdata_token_ephemeral_publickey]"] = ephemeralPublicKey;
+      updated["add_paydata[paymentdata_token_publickey_hash]"] = publicKeyHash;
 
       // Transaction ID is optional according to Payone docs
-      if (paymentData.transactionId || header.transactionId) {
-        updated["add_paydata[paymentdata_token_transaction_id]"] = paymentData.transactionId || header.transactionId || "";
+      if (transactionId) {
+        updated["add_paydata[paymentdata_token_transaction_id]"] = transactionId;
       }
 
-      if (!updated["add_paydata[paymentdata_token_data]"] ||
-        !updated["add_paydata[paymentdata_token_signature]"] ||
-        !updated["add_paydata[paymentdata_token_ephemeral_publickey]"] ||
-        !updated["add_paydata[paymentdata_token_publickey_hash]"]) {
+      if (logger) {
+        logger.info("[Apple Pay] Token extracted successfully:", {
+          hasVersion: !!tokenVersion,
+          hasData: !!tokenDataValue,
+          hasSignature: !!tokenSignature,
+          hasEphemeralPublicKey: !!ephemeralPublicKey,
+          hasPublicKeyHash: !!publicKeyHash,
+          hasTransactionId: !!transactionId,
+          dataLength: tokenDataValue.length,
+          signatureLength: tokenSignature.length,
+          ephemeralPublicKeyLength: ephemeralPublicKey.length,
+          publicKeyHashLength: publicKeyHash.length
+        });
+      }
+
+      // Validate required fields
+      if (!tokenDataValue ||
+        !tokenSignature ||
+        !ephemeralPublicKey ||
+        !publicKeyHash) {
         if (logger) {
           logger.error("[Apple Pay] Missing required token fields:", {
-            hasData: !!updated["add_paydata[paymentdata_token_data]"],
-            hasSignature: !!updated["add_paydata[paymentdata_token_signature]"],
-            hasEphemeralPublicKey: !!updated["add_paydata[paymentdata_token_ephemeral_publickey]"],
-            hasPublicKeyHash: !!updated["add_paydata[paymentdata_token_publickey_hash]"]
+            hasData: !!tokenDataValue,
+            hasSignature: !!tokenSignature,
+            hasEphemeralPublicKey: !!ephemeralPublicKey,
+            hasPublicKeyHash: !!publicKeyHash,
+            paymentDataKeys: Object.keys(paymentData),
+            headerKeys: Object.keys(header)
           });
         }
+      }
+    } else {
+      if (logger) {
+        logger.error("[Apple Pay] Token is not a valid object:", {
+          tokenType: typeof tokenData,
+          tokenValue: typeof tokenData === 'string' ? tokenData.substring(0, 200) : String(tokenData).substring(0, 200)
+        });
       }
     }
 

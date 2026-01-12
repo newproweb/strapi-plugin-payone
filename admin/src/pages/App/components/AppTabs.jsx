@@ -1,5 +1,11 @@
 import React from "react";
-import { Tabs, Tab, TabGroup, TabPanels, TabPanel } from "@strapi/design-system";
+import {
+  Tabs,
+  Tab,
+  TabGroup,
+  TabPanels,
+  TabPanel,
+} from "@strapi/design-system";
 import pluginId from "../../../pluginId";
 import ConfigurationPanel from "./ConfigurationPanel";
 import HistoryPanel from "./HistoryPanel";
@@ -17,6 +23,7 @@ const AppTabs = ({
   onSave,
   onTestConnection,
   onInputChange,
+  onPaymentMethodToggle,
   // Transaction history props
   filters,
   onFilterChange,
@@ -33,17 +40,17 @@ const AppTabs = ({
   onTransactionSelect,
   // Payment actions props
   paymentActions,
-  history
+  history,
 }) => {
-      const handleNavigateToConfig = (configType = "apple-pay") => {
-        if (history) {
-          if (configType === "google-pay") {
-            history.push(`/plugins/${pluginId}/google-pay-config`);
-          } else {
-            history.push(`/plugins/${pluginId}/apple-pay-config`);
-          }
-        }
-      };
+  const handleNavigateToConfig = (configType = "apple-pay") => {
+    if (history) {
+      if (configType === "google-pay") {
+        history.push(`/plugins/${pluginId}/google-pay-config`);
+      } else {
+        history.push(`/plugins/${pluginId}/apple-pay-config`);
+      }
+    }
+  };
   return (
     <TabGroup
       label="Payone Provider Tabs"
@@ -51,22 +58,30 @@ const AppTabs = ({
     >
       <Tabs style={{ borderBottom: "2px solid #e8e8ea" }}>
         <Tab
-          className={`payment-tab ${activeTab === 0 ? 'payment-tab-active' : ''}`}
+          className={`payment-tab ${
+            activeTab === 0 ? "payment-tab-active" : ""
+          }`}
         >
           Configuration
         </Tab>
         <Tab
-          className={`payment-tab ${activeTab === 1 ? 'payment-tab-active' : ''}`}
+          className={`payment-tab ${
+            activeTab === 1 ? "payment-tab-active" : ""
+          }`}
         >
           Transaction History
         </Tab>
         <Tab
-          className={`payment-tab ${activeTab === 2 ? 'payment-tab-active' : ''}`}
+          className={`payment-tab ${
+            activeTab === 2 ? "payment-tab-active" : ""
+          }`}
         >
           Payment Actions
         </Tab>
         <Tab
-          className={`payment-tab ${activeTab === 3 ? 'payment-tab-active' : ''}`}
+          className={`payment-tab ${
+            activeTab === 3 ? "payment-tab-active" : ""
+          }`}
         >
           Documentation
         </Tab>
@@ -81,6 +96,7 @@ const AppTabs = ({
             onSave={onSave}
             onTestConnection={onTestConnection}
             onInputChange={onInputChange}
+            onPaymentMethodToggle={onPaymentMethodToggle}
           />
         </TabPanel>
 
@@ -155,4 +171,3 @@ const AppTabs = ({
 };
 
 export default AppTabs;
-

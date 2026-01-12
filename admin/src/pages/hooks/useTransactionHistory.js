@@ -11,10 +11,9 @@ const useTransactionHistory = () => {
   const [selectedTransaction, setSelectedTransaction] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [filters, setFilters] = useState({
-    status: "",
+    search: "",
     request_type: "",
-    txid: "",
-    reference: "",
+    payment_method: "",
     date_from: "",
     date_to: ""
   });

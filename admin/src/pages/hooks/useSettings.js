@@ -41,6 +41,31 @@ const useSettings = () => {
     setSettings((prev) => ({ ...prev, [field]: value }));
   };
 
+  const handlePaymentMethodToggle = async (field, value) => {
+    let updatedSettings;
+    setSettings((prev) => {
+      updatedSettings = { ...prev, [field]: value };
+      return updatedSettings;
+    });
+
+    setIsSaving(true);
+    try {
+      await payoneRequests.updateSettings(updatedSettings);
+      toggleNotification({
+        type: "success",
+        message: "Payment method updated successfully"
+      });
+    } catch (error) {
+      setSettings((prev) => ({ ...prev, [field]: !value }));
+      toggleNotification({
+        type: "warning",
+        message: "Failed to update payment method"
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   const handleSave = async () => {
     setIsSaving(true);
     try {
@@ -103,6 +128,7 @@ const useSettings = () => {
     isTesting,
     testResult,
     handleInputChange,
+    handlePaymentMethodToggle,
     handleSave,
     handleTestConnection
   };

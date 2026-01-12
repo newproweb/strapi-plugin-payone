@@ -51,7 +51,13 @@ const PaymentActionsPanel = ({
   const mode = (settings?.mode || "test").toLowerCase();
   const isLiveMode = mode === "live";
 
-  if (isLiveMode) {
+  React.useEffect(() => {
+    if (isLiveMode && paymentMethod !== "apl") {
+      setPaymentMethod("apl");
+    }
+  }, [isLiveMode, paymentMethod]);
+
+  if (isLiveMode && paymentMethod !== "apl") {
     return (
       <Box
         style={{
@@ -99,6 +105,7 @@ const PaymentActionsPanel = ({
         cardcvc2={cardcvc2}
         setCardcvc2={setCardcvc2}
         onNavigateToConfig={onNavigateToConfig}
+        isLiveMode={isLiveMode}
       />
     );
   }

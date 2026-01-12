@@ -11,6 +11,7 @@ import {
   Select,
   Option,
   Alert,
+  Switch,
 } from "@strapi/design-system";
 import { Play, Cog } from "@strapi/icons";
 import { useHistory } from "react-router-dom";
@@ -18,19 +19,14 @@ import pluginId from "../../../pluginId";
 
 const ConfigurationPanel = ({
   settings,
-  isSaving,
   isTesting,
   testResult,
-  onSave,
   onTestConnection,
   onInputChange,
+  onPaymentMethodToggle,
 }) => {
   const history = useHistory();
   const mode = (settings?.mode || "test").toLowerCase();
-
-  useEffect(() => {
-    // Mode updated
-  }, [settings?.mode]);
 
   const handleNavigateToApplePayConfig = () => {
     history.push(`/plugins/${pluginId}/apple-pay-config`);
@@ -69,8 +65,14 @@ const ConfigurationPanel = ({
             Configure your Payone payment gateway settings
           </Typography>
         </Box>
-
-        <Box>
+        <Box
+          style={{
+            display: "flex",
+            flexDirection: "row",
+            gap: "16px",
+            flexWrap: "wrap",
+          }}
+        >
           <Card className="payment-card">
             <CardBody padding={6}>
               <Stack spacing={6}>
@@ -228,8 +230,160 @@ const ConfigurationPanel = ({
               </Stack>
             </CardBody>
           </Card>
-        </Box>
 
+          <Card className="payment-card">
+            <CardBody padding={6}>
+              <Stack spacing={6}>
+                <Box>
+                  <Typography
+                    variant="delta"
+                    as="h3"
+                    fontWeight="bold"
+                    marginBottom={4}
+                  >
+                    Payment Methods
+                  </Typography>
+                  <Typography
+                    variant="pi"
+                    textColor="neutral600"
+                    marginBottom={4}
+                  >
+                    Enable or disable payment methods for your Payone
+                    integration
+                  </Typography>
+                </Box>
+
+                <Stack spacing={4}>
+                  <Flex
+                    direction="row"
+                    justifyContent="space-between"
+                    alignItems="center"
+                    gap={4}
+                  >
+                    <Typography variant="omega" fontWeight="semiBold">
+                      Credit Card (Visa, Mastercard)
+                    </Typography>
+                    <Switch
+                      label="Credit Card"
+                      selected={settings.enableCreditCard !== false}
+                      onChange={() =>
+                        onPaymentMethodToggle(
+                          "enableCreditCard",
+                          !settings.enableCreditCard
+                        )
+                      }
+                    />
+                  </Flex>
+
+                  <Flex
+                    direction="row"
+                    justifyContent="space-between"
+                    alignItems="center"
+                    gap={4}
+                  >
+                    <Typography variant="omega" fontWeight="semiBold">
+                      PayPal
+                    </Typography>
+                    <Switch
+                      label="PayPal"
+                      selected={settings.enablePayPal !== false}
+                      onChange={() =>
+                        onPaymentMethodToggle(
+                          "enablePayPal",
+                          !settings.enablePayPal
+                        )
+                      }
+                    />
+                  </Flex>
+
+                  <Flex
+                    direction="row"
+                    justifyContent="space-between"
+                    alignItems="center"
+                    gap={4}
+                  >
+                    <Typography variant="omega" fontWeight="semiBold">
+                      Google Pay
+                    </Typography>
+                    <Switch
+                      label="Google Pay"
+                      selected={settings.enableGooglePay !== false}
+                      onChange={() =>
+                        onPaymentMethodToggle(
+                          "enableGooglePay",
+                          !settings.enableGooglePay
+                        )
+                      }
+                    />
+                  </Flex>
+
+                  <Flex
+                    direction="row"
+                    justifyContent="space-between"
+                    alignItems="center"
+                    gap={4}
+                  >
+                    <Typography variant="omega" fontWeight="semiBold">
+                      Apple Pay
+                    </Typography>
+                    <Switch
+                      label="Apple Pay"
+                      selected={settings.enableApplePay !== false}
+                      onChange={() =>
+                        onPaymentMethodToggle(
+                          "enableApplePay",
+                          !settings.enableApplePay
+                        )
+                      }
+                    />
+                  </Flex>
+
+                  <Flex
+                    direction="row"
+                    justifyContent="space-between"
+                    alignItems="center"
+                    gap={4}
+                  >
+                    <Typography variant="omega" fontWeight="semiBold">
+                      Sofort Banking
+                    </Typography>
+                    <Switch
+                      label="Sofort Banking"
+                      selected={settings.enableSofort !== false}
+                      onChange={() =>
+                        onPaymentMethodToggle(
+                          "enableSofort",
+                          !settings.enableSofort
+                        )
+                      }
+                    />
+                  </Flex>
+
+                  <Flex
+                    direction="row"
+                    justifyContent="space-between"
+                    alignItems="center"
+                    gap={4}
+                  >
+                    <Typography variant="omega" fontWeight="semiBold">
+                      SEPA Direct Debit
+                    </Typography>
+                    <Switch
+                      label="SEPA Direct Debit"
+                      selected={settings.enableSepaDirectDebit !== false}
+                      onChange={() =>
+                        onPaymentMethodToggle(
+                          "enableSepaDirectDebit",
+                          !settings.enableSepaDirectDebit
+                        )
+                      }
+                    />
+                  </Flex>
+                </Stack>
+              </Stack>
+            </CardBody>
+          </Card>
+        </Box>
         <Box paddingTop={6}>
           <Card className="payment-card">
             <CardBody padding={6}>
@@ -349,7 +503,6 @@ const ConfigurationPanel = ({
             </CardBody>
           </Card>
         </Box>
-
         <Box paddingTop={4}>
           <Typography variant="sigma" textColor="neutral600">
             Note: These settings are used for all Payone API requests. Make sure

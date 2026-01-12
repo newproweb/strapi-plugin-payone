@@ -25,31 +25,22 @@ const ApplePayBtn = ({
           {
             method: "POST",
             body: {
-              domain: window.location.hostname,
-              domainName: window.location.hostname,
-              displayName: settings?.merchantName || "Store",
+              domainName: settings?.domainName || window.location.hostname,
+              displayName: settings?.displayName || "Store",
               currency: requestCurrency,
               countryCode: requestCountryCode,
+              mode: (settings?.mode || "test").toLowerCase() || "test",
             },
           }
         );
-
         if (merchantSession.error) {
           const errorMessage =
             merchantSession.error.message || "Merchant validation failed";
           const errorDetails = merchantSession.error.details || "";
 
-          // If it's a 403 error, provide more specific guidance
-          if (merchantSession.error.status === 403) {
-            throw new Error(
-              `403 Forbidden: Authentication failed with Payone. ` +
-                `Please check your Payone credentials (aid, portalid, mid, key) in plugin settings. ` +
-                `Also ensure that: 1) Mode is set to "live" (Apple Pay only works in live mode), ` +
-                `2) Your domain is registered with Payone Merchant Services, ` +
-                `3) Merchant ID (mid) matches your merchantIdentifier in PMI. ` +
-                `Details: ${errorDetails || errorMessage}`
-            );
-          }
+          console.log(
+            `[Apple Pay] Merchant validation failed: ${errorMessage} ${errorDetails}`
+          );
 
           throw new Error(
             errorMessage + (errorDetails ? ` - ${errorDetails}` : "")
@@ -67,18 +58,14 @@ const ApplePayBtn = ({
 
         session.completeMerchantValidation(sessionData);
       } catch (error) {
-
-        // Don't call completeMerchantValidation with empty object - this causes user cancellation
-        // Instead, let the error propagate so user can see what went wrong
         if (onError) {
           onError(error);
         }
 
-        // Complete with failure status to show error to user
         try {
           session.completeMerchantValidation({});
         } catch (completeError) {
-          // Silent fail
+          console.error(completeError);
         }
       }
     };
@@ -133,27 +120,75 @@ const ApplePayBtn = ({
 
         const tokenObject = paymentData.token;
 
-        if (!tokenObject.paymentData) {
+        if (!tokenObject) {
           const result = {
             status: window.ApplePaySession.STATUS_FAILURE,
           };
           session.completePayment(result);
           if (onError) {
-            onError(new Error("Invalid Apple Pay token structure"));
+            onError(new Error("Payment token is missing"));
           }
           return;
         }
 
-        // Encode token as Base64 for transmission
+        if (!tokenObject.paymentData) {
+          console.error(
+            "[Apple Pay] Invalid token structure: missing paymentData",
+            {
+              tokenKeys: Object.keys(tokenObject),
+              tokenStructure: JSON.stringify(tokenObject).substring(0, 500),
+            }
+          );
+          const result = {
+            status: window.ApplePaySession.STATUS_FAILURE,
+          };
+          session.completePayment(result);
+          if (onError) {
+            onError(
+              new Error(
+                "Invalid Apple Pay token structure: missing paymentData field"
+              )
+            );
+          }
+          return;
+        }
+
+        const paymentDataObj = tokenObject.paymentData;
+        const header = paymentDataObj.header || {};
+
+        console.log("[Apple Pay] Token structure validation:", {
+          hasVersion: !!paymentDataObj.version,
+          hasData: !!paymentDataObj.data,
+          hasSignature: !!paymentDataObj.signature,
+          hasHeader: !!paymentDataObj.header,
+          hasEphemeralPublicKey: !!header.ephemeralPublicKey,
+          hasPublicKeyHash: !!header.publicKeyHash,
+          hasTransactionId:
+            !!paymentDataObj.transactionId || !!header.transactionId,
+          dataLength: paymentDataObj.data ? paymentDataObj.data.length : 0,
+          signatureLength: paymentDataObj.signature
+            ? paymentDataObj.signature.length
+            : 0,
+        });
+
         let tokenString;
         try {
-          tokenString = btoa(
-            unescape(encodeURIComponent(JSON.stringify(tokenObject)))
-          );
+          const tokenJson = JSON.stringify(tokenObject);
+          tokenString = btoa(unescape(encodeURIComponent(tokenJson)));
+          console.log("[Apple Pay] Token encoded successfully:", {
+            tokenLength: tokenJson.length,
+            encodedLength: tokenString.length,
+          });
         } catch (e) {
-          tokenString = btoa(
-            unescape(encodeURIComponent(JSON.stringify(tokenObject)))
-          );
+          console.error("[Apple Pay] Error encoding token:", e);
+          const result = {
+            status: window.ApplePaySession.STATUS_FAILURE,
+          };
+          session.completePayment(result);
+          if (onError) {
+            onError(new Error(`Failed to encode token: ${e.message}`));
+          }
+          return;
         }
 
         if (onTokenReceived) {

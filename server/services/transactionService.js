@@ -54,10 +54,19 @@ const getTransactionHistory = async (strapi, filters = {}) => {
   let transactionHistory =
     (await pluginStore.get({ key: "transactionHistory" })) || [];
 
-  if (filters.status) {
-    transactionHistory = transactionHistory.filter(
-      (transaction) => transaction.status === filters.status
-    );
+  if (filters.search) {
+    const searchLower = filters.search.toLowerCase().trim();
+    transactionHistory = transactionHistory.filter((transaction) => {
+      const status = (transaction.status || "").toLowerCase();
+      const txid = (transaction.txid || "").toLowerCase();
+      const reference = (transaction.reference || "").toLowerCase();
+
+      return (
+        status.includes(searchLower) ||
+        txid.includes(searchLower) ||
+        reference.includes(searchLower)
+      );
+    });
   }
 
   if (filters.request_type) {
@@ -66,16 +75,28 @@ const getTransactionHistory = async (strapi, filters = {}) => {
     );
   }
 
-  if (filters.txid) {
-    transactionHistory = transactionHistory.filter(
-      (transaction) => transaction.txid === filters.txid
-    );
-  }
+  if (filters.payment_method) {
+    transactionHistory = transactionHistory.filter((transaction) => {
+      const clearingtype = transaction.raw_request?.clearingtype || "";
+      const wallettype = transaction.raw_request?.wallettype || "";
 
-  if (filters.reference) {
-    transactionHistory = transactionHistory.filter(
-      (transaction) => transaction.reference === filters.reference
-    );
+      switch (filters.payment_method) {
+        case "credit_card":
+          return clearingtype === "cc";
+        case "paypal":
+          return clearingtype === "wlt" && wallettype === "PPE";
+        case "google_pay":
+          return clearingtype === "wlt" && (wallettype === "GPY" || wallettype === "GOOGLEPAY");
+        case "apple_pay":
+          return clearingtype === "wlt" && (wallettype === "APL" || wallettype === "APPLEPAY");
+        case "sofort":
+          return clearingtype === "sb";
+        case "sepa":
+          return clearingtype === "elv";
+        default:
+          return false;
+      }
+    });
   }
 
   if (filters.date_from) {

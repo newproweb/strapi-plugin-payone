@@ -4,11 +4,30 @@ import PaymentMethodSelector from "./PaymentMethodSelector";
 import AuthorizationForm from "./AuthorizationForm";
 
 const ApplePayOnlyPanel = ({
+  paymentAmount,
+  setPaymentAmount,
+  authReference,
+  setAuthReference,
+  isProcessingPayment,
+  onAuthorization,
   paymentMethod,
+  settings,
+  setGooglePayToken,
   setPaymentMethod,
   captureMode,
   setCaptureMode,
   onNavigateToConfig,
+  isLiveMode,
+  setCardcvc2,
+  cardtype,
+  setCardtype,
+  cardpan,
+  setCardpan,
+  cardexpiredate,
+  setCardexpiredate,
+  cardcvc2,
+  applePayToken,
+  setApplePayToken,
 }) => {
   return (
     <Box
@@ -42,7 +61,32 @@ const ApplePayOnlyPanel = ({
         captureMode={captureMode}
         setCaptureMode={setCaptureMode}
         onNavigateToConfig={onNavigateToConfig}
-        isLiveMode={false}
+        isLiveMode={isLiveMode}
+      />
+
+      <hr className="payment-divider" />
+
+      <AuthorizationForm
+        paymentAmount={paymentAmount}
+        setPaymentAmount={setPaymentAmount}
+        authReference={authReference}
+        setAuthReference={setAuthReference}
+        isProcessingPayment={isProcessingPayment}
+        onAuthorization={onAuthorization}
+        paymentMethod={paymentMethod}
+        settings={settings}
+        setGooglePayToken={setGooglePayToken}
+        applePayToken={applePayToken}
+        setApplePayToken={setApplePayToken}
+        cardtype={cardtype}
+        setCardtype={setCardtype}
+        cardpan={cardpan}
+        setCardpan={setCardpan}
+        cardexpiredate={cardexpiredate}
+        setCardexpiredate={setCardexpiredate}
+        cardcvc2={cardcvc2}
+        setCardcvc2={setCardcvc2}
+        isLiveMode={isLiveMode}
       />
     </Box>
   );

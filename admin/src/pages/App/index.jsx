@@ -110,6 +110,7 @@ const App = () => {
             onSave={settings.handleSave}
             onTestConnection={settings.handleTestConnection}
             onInputChange={settings.handleInputChange}
+            onPaymentMethodToggle={settings.handlePaymentMethodToggle}
             filters={transactionHistory.filters}
             onFilterChange={transactionHistory.handleFilterChange}
             onFilterApply={transactionHistory.handleFilterApply}
