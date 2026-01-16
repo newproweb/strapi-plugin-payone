@@ -28,6 +28,8 @@ const AppTabs = ({
   filters,
   onFilterChange,
   onFilterApply,
+  sorting,
+  onSort,
   isLoadingHistory,
   transactionHistory,
   paginatedTransactions,
@@ -36,6 +38,7 @@ const AppTabs = ({
   pageSize,
   onRefresh,
   onPageChange,
+  onPageSizeChange,
   selectedTransaction,
   onTransactionSelect,
   // Payment actions props
@@ -105,6 +108,8 @@ const AppTabs = ({
             filters={filters}
             onFilterChange={onFilterChange}
             onFilterApply={onFilterApply}
+            sorting={sorting}
+            onSort={onSort}
             isLoadingHistory={isLoadingHistory}
             transactionHistory={transactionHistory}
             paginatedTransactions={paginatedTransactions}
@@ -113,6 +118,7 @@ const AppTabs = ({
             pageSize={pageSize}
             onRefresh={onRefresh}
             onPageChange={onPageChange}
+            onPageSizeChange={onPageSizeChange}
             selectedTransaction={selectedTransaction}
             onTransactionSelect={onTransactionSelect}
           />

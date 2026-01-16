@@ -2,6 +2,20 @@
 
 const { getPluginStore } = require("./settingsService");
 
+const sanitizeRawRequest = (rawRequest) => {
+  if (!rawRequest || typeof rawRequest !== "object") return rawRequest
+  const sanitized = { ...rawRequest };
+  const sensitiveFields = ["cardpan", "cardexpiredate", "cardcvc2"];
+
+  sensitiveFields.forEach((field) => {
+    if (sanitized[field] && typeof sanitized[field] === "string") {
+      sanitized[field] = "*".repeat(sanitized[field].length);
+    }
+  });
+
+  return sanitized;
+};
+
 const logTransaction = async (strapi, transactionData) => {
   const pluginStore = getPluginStore(strapi);
   let transactionHistory =
@@ -28,17 +42,19 @@ const logTransaction = async (strapi, transactionData) => {
       transactionData.customer_message ||
       transactionData.Error?.CustomerMessage ||
       null,
-    body: transactionData || null,
-    raw_request: transactionData.raw_request || null,
-    raw_response: transactionData.raw_response || transactionData,
+    body: transactionData ? { ...transactionData, raw_request: sanitizeRawRequest(transactionData.raw_request) } : null,
+    raw_request: transactionData.raw_request
+      ? sanitizeRawRequest(transactionData.raw_request)
+      : null,
+    raw_response: sanitizeRawRequest(transactionData.raw_response) || transactionData,
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString()
   };
 
   transactionHistory.unshift(logEntry);
 
-  if (transactionHistory.length > 1000) {
-    transactionHistory = transactionHistory.slice(0, 1000);
+  if (transactionHistory.length > 5000) {
+    transactionHistory = transactionHistory.slice(0, 5000);
   }
 
   await pluginStore.set({
@@ -111,6 +127,54 @@ const getTransactionHistory = async (strapi, filters = {}) => {
       (transaction) =>
         new Date(transaction.timestamp) <= new Date(filters.date_to)
     );
+  }
+
+  if (filters.status) {
+    transactionHistory = transactionHistory.filter(
+      (transaction) => transaction.status === filters.status
+    );
+  }
+
+  // Apply sorting
+  if (filters.sort_by && filters.sort_order) {
+    const sortOrder = filters.sort_order === "desc" ? -1 : 1;
+    
+    transactionHistory.sort((a, b) => {
+      let aValue, bValue;
+
+      switch (filters.sort_by) {
+        case "amount":
+          aValue = a.amount || 0;
+          bValue = b.amount || 0;
+          break;
+        case "created_at":
+          aValue = new Date(a.created_at || a.timestamp || 0).getTime();
+          bValue = new Date(b.created_at || b.timestamp || 0).getTime();
+          break;
+        case "status":
+          aValue = (a.status || "").toLowerCase();
+          bValue = (b.status || "").toLowerCase();
+          break;
+        case "reference":
+          aValue = (a.reference || "").toLowerCase();
+          bValue = (b.reference || "").toLowerCase();
+          break;
+        case "method":
+          const aClearingType = a.raw_request?.clearingtype || "";
+          const bClearingType = b.raw_request?.clearingtype || "";
+          const aWalletType = a.raw_request?.wallettype || "";
+          const bWalletType = b.raw_request?.wallettype || "";
+          aValue = `${aClearingType}_${aWalletType}`.toLowerCase();
+          bValue = `${bClearingType}_${bWalletType}`.toLowerCase();
+          break;
+        default:
+          return 0;
+      }
+
+      if (aValue < bValue) return -1 * sortOrder;
+      if (aValue > bValue) return 1 * sortOrder;
+      return 0;
+    });
   }
 
   return transactionHistory;

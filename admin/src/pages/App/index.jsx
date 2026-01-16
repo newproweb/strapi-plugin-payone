@@ -114,6 +114,8 @@ const App = () => {
             filters={transactionHistory.filters}
             onFilterChange={transactionHistory.handleFilterChange}
             onFilterApply={transactionHistory.handleFilterApply}
+            sorting={transactionHistory.sorting}
+            onSort={transactionHistory.handleSort}
             isLoadingHistory={transactionHistory.isLoadingHistory}
             transactionHistory={transactionHistory.transactionHistory}
             paginatedTransactions={transactionHistory.paginatedTransactions}
@@ -122,6 +124,7 @@ const App = () => {
             pageSize={transactionHistory.pageSize}
             onRefresh={transactionHistory.loadTransactionHistory}
             onPageChange={transactionHistory.handlePageChange}
+            onPageSizeChange={transactionHistory.handlePageSizeChange}
             selectedTransaction={transactionHistory.selectedTransaction}
             onTransactionSelect={transactionHistory.handleTransactionSelect}
             paymentActions={paymentActions}
