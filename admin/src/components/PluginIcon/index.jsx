@@ -1,6 +1,6 @@
-import React from "react";
-import { Puzzle } from "@strapi/icons";
+import * as React from '@strapi/strapi/admin';
+import { PuzzlePiece } from "@strapi/icons";
 
-const PluginIcon = () => <Puzzle />;
+const PluginIcon = () => <PuzzlePiece />;
 
 export default PluginIcon;

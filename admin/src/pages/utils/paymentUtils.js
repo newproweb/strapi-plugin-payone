@@ -9,18 +9,15 @@ export function getValidCardExpiryDate(cardexpiredate) {
     return `${nextYear}${monthStr}`;
   }
 
-  // Validate format (must be 4 digits)
   if (!/^\d{4}$/.test(cardexpiredate)) {
     const nextYear = currentYear + 1;
     const monthStr = String(currentMonth).padStart(2, '0');
     return `${nextYear}${monthStr}`;
   }
 
-  // Parse YYMM format
   const year = parseInt(cardexpiredate.substring(0, 2), 10);
   const month = parseInt(cardexpiredate.substring(2, 4), 10);
 
-  // Validate month (1-12)
   if (month < 1 || month > 12) {
     const nextYear = currentYear + 1;
     const monthStr = String(currentMonth).padStart(2, '0');
@@ -92,7 +89,6 @@ export const getBaseParams = (options = {}) => {
     currency: currency.toUpperCase(),
     reference: reference || `REF-${Date.now()}`,
     customerid: finalCustomerId,
-
     firstname,
     lastname,
     street,
@@ -100,16 +96,12 @@ export const getBaseParams = (options = {}) => {
     city,
     country: country.toUpperCase(),
     email,
-
-    // Additional customer details
     salutation,
     gender,
     telephonenumber,
     ip,
     customer_is_present,
     language,
-
-    // URL parameters (required for redirect-based payments)
     successurl,
     errorurl,
     backurl
@@ -128,14 +120,12 @@ export const getPaymentMethodParams = (paymentMethod, options = {}) => {
     iban,
     bic,
     bankaccountholder,
-    // Shipping address for wallet payments (Google Pay, Apple Pay, PayPal)
     shipping_firstname,
     shipping_lastname,
     shipping_street,
     shipping_zip,
     shipping_city,
     shipping_country,
-    // Billing address (used as fallback for shipping)
     firstname,
     lastname,
     street,
@@ -144,10 +134,8 @@ export const getPaymentMethodParams = (paymentMethod, options = {}) => {
     country
   } = options;
 
-  // Use cardtype if provided, otherwise fall back to cardType, otherwise default to "V"
   const finalCardType = cardtype || cardType || "V";
 
-  // Helper to get shipping params for wallet payments
   const getShippingParams = () => ({
     shipping_firstname: shipping_firstname || firstname || "John",
     shipping_lastname: shipping_lastname || lastname || "Doe",
@@ -158,19 +146,19 @@ export const getPaymentMethodParams = (paymentMethod, options = {}) => {
   });
 
   switch (paymentMethod) {
-    case "cc": // Credit Card (Visa, Mastercard, Amex)
+    case "cc":
       return {
         clearingtype: "cc",
-        cardtype: finalCardType, // V = Visa, M = Mastercard, A = Amex
-        cardpan: cardpan || "4111111111111111", // Test Visa card
+        cardtype: finalCardType,
+        cardpan: cardpan || "4111111111111111",
         cardexpiredate: getValidCardExpiryDate(cardexpiredate),
-        cardcvc2: cardcvc2 || "123" // 3-digit security code
+        cardcvc2: cardcvc2 || "123"
       };
 
-    case "wlt": // PayPal
+    case "wlt":
       return {
         clearingtype: "wlt",
-        wallettype: "PPE", // PayPal Express
+        wallettype: "PPE",
         ...getShippingParams()
       };
 
@@ -194,10 +182,10 @@ export const getPaymentMethodParams = (paymentMethod, options = {}) => {
 
       return googlePayParams;
 
-    case "apl": // Apple Pay
+    case "apl":
       const applePayParams = {
         clearingtype: "wlt",
-        wallettype: "APL", // Apple Pay
+        wallettype: "APL",
         ...getShippingParams()
       };
 
@@ -214,24 +202,23 @@ export const getPaymentMethodParams = (paymentMethod, options = {}) => {
 
       return applePayParams;
 
-    case "sb": // Sofort Banking
+    case "sb":
       return {
         clearingtype: "sb",
         bankcountry: "DE",
-        onlinebanktransfertype: "PNT" // Sofort Banking
+        onlinebanktransfertype: "PNT"
       };
 
-    case "elv": // SEPA Direct Debit
+    case "elv":
       return {
         clearingtype: "elv",
         bankcountry: "DE",
-        iban: iban || "DE89370400440532013000", // Test IBAN
-        bic: bic || "COBADEFFXXX", // Test BIC
+        iban: iban || "DE89370400440532013000",
+        bic: bic || "COBADEFFXXX",
         bankaccountholder: bankaccountholder || "John Doe"
       };
 
     default:
-      // Default to credit card for unknown payment methods
       return {
         clearingtype: "cc",
         cardtype: "V",

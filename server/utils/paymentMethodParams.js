@@ -56,7 +56,6 @@ const addPaymentMethodParams = (params, logger) => {
     'clearingtype', 'paymentMethod', 'settings', 'enable3DSecure', 'ecommercemode'
   ]);
 
-  // Extract custom params that are not in known params
   Object.keys(updated).forEach(key => {
     if (!knownParams.has(key) && !key.startsWith('add_paydata[')) {
       customParams[key] = updated[key];

@@ -51,13 +51,7 @@ const sendRequest = async (strapi, params) => {
     });
 
     const responseData = parseResponse(response.data, strapi.log);
-    const errorCode =
-      responseData.errorcode ||
-      responseData.ErrorCode ||
-      responseData.Error?.ErrorCode ||
-      responseData.error_code ||
-      null;
-
+    const errorCode = responseData?.Error?.ErrorCode;
     const requires3DSErrorCodes = ["4219", 4219];
     const is3DSRequiredError = requires3DSErrorCodes.includes(errorCode);
 
@@ -69,21 +63,11 @@ const sendRequest = async (strapi, params) => {
 
     }
 
-    const errorMessage =
-      responseData.errormessage ||
-      responseData.ErrorMessage ||
-      responseData.Error?.ErrorMessage ||
-      responseData.error_message ||
-      null;
+    const errorMessage = responseData?.Error?.ErrorMessage || null;
 
-    const customerMessage =
-      responseData.customermessage ||
-      responseData.CustomerMessage ||
-      responseData.Error?.CustomerMessage ||
-      responseData.customer_message ||
-      null;
+    const customerMessage = responseData?.Error?.CustomerMessage || null;
 
-    const status = (responseData.status || responseData.Status || "unknown").toUpperCase();
+    const status = (responseData?.status || responseData?.Status || "unknown").toUpperCase() || null;
 
     await logTransaction(strapi, {
       txid: extractTxId(responseData) || params.txid || null,

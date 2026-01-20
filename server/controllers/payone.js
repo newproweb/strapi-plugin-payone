@@ -7,13 +7,25 @@ const getPayoneService = (strapi) => {
 };
 
 const handleError = (ctx, error) => {
-  if (error.response || error.status >= 400) {
-    ctx.strapi.log.error("Payone controller error:", {
-      status: error.status || error.response?.status,
-      message: error.message
+  const status = error.status || error.response?.status || 500;
+  const message = error.message || "Internal server error";
+
+  if (status >= 400) {
+    console.log("[Payone] Controller error:", {
+      status,
+      message,
+      error: error.stack || error
     });
   }
-  ctx.throw(500, error);
+
+  ctx.status = status;
+  ctx.body = {
+    error: {
+      status,
+      message,
+      name: error.name || "Error"
+    }
+  };
 };
 
 const hideKey = (settings) => {
@@ -27,7 +39,9 @@ module.exports = ({ strapi }) => ({
   async getSettings(ctx) {
     try {
       const settings = await getPayoneService(strapi).getSettings();
-      ctx.body = { data: hideKey(settings) };
+      ctx.body = {
+        ...hideKey(settings || {})
+      };
     } catch (error) {
       handleError(ctx, error);
     }
@@ -62,15 +76,20 @@ module.exports = ({ strapi }) => ({
 
   async updateSettings(ctx) {
     try {
-      const { body } = ctx.request;
-      const currentSettings = await getPayoneService(strapi).getSettings();
+      const bodyData = ctx.request.body?.data || ctx.request.body;
 
-      if (body.key === "***HIDDEN***" || !body.key) {
-        body.key = currentSettings?.key;
+      if (!bodyData || typeof bodyData !== 'object') {
+        ctx.throw(400, "Invalid request body");
       }
 
-      const settings = await getPayoneService(strapi).updateSettings(body);
-      ctx.body = { data: hideKey(settings) };
+      const currentSettings = await getPayoneService(strapi).getSettings();
+
+      if (bodyData.key === "***HIDDEN***" || !bodyData.key) {
+        bodyData.key = currentSettings?.key;
+      }
+
+      const settings = await getPayoneService(strapi).updateSettings(bodyData);
+      ctx.body = { ...hideKey(settings) };
     } catch (error) {
       handleError(ctx, error);
     }
@@ -78,9 +97,13 @@ module.exports = ({ strapi }) => ({
 
   async preauthorization(ctx) {
     try {
-      const params = ctx.request.body;
+      const params = ctx.request.body?.data || ctx.request.body;
+      if (!params || typeof params !== 'object') {
+        ctx.throw(400, "Invalid request body");
+      }
+
       const result = await getPayoneService(strapi).preauthorization(params);
-      ctx.body = { data: result };
+      ctx.body = result;
     } catch (error) {
       handleError(ctx, error);
     }
@@ -88,9 +111,14 @@ module.exports = ({ strapi }) => ({
 
   async authorization(ctx) {
     try {
-      const params = ctx.request.body;
+      const params = ctx.request.body?.data || ctx.request.body;
+
+      if (!params || typeof params !== 'object') {
+        ctx.throw(400, "Invalid request body");
+      }
+
       const result = await getPayoneService(strapi).authorization(params);
-      ctx.body = { data: result };
+      ctx.body = result;
     } catch (error) {
       handleError(ctx, error);
     }
@@ -98,9 +126,14 @@ module.exports = ({ strapi }) => ({
 
   async capture(ctx) {
     try {
-      const params = ctx.request.body;
+      const params = ctx.request.body?.data || ctx.request.body;
+
+      if (!params || typeof params !== 'object') {
+        ctx.throw(400, "Invalid request body");
+      }
+
       const result = await getPayoneService(strapi).capture(params);
-      ctx.body = { data: result };
+      ctx.body = result;
     } catch (error) {
       handleError(ctx, error);
     }
@@ -108,9 +141,14 @@ module.exports = ({ strapi }) => ({
 
   async refund(ctx) {
     try {
-      const params = ctx.request.body;
+      const params = ctx.request.body?.data || ctx.request.body;
+
+      if (!params || typeof params !== 'object') {
+        ctx.throw(400, "Invalid request body");
+      }
+
       const result = await getPayoneService(strapi).refund(params);
-      ctx.body = { data: result };
+      ctx.body = result;
     } catch (error) {
       handleError(ctx, error);
     }
@@ -118,9 +156,21 @@ module.exports = ({ strapi }) => ({
 
   async getTransactionHistory(ctx) {
     try {
-      const filters = ctx.query || {};
-      const history = await getPayoneService(strapi).getTransactionHistory(filters);
-      ctx.body = { data: history };
+      const { filters = {}, pagination = {} } = ctx.query || {};
+      const page = parseInt(pagination.page || "1", 10);
+      const pageSize = parseInt(pagination.pageSize || "10", 10);
+
+      const result = await getPayoneService(strapi).getTransactionHistory({
+        filters: filters || {},
+        pagination: { page, pageSize }
+      });
+
+      ctx.body = {
+        data: result.data || [],
+        meta: {
+          pagination: result.pagination
+        },
+      };
     } catch (error) {
       handleError(ctx, error);
     }
@@ -129,7 +179,7 @@ module.exports = ({ strapi }) => ({
   async testConnection(ctx) {
     try {
       const result = await getPayoneService(strapi).testConnection();
-      ctx.body = { data: result };
+      ctx.body = result || {};
     } catch (error) {
       handleError(ctx, error);
     }
@@ -149,7 +199,10 @@ module.exports = ({ strapi }) => ({
         resultType = "cancelled";
       }
 
-      const callbackData = isGetRequest ? ctx.query : ctx.request.body;
+      const callbackData = isGetRequest
+        ? ctx.query
+        : (ctx.request.body || ctx.request.body?.data || ctx.request?.data);
+
       const result = await getPayoneService(strapi).handle3DSCallback(callbackData, resultType);
 
       if (isGetRequest) {
@@ -166,7 +219,7 @@ module.exports = ({ strapi }) => ({
         return ctx.redirect(redirectUrl);
       }
 
-      ctx.body = { data: result };
+      ctx.body = result;
     } catch (error) {
       handleError(ctx, error);
     }
@@ -177,13 +230,12 @@ module.exports = ({ strapi }) => ({
       const settings = await getPayoneService(strapi).getSettings();
       const applePayConfig = settings?.applePayConfig || {};
 
-      const params = ctx.request.body;
+      const params = ctx.request.body || ctx.request.body?.data || ctx.request?.data;
 
       if (!params) {
         throw new Error("Request body is missing");
       }
 
-      // Ensure domain is set
       if (!params.domain && !params.domainName) {
         params.domain = ctx.request.hostname || ctx.request.host || 'localhost';
         params.domainName = params.domain;
@@ -210,11 +262,10 @@ module.exports = ({ strapi }) => ({
         throw new Error("Merchant validation returned null. Please check your Payone Apple Pay configuration.");
       }
 
-      ctx.body = { data: result };
+      ctx.body = result;
     } catch (error) {
       const errorStatus = error.status || (error.message?.includes('403') ? 403 : 500);
 
-      // Only log if it's a response error
       if (error.response || errorStatus === 403 || errorStatus === 401 || errorStatus >= 500) {
         strapi.log.error("[Apple Pay] Controller error:", {
           status: errorStatus,
@@ -222,11 +273,9 @@ module.exports = ({ strapi }) => ({
         });
       }
 
-      // Extract detailed error message if available
       let errorMessage = error.message || "Apple Pay merchant validation failed";
       let errorDetails = "Please check your Payone Apple Pay configuration in PMI (CONFIGURATION → PAYMENT PORTALS → [Your Portal] → Apple Pay). Ensure that Merchant ID (mid) is correctly configured and Apple Pay is enabled for your portal.";
 
-      // If it's a 403 error, provide more specific guidance
       if (errorStatus === 403 || error.message?.includes('403')) {
         errorDetails = "403 Forbidden: Authentication failed with Payone. " +
           "Please check: 1) Your Payone credentials (aid, portalid, mid, key) in plugin settings, " +
@@ -246,5 +295,8 @@ module.exports = ({ strapi }) => ({
         }
       };
     }
-  }
+  },
+
+
+
 });

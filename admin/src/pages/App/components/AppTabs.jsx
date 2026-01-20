@@ -1,172 +1,52 @@
-import React from "react";
-import {
-  Tabs,
-  Tab,
-  TabGroup,
-  TabPanels,
-  TabPanel,
-} from "@strapi/design-system";
-import pluginId from "../../../pluginId";
-import ConfigurationPanel from "./ConfigurationPanel";
-import HistoryPanel from "./HistoryPanel";
-import PaymentActionsPanel from "./PaymentActionsPanel";
+import * as React from "react";
+import { Tabs } from "@strapi/design-system";
+import ConfigurationPanel from "./configuration/ConfigurationPanel";
+import HistoryPanel from "./transaction-history/HistoryPanel";
+import PaymentActionsPanel from "./payment-actions/PaymentActionsPanel";
 import DocsPanel from "./DocsPanel";
 
 const AppTabs = ({
   activeTab,
   setActiveTab,
-  // Settings props
+  onNavigateToConfig,
   settings,
-  isSaving,
-  isTesting,
-  testResult,
-  onSave,
-  onTestConnection,
-  onInputChange,
-  onPaymentMethodToggle,
-  // Transaction history props
-  filters,
-  onFilterChange,
-  onFilterApply,
-  isLoadingHistory,
-  transactionHistory,
-  paginatedTransactions,
-  currentPage,
-  totalPages,
-  pageSize,
-  onRefresh,
-  onPageChange,
-  selectedTransaction,
-  onTransactionSelect,
-  // Payment actions props
   paymentActions,
-  history,
 }) => {
-  const handleNavigateToConfig = (configType = "apple-pay") => {
-    if (history) {
-      if (configType === "google-pay") {
-        history.push(`/plugins/${pluginId}/google-pay-config`);
-      } else {
-        history.push(`/plugins/${pluginId}/apple-pay-config`);
-      }
-    }
-  };
   return (
-    <TabGroup
-      label="Payone Provider Tabs"
-      onTabChange={(index) => setActiveTab(index)}
+    <Tabs.Root
+      defaultValue={`tab-${activeTab}`}
+      value={`tab-${activeTab}`}
+      variant="regular"
+      onValueChange={(value) =>
+        setActiveTab(parseInt(value.replace("tab-", "")))
+      }
     >
-      <Tabs style={{ borderBottom: "2px solid #e8e8ea" }}>
-        <Tab
-          className={`payment-tab ${
-            activeTab === 0 ? "payment-tab-active" : ""
-          }`}
-        >
-          Configuration
-        </Tab>
-        <Tab
-          className={`payment-tab ${
-            activeTab === 1 ? "payment-tab-active" : ""
-          }`}
-        >
-          Transaction History
-        </Tab>
-        <Tab
-          className={`payment-tab ${
-            activeTab === 2 ? "payment-tab-active" : ""
-          }`}
-        >
-          Payment Actions
-        </Tab>
-        <Tab
-          className={`payment-tab ${
-            activeTab === 3 ? "payment-tab-active" : ""
-          }`}
-        >
-          Documentation
-        </Tab>
-      </Tabs>
-      <TabPanels>
-        <TabPanel>
-          <ConfigurationPanel
-            settings={settings}
-            isSaving={isSaving}
-            isTesting={isTesting}
-            testResult={testResult}
-            onSave={onSave}
-            onTestConnection={onTestConnection}
-            onInputChange={onInputChange}
-            onPaymentMethodToggle={onPaymentMethodToggle}
-          />
-        </TabPanel>
+      <Tabs.List style={{ width: "100%" }}>
+        <Tabs.Trigger value="tab-1">Configuration</Tabs.Trigger>
+        <Tabs.Trigger value="tab-2">Transaction History</Tabs.Trigger>
+        <Tabs.Trigger value="tab-3">Payment Actions</Tabs.Trigger>
+        <Tabs.Trigger value="tab-4">Documentation</Tabs.Trigger>
+      </Tabs.List>
+      <Tabs.Content value="tab-1">
+        <ConfigurationPanel settings={settings} />
+      </Tabs.Content>
 
-        <TabPanel>
-          <HistoryPanel
-            filters={filters}
-            onFilterChange={onFilterChange}
-            onFilterApply={onFilterApply}
-            isLoadingHistory={isLoadingHistory}
-            transactionHistory={transactionHistory}
-            paginatedTransactions={paginatedTransactions}
-            currentPage={currentPage}
-            totalPages={totalPages}
-            pageSize={pageSize}
-            onRefresh={onRefresh}
-            onPageChange={onPageChange}
-            selectedTransaction={selectedTransaction}
-            onTransactionSelect={onTransactionSelect}
-          />
-        </TabPanel>
+      <Tabs.Content value="tab-2">
+        <HistoryPanel />
+      </Tabs.Content>
 
-        <TabPanel>
-          <PaymentActionsPanel
-            paymentAmount={paymentActions.paymentAmount}
-            setPaymentAmount={paymentActions.setPaymentAmount}
-            preauthReference={paymentActions.preauthReference}
-            setPreauthReference={paymentActions.setPreauthReference}
-            authReference={paymentActions.authReference}
-            setAuthReference={paymentActions.setAuthReference}
-            captureTxid={paymentActions.captureTxid}
-            setCaptureTxid={paymentActions.setCaptureTxid}
-            refundTxid={paymentActions.refundTxid}
-            setRefundTxid={paymentActions.setRefundTxid}
-            refundSequenceNumber={paymentActions.refundSequenceNumber}
-            setRefundSequenceNumber={paymentActions.setRefundSequenceNumber}
-            refundReference={paymentActions.refundReference}
-            setRefundReference={paymentActions.setRefundReference}
-            paymentMethod={paymentActions.paymentMethod}
-            setPaymentMethod={paymentActions.setPaymentMethod}
-            captureMode={paymentActions.captureMode}
-            setCaptureMode={paymentActions.setCaptureMode}
-            isProcessingPayment={paymentActions.isProcessingPayment}
-            paymentError={paymentActions.paymentError}
-            paymentResult={paymentActions.paymentResult}
-            onPreauthorization={paymentActions.handlePreauthorization}
-            onAuthorization={paymentActions.handleAuthorization}
-            onCapture={paymentActions.handleCapture}
-            onRefund={paymentActions.handleRefund}
-            settings={settings}
-            googlePayToken={paymentActions.googlePayToken}
-            setGooglePayToken={paymentActions.setGooglePayToken}
-            applePayToken={paymentActions.applePayToken}
-            setApplePayToken={paymentActions.setApplePayToken}
-            cardtype={paymentActions.cardtype}
-            setCardtype={paymentActions.setCardtype}
-            cardpan={paymentActions.cardpan}
-            setCardpan={paymentActions.setCardpan}
-            cardexpiredate={paymentActions.cardexpiredate}
-            setCardexpiredate={paymentActions.setCardexpiredate}
-            cardcvc2={paymentActions.cardcvc2}
-            setCardcvc2={paymentActions.setCardcvc2}
-            onNavigateToConfig={handleNavigateToConfig}
-          />
-        </TabPanel>
+      <Tabs.Content value="tab-3">
+        <PaymentActionsPanel
+          onNavigateToConfig={onNavigateToConfig}
+          settings={settings}
+          paymentActions={paymentActions}
+        />
+      </Tabs.Content>
 
-        <TabPanel>
-          <DocsPanel />
-        </TabPanel>
-      </TabPanels>
-    </TabGroup>
+      <Tabs.Content value="tab-4">
+        <DocsPanel settings={settings} paymentActions={paymentActions} />
+      </Tabs.Content>
+    </Tabs.Root>
   );
 };
 

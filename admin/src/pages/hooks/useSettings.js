@@ -1,32 +1,49 @@
-import { useState, useEffect } from "react";
-import { useNotification } from "@strapi/helper-plugin";
-import payoneRequests from "../utils/api";
+import * as React from "react";
+import { useNotification } from "@strapi/strapi/admin";
+import usePayoneRequests from "../utils/api";
 
 const useSettings = () => {
-  const toggleNotification = useNotification();
-  const [settings, setSettings] = useState({
+  const { toggleNotification } = useNotification();
+  const [settings, setSettings] = React.useState({
     aid: "",
     portalid: "",
     mid: "",
     key: "",
     mode: "test",
     api_version: "3.10",
-    enable3DSecure: false
+    enable3DSecure: false,
+    enableCreditCard: false,
+    enablePayPal: false,
+    enableGooglePay: false,
+    enableApplePay: false,
+    enableSofort: false,
+    enableSepaDirectDebit: false
   });
-  const [isLoading, setIsLoading] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
-  const [isTesting, setIsTesting] = useState(false);
-  const [testResult, setTestResult] = useState(null);
+  const [isLoading, setIsLoading] = React.useState(false);
+  const [isSaving, setIsSaving] = React.useState(false);
+  const [isTesting, setIsTesting] = React.useState(false);
+  const [testResult, setTestResult] = React.useState(null);
+  const { getSettings, updateSettings, testConnection } = usePayoneRequests();
+  const saveTimeoutRef = React.useRef(null);
 
-  useEffect(() => {
+
+  React.useEffect(() => {
     loadSettings();
+    return () => {
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+      }
+    };
   }, []);
 
   const loadSettings = async () => {
     setIsLoading(true);
     try {
-      const response = await payoneRequests.getSettings();
-      if (response?.data) setSettings(response.data);
+      const response = await getSettings();
+      const settingsData = response?.data?.data || response?.data;
+      if (settingsData && typeof settingsData === 'object') {
+        setSettings(settingsData);
+      }
     } catch (error) {
       toggleNotification({
         type: "warning",
@@ -39,27 +56,57 @@ const useSettings = () => {
 
   const handleInputChange = (field, value) => {
     setSettings((prev) => ({ ...prev, [field]: value }));
+
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current);
+    }
+
+    saveTimeoutRef.current = setTimeout(async () => {
+      let updatedSettings;
+      setSettings((prev) => {
+        updatedSettings = { ...prev };
+        return prev;
+      });
+
+      setIsSaving(true);
+      try {
+        await updateSettings(updatedSettings);
+        await loadSettings();
+      } catch (error) {
+        setSettings((prev) => {
+          const previousValue = prev[field];
+          return { ...prev, [field]: previousValue };
+        });
+
+        toggleNotification({
+          type: "danger",
+          message: "Failed to update settings"
+        });
+
+      } finally {
+        setIsSaving(false);
+      }
+    }, 1000);
   };
 
   const handlePaymentMethodToggle = async (field, value) => {
+    const booleanValue = Boolean(value);
     let updatedSettings;
+
     setSettings((prev) => {
-      updatedSettings = { ...prev, [field]: value };
+      updatedSettings = { ...prev, [field]: booleanValue };
       return updatedSettings;
     });
 
     setIsSaving(true);
     try {
-      await payoneRequests.updateSettings(updatedSettings);
-      toggleNotification({
-        type: "success",
-        message: "Payment method updated successfully"
-      });
+      await updateSettings(updatedSettings);
+      await loadSettings();
     } catch (error) {
-      setSettings((prev) => ({ ...prev, [field]: !value }));
+      setSettings((prev) => ({ ...prev, [field]: !booleanValue }));
       toggleNotification({
-        type: "warning",
-        message: "Failed to update payment method"
+        type: "danger",
+        message: "Failed to update settings"
       });
     } finally {
       setIsSaving(false);
@@ -69,7 +116,7 @@ const useSettings = () => {
   const handleSave = async () => {
     setIsSaving(true);
     try {
-      await payoneRequests.updateSettings(settings);
+      await updateSettings(settings);
       toggleNotification({
         type: "success",
         message: "Settings saved successfully"
@@ -77,7 +124,7 @@ const useSettings = () => {
       await loadSettings();
     } catch (error) {
       toggleNotification({
-        type: "warning",
+        type: "danger",
         message: "Failed to save settings"
       });
     } finally {
@@ -89,33 +136,25 @@ const useSettings = () => {
     setIsTesting(true);
     setTestResult(null);
     try {
-      const response = await payoneRequests.testConnection();
-      if (response.data) {
-        const result = response.data;
-        setTestResult(result);
-        if (result.success !== undefined) {
-          toggleNotification({
-            type: Boolean(result.success) ? "success" : "warning",
-            message: result.message || "Test completed"
-          });
-        }
+      const response = await testConnection();
+      console.log("response in handleTestConnection:", response.data);
+      if (response.data && response.data.success) {
+        setTestResult(response.data);
+        toggleNotification({
+          type: "success",
+          message: response.data.message || "Test completed"
+        });
       } else {
-        throw new Error("Invalid response format from server");
+        setTestResult(response.data);
+        toggleNotification({
+          type: "danger",
+          message: response.data.error.ErrorMessage || "Failed to test connection"
+        });
+
+        throw new Error(response.data.error.ErrorMessage);
       }
     } catch (error) {
-      toggleNotification({
-        type: "warning",
-        message: "Failed to test connection"
-      });
-      setTestResult({
-        success: false,
-        message:
-          "Failed to test connection. Please check your network and server logs for details.",
-        details: {
-          errorCode: "NETWORK",
-          rawResponse: error.message || "Network error"
-        }
-      });
+      throw new Error(error.message);
     } finally {
       setIsTesting(false);
     }

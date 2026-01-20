@@ -35,7 +35,9 @@ A comprehensive Strapi plugin that integrates the Payone payment gateway into yo
 
 Before installing this plugin, ensure you have:
 
-- **Strapi**: Version 4.6.0 or higher
+- **Strapi**:
+  - Version 5.x.x for plugin version 5.x.x
+  - Version 4.6.0 or higher for plugin version 4.x.x
 - **Node.js**: Version 18.0.0 to 20.x.x
 - **npm**: Version 6.0.0 or higher
 - **Payone Account**: Active Payone merchant account with API credentials
@@ -55,16 +57,28 @@ You will need the following credentials from your Payone account:
 
 ### Install from npm
 
+**Important**: Choose the correct version based on your Strapi version:
+
+- **For Strapi 5.x.x**: Use plugin version `^5.x.x`
+- **For Strapi 4.x.x**: Use plugin version `^4.x.x`
+
 ```bash
-# Using npm
-npm install strapi-plugin-payone-provider
+# For Strapi 5.x.x
+npm install strapi-plugin-payone-provider@^5
+# or
+yarn add strapi-plugin-payone-provider@^5
+# or
+pnpm add strapi-plugin-payone-provider@^5
 
-# Using yarn
-yarn add strapi-plugin-payone-provider
-
-# Using pnpm
-pnpm add strapi-plugin-payone-provider
+# For Strapi 4.x.x
+npm install strapi-plugin-payone-provider@^4
+# or
+yarn add strapi-plugin-payone-provider@^4
+# or
+pnpm add strapi-plugin-payone-provider@^4
 ```
+
+> ⚠️ **Version Compatibility**: Make sure to install the correct plugin version that matches your Strapi version. Using an incompatible version may cause errors or unexpected behavior.
 
 ## ⚙️ Configuration
 
@@ -799,9 +813,8 @@ paymentDataRequest.merchantInfo = {
 const button = paymentsClient.createButton({
   onClick: async () => {
     try {
-      const paymentData = await paymentsClient.loadPaymentData(
-        paymentDataRequest
-      );
+      const paymentData =
+        await paymentsClient.loadPaymentData(paymentDataRequest);
       const token = paymentData.paymentMethodData.tokenizationData.token;
 
       // Token is a JSON string, encode it to Base64 for Payone
@@ -1553,3 +1566,5 @@ For wallet payments (PayPal, Google Pay, Apple Pay), you can specify:
 
 - `capturemode: "full"`: Capture the entire preauthorized amount
 - `capturemode: "partial"`: Capture less than the preauthorized amount
+
+---

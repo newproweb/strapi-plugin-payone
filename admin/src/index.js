@@ -1,9 +1,11 @@
-import pluginPkg from "../../package.json";
-import pluginId from "./pluginId";
+
+import pluginPkg from '../../package.json';
+import pluginId from './pluginId';
 import Initializer from "./components/Initializer/index.jsx";
 import PluginIcon from "./components/PluginIcon/index.jsx";
 import { injectGooglePayScript } from "./pages/utils/injectGooglePayScript";
 import { injectApplePayScript } from "./pages/utils/injectApplePayScript";
+
 
 const name = pluginPkg.strapi.name;
 
@@ -14,20 +16,20 @@ export default {
       icon: PluginIcon,
       intlLabel: {
         id: `${pluginId}.plugin.name`,
-        defaultMessage: "Payone Provider"
+        defaultMessage: 'Payone Provider',
       },
       Component: async () => {
-        const component = await import("./pages/App/index.jsx");
-        return component;
+        const App = await import('./pages/App');
+        return App;
       },
-      permissions: []
+      permissions: [],
     });
 
     app.registerPlugin({
       id: pluginId,
       initializer: Initializer,
       isReady: false,
-      name
+      name,
     });
   },
 
@@ -36,7 +38,27 @@ export default {
     injectApplePayScript();
   },
 
-  async registerTrads() {
-    return Promise.resolve([]);
-  }
+  async registerTrads({ locales }) {
+    const importedTrads = await Promise.all(
+      locales.map(async (locale) => {
+        try {
+          const { default: data } = await import(
+            /* webpackChunkName: "[pluginId]-[request]" */ `./translations/${locale}.json`
+          );
+
+          return {
+            data,
+            locale,
+          };
+        } catch (error) {
+          return {
+            data: {},
+            locale,
+          };
+        }
+      })
+    );
+
+    return Promise.resolve(importedTrads);
+  },
 };

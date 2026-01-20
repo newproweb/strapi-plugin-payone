@@ -1,13 +1,6 @@
-import React from "react";
-import {
-  Box,
-  Flex,
-  Typography,
-  Select,
-  Option,
-  Checkbox,
-  Stack,
-} from "@strapi/design-system";
+import * as React from "@strapi/strapi/admin";
+import { Box, Flex, Typography, Checkbox } from "@strapi/design-system";
+import RenderInput from "./RenderInput";
 import {
   GOOGLE_PAY_SUPPORTED_COUNTRIES,
   GOOGLE_PAY_SUPPORTED_CURRENCIES,
@@ -16,7 +9,7 @@ import {
   DEFAULT_GOOGLE_PAY_CONFIG,
 } from "../../utils/googlePayConstants";
 
-const GooglePayConfig = ({ config, onConfigChange, settings }) => {
+const GooglePayConfig = ({ config, onConfigChange }) => {
   const {
     countryCode = DEFAULT_GOOGLE_PAY_CONFIG.countryCode,
     currencyCode = DEFAULT_GOOGLE_PAY_CONFIG.currencyCode,
@@ -64,190 +57,164 @@ const GooglePayConfig = ({ config, onConfigChange, settings }) => {
   };
 
   return (
-    <Box>
-      <Stack spacing={6}>
-        {/* Country and Currency */}
-        <Flex gap={4} wrap="wrap">
-          <Box style={{ flex: 1, minWidth: "300px" }}>
-            <Select
-              label="Country Code"
-              name="countryCode"
-              value={countryCode}
-              onChange={handleCountryChange}
-              hint="Select the country where your business operates"
-              required
-            >
-              {GOOGLE_PAY_SUPPORTED_COUNTRIES.map((country) => (
-                <Option key={country.code} value={country.code}>
-                  {country.name} ({country.code})
-                </Option>
-              ))}
-            </Select>
-          </Box>
-
-          <Box style={{ flex: 1, minWidth: "300px" }}>
-            <Select
-              label="Currency Code"
-              name="currencyCode"
-              value={currencyCode}
-              onChange={handleCurrencyChange}
-              hint="Select the currency for transactions"
-              required
-            >
-              {GOOGLE_PAY_SUPPORTED_CURRENCIES.map((currency) => (
-                <Option key={currency.code} value={currency.code}>
-                  {currency.name} ({currency.code}) {currency.symbol}
-                </Option>
-              ))}
-            </Select>
-          </Box>
-        </Flex>
-
-        {/* Merchant Name */}
+    <Flex
+      direction="column"
+      gap={4}
+      alignItems={"center"}
+      justifyContent={"center"}
+      width="100%"
+    >
+      {/* Country and Currency */}
+      <Box
+        style={{
+          display: "grid",
+          gridTemplateColumns: "1fr",
+          gap: "16px",
+          width: "100%",
+        }}
+      >
         <Box>
-          <Typography
-            variant="pi"
-            fontWeight="semiBold"
-            style={{ marginLeft: "2px" }}
-          >
-            Merchant Name
-          </Typography>
-          <Typography
-            variant="pi"
-            textColor="neutral600"
-            style={{ marginLeft: "2px" }}
-          >
-            The name of your business as it will appear in Google Pay
-          </Typography>
-          <input
-            type="text"
-            value={merchantName}
-            onChange={(e) =>
-              onConfigChange({ ...config, merchantName: e.target.value })
-            }
-            style={{
-              width: "100%",
-              padding: "8px 12px",
-              marginTop: "8px",
-              border: "1px solid #dcdce4",
-              borderRadius: "4px",
-              fontSize: "14px",
+          <RenderInput
+            name="countryCode"
+            label="Country Code"
+            value={countryCode || ""}
+            onChange={(e) => {
+              const value = e.target?.value || e;
+              handleCountryChange(value);
             }}
-            placeholder="Your Store Name"
+            inputType="select"
+            required
+            tooltipContent="Select the country where your business operates"
+            options={GOOGLE_PAY_SUPPORTED_COUNTRIES.map((country) => ({
+              value: country.code,
+              label: `${country.name} (${country.code})`,
+            }))}
           />
         </Box>
 
-        {/* Allowed Card Networks */}
         <Box>
-          <Typography
-            variant="pi"
-            fontWeight="semiBold"
-            style={{ marginLeft: "2px" }}
-          >
+          <RenderInput
+            name="currencyCode"
+            label="Currency Code"
+            value={currencyCode || ""}
+            onChange={(e) => {
+              const value = e.target?.value || e;
+              handleCurrencyChange(value);
+            }}
+            inputType="select"
+            required
+            tooltipContent="Select the currency for transactions"
+            options={GOOGLE_PAY_SUPPORTED_CURRENCIES.map((currency) => ({
+              value: currency.code,
+              label: `${currency.name} (${currency.code}) ${currency.symbol}`,
+            }))}
+          />
+        </Box>
+        <Box>
+          <RenderInput
+            name="merchantName"
+            label="Merchant Name"
+            value={merchantName || ""}
+            onChange={(e) =>
+              onConfigChange({ ...config, merchantName: e.target.value })
+            }
+            inputType="textInput"
+            placeholder="Your Store Name"
+            tooltipContent="The name of your business as it will appear in Google Pay"
+          />
+        </Box>
+      </Box>
+
+      {/* Allowed Card Networks */}
+      <Box width="100%" marginBottom={4} marginTop={4}>
+        <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+          <Typography variant="pi" fontWeight="semiBold">
             Allowed Card Networks
           </Typography>
-          <Typography
-            variant="pi"
-            textColor="neutral600"
-            style={{ marginLeft: "2px" }}
-          >
+          <Typography variant="pi" textColor="neutral600">
             Select payment card networks to accept
           </Typography>
-          <Flex wrap="wrap" gap={4} style={{ marginTop: "12px" }}>
-            {GOOGLE_PAY_SUPPORTED_NETWORKS.map((network) => {
-              const isSelected = allowedCardNetworks?.includes(network.code);
+        </div>
+        <Flex
+          direction="row"
+          wrap="wrap"
+          alignItems="stretch"
+          gap={4}
+          marginTop={2}
+          width="100%"
+        >
+          {GOOGLE_PAY_SUPPORTED_NETWORKS.map((network) => {
+            const isSelected = allowedCardNetworks?.includes(network.code);
 
-              return (
-                <Box
-                  key={network.code}
-                  style={{ flex: "0 0 calc(50% - 8px)", minWidth: "250px" }}
+            return (
+              <Box key={network.code}>
+                <Checkbox
+                  name={`network-${network.code}`}
+                  checked={isSelected}
+                  onCheckedChange={() => handleNetworkToggle(network.code)}
                 >
-                  <Checkbox
-                    name={`network-${network.code}`}
-                    checked={isSelected}
-                    onChange={() => handleNetworkToggle(network.code)}
-                  >
-                    {network.name} ({network.code})
-                  </Checkbox>
-                </Box>
-              );
-            })}
-          </Flex>
-          {allowedCardNetworks?.length === 0 && (
-            <Typography
-              variant="pi"
-              textColor="danger600"
-              style={{ marginTop: "8px" }}
-            >
-              At least one card network must be selected
-            </Typography>
-          )}
-        </Box>
-
-        {/* Allowed Authentication Methods */}
-        <Box>
+                  {network.name} ({network.code})
+                </Checkbox>
+              </Box>
+            );
+          })}
+        </Flex>
+        {allowedCardNetworks?.length === 0 && (
           <Typography
             variant="pi"
-            fontWeight="semiBold"
-            style={{ marginLeft: "2px" }}
+            textColor="danger600"
+            style={{ marginTop: "8px" }}
           >
+            At least one card network must be selected
+          </Typography>
+        )}
+      </Box>
+
+      {/* Allowed Authentication Methods */}
+      <Box width="100%">
+        <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+          <Typography variant="pi" fontWeight="semiBold">
             Allowed Authentication Methods
           </Typography>
-          <Typography
-            variant="pi"
-            textColor="neutral600"
-            style={{ marginLeft: "2px" }}
-          >
+          <Typography variant="pi" textColor="neutral600">
             Select authentication methods for card payments
           </Typography>
-          <Flex wrap="wrap" gap={4} style={{ marginTop: "12px" }}>
-            {GOOGLE_PAY_AUTH_METHODS.map((method) => {
-              const isSelected = allowedAuthMethods?.includes(method.code);
+        </div>
+        <Flex
+          direction="row"
+          wrap="wrap"
+          gap={4}
+          marginTop={2}
+          alignItems="stretch"
+          width="100%"
+        >
+          {GOOGLE_PAY_AUTH_METHODS.map((method) => {
+            const isSelected = allowedAuthMethods?.includes(method.code);
 
-              return (
-                <Box
-                  key={method.code}
-                  style={{ flex: "0 0 calc(50% - 8px)", minWidth: "250px" }}
+            return (
+              <Box key={method.code}>
+                <Checkbox
+                  name={`auth-method-${method.code}`}
+                  checked={isSelected}
+                  onCheckedChange={() => handleAuthMethodToggle(method.code)}
                 >
-                  <Checkbox
-                    name={`auth-method-${method.code}`}
-                    checked={isSelected}
-                    onChange={() => handleAuthMethodToggle(method.code)}
-                  >
-                    {method.name} - {method.description}
-                  </Checkbox>
-                </Box>
-              );
-            })}
-          </Flex>
-          {allowedAuthMethods?.length === 0 && (
-            <Typography
-              variant="pi"
-              textColor="danger600"
-              style={{ marginTop: "8px" }}
-            >
-              At least one authentication method must be selected
-            </Typography>
-          )}
-        </Box>
-
-        {/* Gateway Merchant ID Info */}
-        <Box>
+                  {method.name} - {method.description}
+                </Checkbox>
+              </Box>
+            );
+          })}
+        </Flex>
+        {allowedAuthMethods?.length === 0 && (
           <Typography
             variant="pi"
-            fontWeight="semiBold"
-            style={{ marginLeft: "2px" }}
+            textColor="danger600"
+            style={{ marginTop: "8px" }}
           >
-            Gateway Merchant ID
+            At least one authentication method must be selected
           </Typography>
-          <Typography variant="pi" textColor="neutral600">
-            {settings?.mid || settings?.portalid
-              ? `Using: ${settings.mid || settings.portalid}`
-              : "Gateway merchant ID will be obtained from your Payone Merchant ID (MID) or Portal ID. Make sure these are configured in the main Configuration tab."}
-          </Typography>
-        </Box>
-      </Stack>
-    </Box>
+        )}
+      </Box>
+    </Flex>
   );
 };
 

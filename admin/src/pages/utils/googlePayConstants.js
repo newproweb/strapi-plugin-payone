@@ -1,11 +1,4 @@
-/**
- * Google Pay Constants
- * Based on Google Pay documentation and Payone requirements
- * https://developers.google.com/pay/api/web/overview
- * https://docs.payone.com/display/public/PLATFORM/Google+Pay
- */
 
-// Google Pay supported card networks
 export const GOOGLE_PAY_SUPPORTED_NETWORKS = [
   { code: "MASTERCARD", name: "Mastercard" },
   { code: "VISA", name: "Visa" },
@@ -14,10 +7,10 @@ export const GOOGLE_PAY_SUPPORTED_NETWORKS = [
   { code: "JCB", name: "JCB" }
 ];
 
-// Google Pay supported authentication methods
 export const GOOGLE_PAY_AUTH_METHODS = [
   { code: "PAN_ONLY", name: "PAN Only", description: "Basic card authentication" },
-  { code: "CRYPTOGRAM_3DS", name: "3D Secure", description: "3D Secure authentication" }
+  { code: "CRYPTOGRAM_3DS", name: "3D Secure", description: "3D Secure authentication" },
+
 ];
 
 // Google Pay supported countries

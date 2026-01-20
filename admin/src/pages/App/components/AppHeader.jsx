@@ -1,52 +1,37 @@
-import React from "react";
-import { HeaderLayout, Box, Typography, Button } from "@strapi/design-system";
+import * as React from '@strapi/strapi/admin';
+import { Button } from "@strapi/design-system";
+import { Layouts } from "@strapi/strapi/admin";
 import { Check, ArrowLeft } from "@strapi/icons";
-import { useHistory, useLocation } from "react-router-dom";
-import pluginId from "../../../pluginId";
 
-const AppHeader = ({ activeTab, isSaving, onSave }) => {
-  const history = useHistory();
-  const location = useLocation();
-  const isApplePayConfigPage = location.pathname.includes("/apple-pay-config");
-  const isGooglePayConfigPage = location.pathname.includes("/google-pay-config");
+const AppHeader = ({ activeTab, isSaving, onSave, title, onBack }) => {
+  const isConfigPage = title && title !== "Payone Provider";
 
   return (
-    <HeaderLayout
-      title={
-        <Box>
-          <Typography
-            variant="alpha"
-            as="h1"
-            fontWeight="bold"
-            className="payment-title"
-          >
-            {isApplePayConfigPage
-              ? "Apple Pay Configuration"
-              : "Payone Provider"}
-          </Typography>
-          <Typography variant="pi" marginTop={2} className="payment-subtitle">
-            {isApplePayConfigPage
-              ? "Configure Apple Pay settings for your payment gateway"
-              : "Configure your Payone integration and manage payment transactions"}
-          </Typography>
-        </Box>
+    <Layouts.Header
+      title={title || "Payone Provider"}
+      subtitle={
+        title === "Apple Pay Configuration"
+          ? "Configure Apple Pay settings for your payment gateway"
+          : title === "Google Pay Configuration"
+            ? "Configure Google Pay settings for your payment gateway"
+            : "Configure your Payone integration and manage payment transactions"
       }
       primaryAction={
-        isApplePayConfigPage || isGooglePayConfigPage ? (
+        isConfigPage ? (
           <Button
-            onClick={() => history.push(`/plugins/${pluginId}`)}
+            onClick={onBack}
             startIcon={<ArrowLeft />}
             size="L"
             variant="secondary"
           >
             Back to Main
           </Button>
-        ) : activeTab === 0 ? (
+        ) : activeTab === 1 ? (
           <Button
             loading={isSaving}
             onClick={onSave}
             startIcon={<Check />}
-            size="L"
+            size="M"
             variant="default"
             className="payment-button payment-button-success"
           >

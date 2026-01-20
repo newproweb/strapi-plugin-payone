@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import * as React from "react";
 import {
   Box,
   Card,
@@ -11,59 +11,47 @@ import { Check } from "@strapi/icons";
 import ApplePayConfig from "./ApplePayConfig";
 
 const ApplePayConfigPanel = ({ settings, onInputChange, isSaving, onSave }) => {
-  const [applePayConfig, setApplePayConfig] = useState(
+  const [applePayConfig, setApplePayConfig] = React.useState(
     settings?.applePayConfig || {}
   );
 
-  useEffect(() => {
+  React.useEffect(() => {
     setApplePayConfig(settings?.applePayConfig || {});
   }, [settings?.applePayConfig]);
 
   return (
-    <Box
-      className="payment-container"
-      paddingTop={8}
-      paddingBottom={8}
-      paddingLeft={8}
-      paddingRight={8}
-    >
-      <Flex direction="column" alignItems="stretch" gap={8}>
-        <Box>
-          <Card className="payment-card">
-            <CardBody padding={6}>
-              <ApplePayConfig
-                config={applePayConfig}
-                onConfigChange={(newConfig) => {
-                  setApplePayConfig(newConfig);
-                  onInputChange("applePayConfig", newConfig);
-                }}
-                settings={settings}
-              />
-            </CardBody>
-          </Card>
-        </Box>
+    <Flex direction="column" alignItems="stretch" gap={8} padding={8}>
+      <Card>
+        <CardBody padding={6}>
+          <ApplePayConfig
+            config={applePayConfig}
+            onConfigChange={(newConfig) => {
+              setApplePayConfig(newConfig);
+              onInputChange("applePayConfig", newConfig);
+            }}
+            settings={settings}
+          />
+        </CardBody>
+      </Card>
 
-        <Box paddingTop={4}>
-          <Flex direction="row" gap={4} alignItems="center">
-            <Button
-              loading={isSaving}
-              onClick={onSave}
-              startIcon={<Check />}
-              size="L"
-              variant="default"
-              className="payment-button payment-button-success"
-            >
-              Save Apple Pay Configuration
-            </Button>
-            <Typography variant="sigma" textColor="neutral600">
-              Note: Apple Pay configuration is used for Apple Pay payment
-              requests. Make sure to configure the correct merchant identifier,
-              supported networks, and capabilities for your region.
-            </Typography>
-          </Flex>
-        </Box>
+      <Flex direction="column" gap={4} alignItems="stretch" paddingTop={4}>
+        <Typography variant="sigma" textColor="neutral600">
+          Note: Apple Pay configuration is used for Apple Pay payment requests.
+          Make sure to configure the correct merchant identifier, supported
+          networks, and capabilities for your region.
+        </Typography>
+        <Button
+          loading={isSaving}
+          onClick={onSave}
+          startIcon={<Check />}
+          size="L"
+          variant="default"
+          maxWidth={"220px"}
+        >
+          Save Configuration
+        </Button>
       </Flex>
-    </Box>
+    </Flex>
   );
 };
 

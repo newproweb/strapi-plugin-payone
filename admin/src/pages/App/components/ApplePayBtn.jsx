@@ -1,7 +1,7 @@
-import React from "react";
+import * as React from '@strapi/strapi/admin';
 import ApplePayButton from "apple-pay-button";
 import { Box, Typography, Alert } from "@strapi/design-system";
-import { request } from "@strapi/helper-plugin";
+import { getFetchClient } from "@strapi/strapi/admin";
 import pluginId from "../../../pluginId";
 
 const ApplePayBtn = ({
@@ -20,17 +20,15 @@ const ApplePayBtn = ({
           currencyCode || applePayConfig.currencyCode || "EUR";
         const requestCountryCode = applePayConfig.countryCode || "DE";
 
-        const merchantSession = await request(
+        const { post } = getFetchClient();
+        const merchantSession = await post(
           `/${pluginId}/validate-apple-pay-merchant`,
           {
-            method: "POST",
-            body: {
-              domainName: settings?.domainName || window.location.hostname,
-              displayName: settings?.displayName || "Store",
-              currency: requestCurrency,
-              countryCode: requestCountryCode,
-              mode: (settings?.mode || "test").toLowerCase() || "test",
-            },
+            domainName: settings?.domainName || window.location.hostname,
+            displayName: settings?.displayName || "Store",
+            currency: requestCurrency,
+            countryCode: requestCountryCode,
+            mode: (settings?.mode || "test").toLowerCase() || "test",
           }
         );
         if (merchantSession.error) {

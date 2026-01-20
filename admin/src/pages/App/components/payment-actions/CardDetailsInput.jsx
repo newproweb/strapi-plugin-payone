@@ -1,15 +1,7 @@
-import React, { useEffect, useRef } from "react";
-import {
-  Box,
-  Flex,
-  Typography,
-  TextInput,
-  Select,
-  Option,
-  Link
-} from "@strapi/design-system";
+import * as React from "react";
+import { Box, Flex, Typography, Link } from "@strapi/design-system";
+import RenderInput from "../RenderInput";
 
-// 3DS Test Cards that require redirect (challenge workflow)
 const TEST_3DS_CARDS = [
   {
     name: "VISA - 3DS 2.0 (Challenge)",
@@ -17,7 +9,7 @@ const TEST_3DS_CARDS = [
     cardpan: "4716971940353559",
     cardexpiredate: "2512",
     cardcvc2: "123",
-    description: "3DS 2.0 with challenge - Password: 12345"
+    description: "3DS 2.0 with challenge - Password: 12345",
   },
   {
     name: "Mastercard - 3DS 2.0 (Challenge)",
@@ -25,16 +17,8 @@ const TEST_3DS_CARDS = [
     cardpan: "5404127720739582",
     cardexpiredate: "2512",
     cardcvc2: "123",
-    description: "3DS 2.0 with challenge - Password: 12345"
+    description: "3DS 2.0 with challenge - Password: 12345",
   },
-  // {
-  //   name: "AMEX - 3DS 2.0 (Challenge)",
-  //   cardtype: "A",
-  //   cardpan: "375144726036141",
-  //   cardexpiredate: "2512",
-  //   cardcvc2: "1234",
-  //   description: "3DS 2.0 with challenge - Password: 12345"
-  // }
 ];
 
 const CardDetailsInput = ({
@@ -45,19 +29,19 @@ const CardDetailsInput = ({
   cardexpiredate,
   setCardexpiredate,
   cardcvc2,
-  setCardcvc2
+  setCardcvc2,
 }) => {
   const [selectedTestCard, setSelectedTestCard] = React.useState("");
-  const isUpdatingFromTestCard = useRef(false);
+  const isUpdatingFromTestCard = React.useRef(false);
 
-  useEffect(() => {
+  React.useEffect(() => {
     if (isUpdatingFromTestCard.current) {
       isUpdatingFromTestCard.current = false;
       return;
     }
 
     const matchingCard = TEST_3DS_CARDS.find(
-      card => card.cardtype === cardtype && card.cardpan === cardpan
+      (card) => card.cardtype === cardtype && card.cardpan === cardpan
     );
 
     if (matchingCard) {
@@ -76,8 +60,8 @@ const CardDetailsInput = ({
       return;
     }
 
-    const selectedCard = TEST_3DS_CARDS.find(card =>
-      `${card.cardtype}-${card.cardpan}` === value
+    const selectedCard = TEST_3DS_CARDS.find(
+      (card) => `${card.cardtype}-${card.cardpan}` === value
     );
 
     if (selectedCard) {
@@ -95,88 +79,110 @@ const CardDetailsInput = ({
     <Box>
       <Flex direction="column" alignItems="stretch" gap={4}>
         <Flex direction="row" gap={2} alignItems="flex-start">
-          <Select
-            label="3D Secure Test Cards"
+          <RenderInput
             name="testCard"
-            value={selectedTestCard}
+            label="3D Secure Test Cards"
+            value={selectedTestCard || ""}
+            onChange={(e) => {
+              const value = e.target?.value || e;
+              handleTestCardSelect(value);
+            }}
+            inputType="select"
             placeholder="Select a 3DS test card to auto-fill"
-            hint="These cards will trigger 3DS authentication redirect. Password: 12345"
-            onChange={handleTestCardSelect}
-            className="payment-input"
-          >
-            <Option value="">-- Select a test card --</Option>
-            {TEST_3DS_CARDS.map((card, index) => (
-              <Option key={index} value={`${card.cardtype}-${card.cardpan}`}>
-                {card.name} - {card.description}
-              </Option>
-            ))}
-          </Select>
+            tooltipContent="These cards will trigger 3DS authentication redirect. Password: 12345"
+            options={[
+              { value: "", label: "-- Select a test card --" },
+              ...TEST_3DS_CARDS.map((card, index) => ({
+                value: `${card.cardtype}-${card.cardpan}`,
+                label: `${card.name} - ${card.description}`,
+              })),
+            ]}
+          />
         </Flex>
 
         <Flex gap={4} wrap="wrap" alignItems="flex-start">
-          <Select
-            label="Card Type *"
+          <RenderInput
             name="cardtype"
+            label="Card Type *"
             value={cardtype || ""}
-            onChange={(value) => setCardtype(value)}
+            onChange={(e) => {
+              const value = e.target?.value || e;
+              setCardtype(value);
+            }}
+            inputType="select"
             required
-            hint="Select credit card type"
-            className="payment-input"
+            tooltipContent="Select credit card type"
+            options={[
+              { value: "V", label: "VISA" },
+              { value: "M", label: "Mastercard" },
+              { value: "A", label: "American Express" },
+              { value: "J", label: "JCB" },
+              { value: "O", label: "Maestro International" },
+              { value: "D", label: "Diners Club" },
+            ]}
             style={{ flex: 1, minWidth: "200px" }}
-          >
-            <Option value="V">VISA</Option>
-            <Option value="M">Mastercard</Option>
-            <Option value="A">American Express</Option>
-            <Option value="J">JCB</Option>
-            <Option value="O">Maestro International</Option>
-            <Option value="D">Diners Club</Option>
-          </Select>
+          />
 
-          <TextInput
-            label="Card Number (PAN) *"
+          <RenderInput
             name="cardpan"
+            label="Card Number (PAN) *"
             value={cardpan || ""}
             onChange={(e) => setCardpan(e.target.value)}
+            inputType="textInput"
             placeholder="Enter card number"
-            hint="Credit card number (PAN)"
             required
-            className="payment-input"
+            tooltipContent="Credit card number (PAN)"
             style={{ flex: 2, minWidth: "300px" }}
           />
         </Flex>
 
         <Flex gap={4} wrap="wrap" alignItems="flex-start">
-          <TextInput
-            label="Expiry Date *"
+          <RenderInput
             name="cardexpiredate"
+            label="Expiry Date *"
             value={cardexpiredate || ""}
             onChange={(e) => setCardexpiredate(e.target.value)}
+            inputType="textInput"
             placeholder="YYMM (e.g., 2512)"
-            hint="Format: YYMM (e.g., 2512 = December 2025)"
             required
+            tooltipContent="Format: YYMM (e.g., 2512 = December 2025)"
+            type="text"
             maxLength={4}
-            className="payment-input"
             style={{ flex: 1, minWidth: "150px" }}
           />
 
-          <TextInput
-            label="CVC/CVV *"
+          <RenderInput
             name="cardcvc2"
+            label="CVC/CVV *"
             value={cardcvc2 || ""}
             onChange={(e) => setCardcvc2(e.target.value)}
+            inputType="textInput"
             placeholder="123 or 1234"
-            hint={cardtype === "A" ? "4 digits for AMEX" : "3 digits for other cards"}
             required
+            tooltipContent={
+              cardtype === "A"
+                ? "4 digits for AMEX"
+                : "3 digits for other cards"
+            }
+            type="text"
             maxLength={4}
-            className="payment-input"
             style={{ flex: 1, minWidth: "150px" }}
           />
         </Flex>
 
         <Box paddingTop={2}>
-          <Typography variant="pi" textColor="neutral600" style={{ textAlign: "left" }}>
-            For all test card numbers (positive, negative, frictionless 3DS), 3D Secure test data, and detailed documentation, please refer to the{" "}
-            <Link href="https://docs.payone.com/security-risk-management/3d-secure#/" target="_blank" rel="noopener noreferrer">
+          <Typography
+            variant="pi"
+            textColor="neutral600"
+            style={{ textAlign: "left" }}
+          >
+            For all test card numbers (positive, negative, frictionless 3DS), 3D
+            Secure test data, and detailed documentation, please refer to the{" "}
+            <Link
+              href="https://docs.payone.com/security-risk-management/3d-secure#/"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
               Payone 3D Secure Documentation
             </Link>
             .
@@ -188,4 +194,3 @@ const CardDetailsInput = ({
 };
 
 export default CardDetailsInput;
-

@@ -14,7 +14,13 @@ module.exports = {
       merchantName: "",
       displayName: "",
       domainName: "",
-      merchantIdentifier: ""
+      merchantIdentifier: "",
+      enableCreditCard: false,
+      enablePayPal: false,
+      enableGooglePay: false,
+      enableApplePay: false,
+      enableSofort: false,
+      enableSepaDirectDebit: false
     }
   },
   validator(config) {
@@ -33,7 +39,17 @@ module.exports = {
           api_version: yup
             .string()
             .matches(/^\d+\.\d+$/)
-            .defined()
+            .defined(),
+          merchantName: yup.string().optional(),
+          displayName: yup.string().optional(),
+          domainName: yup.string().optional(),
+          merchantIdentifier: yup.string().optional(),
+          enableCreditCard: yup.boolean().optional(),
+          enablePayPal: yup.boolean().optional(),
+          enableGooglePay: yup.boolean().optional(),
+          enableApplePay: yup.boolean().optional(),
+          enableSofort: yup.boolean().optional(),
+          enableSepaDirectDebit: yup.boolean().optional()
         })
         .defined()
     });

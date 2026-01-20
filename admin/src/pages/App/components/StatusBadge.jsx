@@ -1,23 +1,34 @@
-import React from "react";
-import { Badge } from "@strapi/design-system";
+import * as React from "@strapi/strapi/admin";
+import {
+  Badge,
+  DesignSystemProvider,
+  darkTheme,
+  lightTheme,
+} from "@strapi/design-system";
+import { useSystemTheme } from "../../hooks/use-system-theme";
 
-const StatusBadge = ({ status }) => {
+const StatusBadge = ({ status, size = "S" }) => {
   const statusColors = {
-    APPROVED: "success",
-    PENDING: "warning",
-    ERROR: "danger",
-    FAILED: "danger",
-    INVALID: "danger",
-    REDIRECT: "secondary"
+    APPROVED: "success200",
+    PENDING: "warning200",
+    ERROR: "danger200",
+    FAILED: "danger200",
+    INVALID: "danger200",
+    REDIRECT: "success100",
   };
-
+  const systemTheme = useSystemTheme();
+  const theme = systemTheme === "dark" ? darkTheme : lightTheme;
   return (
-    <Badge
-      textColor="neutral0"
-      backgroundColor={statusColors[status] || "default"}
-    >
-      {status}
-    </Badge>
+    <DesignSystemProvider theme={theme}>
+      <Badge
+        borderColor={statusColors[status]}
+        background={"transparent"}
+        textColor={statusColors[status]}
+        size={size}
+      >
+        {status || "UNKNOWN"}
+      </Badge>
+    </DesignSystemProvider>
   );
 };
 

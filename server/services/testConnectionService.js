@@ -54,82 +54,19 @@ const testConnection = async (strapi) => {
     });
 
     const result = parseResponse(response.data, strapi.log);
-    const status = result.status || result.Status || result.STATUS;
-    const errorMessage =
-      result.errormessage ||
-      result.Errormessage ||
-      result.ERRORMESSAGE ||
-      result.error ||
-      result.Error?.ErrorMessage ||
-      "";
-    const errorCode =
-      result.errorcode ||
-      result.Errorcode ||
-      result.ERRORCODE ||
-      result.Error?.ErrorCode ||
-      "";
-    const customErrorMessage =
-      result.customerrormessage ||
-      result.Customerrormessage ||
-      result.CUSTOMERRORMESSAGE ||
-      result.Error?.CustomerMessage ||
-      "";
+    const status = result?.status || result?.Status || result?.STATUS;
+    const errorMessage = result?.Error?.ErrorMessage;
+    const errorCode = result?.Error?.ErrorCode;
+    const customErrorMessage = result?.Error?.CustomerMessage;
 
     if (status === "ERROR" || status === "error") {
-      if (["2006", "920", "921", "922", "401", "403"].includes(errorCode)) {
-        return {
-          success: false,
-          message: `Authentication failed: ${customErrorMessage || errorMessage || "Invalid credentials"}`,
-          errorcode: errorCode
-        };
-      }
-
-      const errorMessageStr = typeof errorMessage === "string" ? errorMessage : JSON.stringify(errorMessage);
-      const errorMessageLower = (errorMessageStr || "").toLowerCase();
-      const authErrorKeywords = [
-        "key incorrect",
-        "invalid key",
-        "portal key",
-        "unauthorized",
-        "not authorized",
-        "unknown aid",
-        "unknown account",
-        "unknown portal",
-        "unknown merchant",
-        "invalid aid",
-        "invalid mid",
-        "invalid portalid"
-      ];
-
-      if (authErrorKeywords.some((keyword) => errorMessageLower.includes(keyword))) {
-        return {
-          success: false,
-          message: `Authentication failed: ${errorMessageStr}`,
-          errorcode: errorCode || "AUTH"
-        };
-      }
-
-      if (errorCode === "911") {
-        return {
-          success: true,
-          message: "Connection successful! Your Payone credentials are valid.",
-          details: {
-            mode: settings.mode,
-            aid: settings.aid,
-            portalid: settings.portalid,
-            mid: settings.mid
-          }
-        };
-      }
-
       return {
         success: false,
-        message: `Connection failed: ${customErrorMessage || errorMessageStr || "Unknown error"}`,
-        errorcode: errorCode,
-        details: {
-          status,
-          errorCode,
-          rawResponse: JSON.stringify(result).substring(0, 200)
+        message: `Test connection failed: ${errorCode}`,
+        error: {
+          ErrorCode: errorCode,
+          ErrorMessage: errorMessage,
+          CustomerMessage: customErrorMessage
         }
       };
     }
@@ -157,11 +94,12 @@ const testConnection = async (strapi) => {
         rawResponse: JSON.stringify(result).substring(0, 200)
       }
     };
+
   } catch (error) {
     strapi.log.error("Payone test connection error:", error);
     return {
       success: false,
-      message: `Connection error: ${error.message || "Unknown error"}`,
+      message: `Test connection error: ${error.message || "Unknown error"}`,
       error: error.toString(),
       details: {
         errorType: error.constructor.name,

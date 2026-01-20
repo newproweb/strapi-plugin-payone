@@ -1,12 +1,4 @@
-/**
- * Apple Pay Constants
- * Based on Apple Pay documentation and Payone requirements
- * https://developer.apple.com/documentation/applepayontheweb
- * https://docs.payone.com/payment-methods/apple-pay/apple-pay-without-dev
- */
 
-// Apple Pay supported countries
-// Note: Apple Pay availability varies by country
 export const APPLE_PAY_SUPPORTED_COUNTRIES = [
   { code: "US", name: "United States" },
   { code: "GB", name: "United Kingdom" },
@@ -46,8 +38,6 @@ export const APPLE_PAY_SUPPORTED_COUNTRIES = [
   { code: "ZA", name: "South Africa" }
 ];
 
-// Apple Pay supported currencies
-// Note: Some currencies may be restricted in certain countries
 export const APPLE_PAY_SUPPORTED_CURRENCIES = [
   { code: "USD", name: "US Dollar", symbol: "$" },
   { code: "EUR", name: "Euro", symbol: "€" },
@@ -77,7 +67,6 @@ export const APPLE_PAY_SUPPORTED_CURRENCIES = [
   { code: "HUF", name: "Hungarian Forint", symbol: "Ft" }
 ];
 
-// Apple Pay supported payment networks
 export const APPLE_PAY_SUPPORTED_NETWORKS = [
   { code: "amex", name: "American Express" },
   { code: "discover", name: "Discover" },
@@ -92,15 +81,12 @@ export const APPLE_PAY_SUPPORTED_NETWORKS = [
   { code: "privateLabel", name: "Private Label" }
 ];
 
-// Merchant capabilities
 export const APPLE_PAY_MERCHANT_CAPABILITIES = [
   { code: "supports3DS", name: "3D Secure", description: "Required for most payment methods" },
   { code: "supportsCredit", name: "Credit Cards", description: "Support credit card payments" },
   { code: "supportsDebit", name: "Debit Cards", description: "Support debit card payments" }
 ];
 
-// Country-currency restrictions
-// Some currencies are not available in certain countries
 export const COUNTRY_CURRENCY_RESTRICTIONS = {
   US: ["USD"],
   GB: ["GBP", "EUR"],
@@ -126,20 +112,16 @@ export const COUNTRY_CURRENCY_RESTRICTIONS = {
   ZA: ["ZAR"]
 };
 
-// Get supported currencies for a country
 export const getSupportedCurrenciesForCountry = (countryCode) => {
   const restrictions = COUNTRY_CURRENCY_RESTRICTIONS[countryCode];
   if (restrictions) {
-    return APPLE_PAY_SUPPORTED_CURRENCIES.filter(currency => 
+    return APPLE_PAY_SUPPORTED_CURRENCIES.filter(currency =>
       restrictions.includes(currency.code)
     );
   }
-  // Default: return all currencies if no restrictions
   return APPLE_PAY_SUPPORTED_CURRENCIES;
 };
 
-// Get supported networks for a country
-// Some networks are country-specific
 export const getSupportedNetworksForCountry = (countryCode) => {
   const countryNetworks = {
     US: ["amex", "discover", "masterCard", "visa"],
@@ -157,30 +139,23 @@ export const getSupportedNetworksForCountry = (countryCode) => {
   return countryNetworks[countryCode] || countryNetworks.default;
 };
 
-// Test data for Apple Pay
-// Based on Apple Pay sandbox testing documentation
 export const APPLE_PAY_TEST_DATA = {
-  // Test card numbers (for sandbox testing)
   testCards: {
     visa: "4111111111111111",
     mastercard: "5555555555554444",
     amex: "378282246310005",
     discover: "6011111111111117"
   },
-  // Test merchant identifiers (for development)
   testMerchantIdentifier: "merchant.com.payone.test",
-  // Test domain
   testDomain: "test.payone.com"
 };
 
-// Apple Pay button styles
 export const APPLE_PAY_BUTTON_STYLES = [
   { code: "black", name: "Black" },
   { code: "white", name: "White with outline" },
   { code: "white-outline", name: "White" }
 ];
 
-// Apple Pay button types
 export const APPLE_PAY_BUTTON_TYPES = [
   { code: "plain", name: "Plain" },
   { code: "buy", name: "Buy" },
@@ -201,7 +176,6 @@ export const APPLE_PAY_BUTTON_TYPES = [
   { code: "set-up", name: "Set Up" }
 ];
 
-// Default Apple Pay configuration
 export const DEFAULT_APPLE_PAY_CONFIG = {
   countryCode: "DE",
   currencyCode: "EUR",

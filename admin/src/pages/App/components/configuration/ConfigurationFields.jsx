@@ -1,0 +1,255 @@
+import * as React from "react";
+import {
+  Button,
+  Card,
+  CardBody,
+  Flex,
+  Typography,
+} from "@strapi/design-system";
+import { Cog } from "@strapi/icons";
+import RenderInput from "../RenderInput";
+
+const ConfigurationFields = ({
+  settings,
+  onInputChange,
+  onPaymentMethodToggle,
+  onNavigateToConfig,
+}) => {
+  const handleNavigateToApplePayConfig = () => {
+    if (onNavigateToConfig) {
+      onNavigateToConfig("apple-pay-config");
+    }
+  };
+
+  const handleNavigateToGooglePayConfig = () => {
+    if (onNavigateToConfig) {
+      onNavigateToConfig("google-pay-config");
+    }
+  };
+
+  return (
+    <Card padding={8}>
+      <CardBody
+        style={{
+          display: "grid",
+          gap: "16px",
+          gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
+        }}
+      >
+        <Flex direction="column" alignItems={"stretch"} gap={6}>
+          <Flex direction="row" gap={2}>
+            <RenderInput
+              label="Account ID (aid)"
+              name="aid"
+              value={settings.aid}
+              onChange={(e) => onInputChange("aid", e.target.value)}
+              required
+              inputType="textInput"
+              tooltipContent={"Your Payone account ID"}
+            />
+
+            <RenderInput
+              label="Portal ID"
+              name="portalid"
+              value={settings.portalid}
+              onChange={(e) => onInputChange("portalid", e.target.value)}
+              required
+              inputType="textInput"
+              tooltipContent={"Your Payone portal ID"}
+            />
+          </Flex>
+          <Flex direction="row" gap={2}>
+            <RenderInput
+              label="Merchant ID (mid)"
+              name="mid"
+              value={settings.mid}
+              onChange={(e) => onInputChange("mid", e.target.value)}
+              required
+              inputType="textInput"
+              tooltipContent={"Your Payone merchant ID"}
+            />
+
+            <RenderInput
+              label="Portal Key"
+              name="key"
+              type="password"
+              value={settings.key}
+              onChange={(e) => onInputChange("key", e.target.value)}
+              required
+              inputType="textInput"
+              tooltipContent={"Your Payone portal key (will be encrypted)"}
+            />
+          </Flex>
+          <Flex direction="row" gap={2}>
+            <RenderInput
+              label="Domain Name"
+              name="domainName"
+              value={settings.domainName}
+              onChange={(e) => onInputChange("domainName", e.target.value)}
+              inputType="textInput"
+              tooltipContent={"Your Payone domain name"}
+            />
+
+            <RenderInput
+              label="Display Name"
+              name="displayName"
+              value={settings.displayName}
+              onChange={(e) => onInputChange("displayName", e.target.value)}
+              inputType="textInput"
+              tooltipContent={"Display name for payment methods (optional)"}
+            />
+          </Flex>
+          <Flex direction="row" gap={2}>
+            <RenderInput
+              label="Mode"
+              name="mode"
+              value={settings.mode || "test"}
+              onChange={(e) => onInputChange("mode", e.target.value)}
+              required
+              inputType="select"
+              tooltipContent={"Select the API mode"}
+              options={[
+                { value: "test", label: "Test" },
+                { value: "live", label: "Live" },
+              ]}
+            />
+            <RenderInput
+              label="Enable 3D Secure"
+              name="enable3DSecure"
+              value={settings.enable3DSecure ? "yes" : "no"}
+              onChange={(e) =>
+                onInputChange("enable3DSecure", e.target.value === "yes")
+              }
+              required
+              inputType="select"
+              tooltipContent={
+                "Enable 3D Secure authentication for credit card payments"
+              }
+              options={[
+                { value: "yes", label: "Enabled" },
+                { value: "no", label: "Disabled" },
+              ]}
+            />
+          </Flex>
+          <Flex direction="row">
+            <RenderInput
+              label="API Version"
+              name="api_version"
+              value={settings.api_version || "3.10"}
+              onChange={(e) => onInputChange("api_version", e.target.value)}
+              required
+              inputType="textInput"
+              tooltipContent={"Payone API version"}
+            />
+          </Flex>
+        </Flex>
+
+        <Flex direction="column" alignItems="stretch" gap={4} marginTop={6}>
+          <Typography variant="pi" textColor="neutral600" marginBottom={4}>
+            Enable or disable payment methods for your Payone integration
+          </Typography>
+
+          <RenderInput
+            label="Credit Card (Visa, Mastercard)"
+            name="enableCreditCard"
+            value={settings.enableCreditCard === true}
+            onChange={(selected) =>
+              onPaymentMethodToggle("enableCreditCard", selected)
+            }
+            inputType="switch"
+            labelDirection="row"
+            labelStyle={{ fontSize: "16px" }}
+            tooltipContent="Enable or disable credit card payments"
+          />
+
+          <RenderInput
+            label="PayPal"
+            name="enablePayPal"
+            value={settings.enablePayPal === true}
+            onChange={(selected) =>
+              onPaymentMethodToggle("enablePayPal", selected)
+            }
+            inputType="switch"
+            labelDirection="row"
+            labelStyle={{ fontSize: "16px" }}
+            tooltipContent="Enable or disable PayPal payments"
+          />
+
+          <RenderInput
+            label="Google Pay"
+            name="enableGooglePay"
+            value={settings.enableGooglePay === true}
+            onChange={(selected) =>
+              onPaymentMethodToggle("enableGooglePay", selected)
+            }
+            inputType="switch"
+            labelDirection="row"
+            labelStyle={{ fontSize: "16px" }}
+            tooltipContent="Enable or disable Google Pay payments"
+          />
+
+          <RenderInput
+            label="Apple Pay"
+            name="enableApplePay"
+            value={settings.enableApplePay === true}
+            onChange={(selected) =>
+              onPaymentMethodToggle("enableApplePay", selected)
+            }
+            inputType="switch"
+            labelDirection="row"
+            labelStyle={{ fontSize: "16px" }}
+            tooltipContent="Enable or disable Apple Pay payments"
+          />
+
+          <RenderInput
+            label="Sofort Banking"
+            name="enableSofort"
+            value={settings.enableSofort === true}
+            onChange={(selected) =>
+              onPaymentMethodToggle("enableSofort", selected)
+            }
+            inputType="switch"
+            labelDirection="row"
+            labelStyle={{ fontSize: "16px" }}
+            tooltipContent="Enable or disable Sofort Banking payments"
+          />
+
+          <RenderInput
+            label="SEPA Direct Debit"
+            name="enableSepaDirectDebit"
+            value={settings.enableSepaDirectDebit === true}
+            onChange={(selected) =>
+              onPaymentMethodToggle("enableSepaDirectDebit", selected)
+            }
+            inputType="switch"
+            labelDirection="row"
+            labelStyle={{ fontSize: "16px" }}
+            tooltipContent="Enable or disable SEPA Direct Debit payments"
+          />
+
+          <Flex direction="row" gap={2} marginTop={10}>
+            <Button
+              variant="secondary"
+              startIcon={<Cog />}
+              onClick={handleNavigateToApplePayConfig}
+              className="payment-button"
+            >
+              Apple Pay Config
+            </Button>
+            <Button
+              variant="secondary"
+              startIcon={<Cog />}
+              onClick={handleNavigateToGooglePayConfig}
+              className="payment-button"
+            >
+              Google Pay Config
+            </Button>
+          </Flex>
+        </Flex>
+      </CardBody>
+    </Card>
+  );
+};
+
+export default ConfigurationFields;
+
