@@ -62,4 +62,9 @@ module.exports = ({ strapi }) => ({
     return await applePayService.initializeApplePaySession(strapi, params);
   },
 
+  // TransactionStatus Notification
+  async processTransactionStatus(notificationData) {
+    return await transactionStatusService.processTransactionStatus(strapi, notificationData);
+  }
+
 });

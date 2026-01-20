@@ -1568,3 +1568,133 @@ For wallet payments (PayPal, Google Pay, Apple Pay), you can specify:
 - `capturemode: "partial"`: Capture less than the preauthorized amount
 
 ---
+
+## 📢 TransactionStatus Notifications
+
+The Payone platform provides an asynchronous way of notifying your system of changes to a transaction. These notifications are called "TransactionStatus" and are automatically handled by this plugin.
+
+### What are TransactionStatus Notifications?
+
+TransactionStatus notifications are POST requests sent from Payone's servers to your endpoint when transaction status changes occur. This is especially important for:
+
+- **Redirect Payment Methods**: Verifying that payments were actually completed (prevents fraud)
+- **Chargeback Processes**: Being notified when customers initiate chargebacks
+- **Real-time Tracking**: Keeping your system updated with the latest transaction status
+
+### How It Works
+
+1. **Payone sends notification** → Your Strapi endpoint receives POST request
+2. **Plugin verifies request** → Checks IP address, User-Agent, and hash signature
+3. **Plugin processes notification** → Updates transaction history automatically
+4. **Plugin responds** → Returns `TSOK` to confirm receipt
+
+### Endpoint Configuration
+
+The plugin automatically provides the TransactionStatus endpoint at:
+
+**URL**: `POST /api/strapi-plugin-payone-provider/transaction-status`
+
+**No authentication required** - The endpoint is secured by:
+
+- IP address verification (only Payone IPs allowed)
+- User-Agent verification (must be "PAYONE FinanceGate")
+- Hash signature verification (MD5 hash of transaction data)
+
+### PMI Configuration
+
+You need to configure this endpoint in your Payone Merchant Interface (PMI):
+
+1. Log into your Payone Merchant Interface (PMI)
+2. Navigate to **Configuration** → **Payment Portals** → **[Your Portal]**
+3. Find the **TransactionStatus Endpoint** setting
+4. Enter your endpoint URL: `https://yourdomain.com/api/strapi-plugin-payone-provider/transaction-status`
+5. Save the configuration
+
+> ⚠️ **Important**: The endpoint must be accessible via HTTPS. Payone will not send notifications to HTTP endpoints.
+
+### Security Features
+
+The plugin automatically verifies:
+
+1. **IP Address**: Only accepts requests from Payone's IP ranges:
+
+   - `185.60.20.0/24`
+   - `54.246.203.105`
+
+2. **User-Agent**: Must be exactly `"PAYONE FinanceGate"`
+
+3. **Hash Signature**: Verifies MD5 hash using your Portal Key:
+
+   ```
+   MD5(portalid + aid + txid + sequencenumber + price + currency + mode + key)
+   ```
+
+4. **Credentials**: Verifies that `portalid` and `aid` match your configured settings
+
+### Notification Parameters
+
+Payone sends the following parameters (among others):
+
+- `txaction`: Transaction action (appointed, paid, cancelation, etc.)
+- `txid`: Transaction ID
+- `reference`: Your reference number
+- `sequencenumber`: Sequence number for this transaction
+- `transaction_status`: Current transaction status
+- `price`: Transaction amount
+- `balance`: Current balance
+- `receivable`: Receivable amount
+- `currency`: Currency code
+- `key`: MD5 hash for verification
+
+### Response Requirements
+
+The endpoint **must** respond with exactly `TSOK` (4 characters, no HTML):
+
+- Response time: Must be within 10 seconds
+- Response format: Plain text `TSOK`
+- No other characters allowed
+
+> ℹ️ **Note**: Even if processing fails, the endpoint must return `TSOK` to prevent Payone from retrying. The plugin handles this automatically.
+
+### Retry Mechanism
+
+If Payone doesn't receive `TSOK` within 10 seconds:
+
+- Payone will retry up to **12 times**
+- Retries occur over **48 hours**
+- First retry after ~1 hour
+- Retry intervals increase over time
+
+### Transaction Updates
+
+When a TransactionStatus notification is received:
+
+1. The plugin finds the transaction in history by `txid`
+2. Updates the transaction with new status information
+3. Stores the full notification data for reference
+4. Updates `balance`, `receivable`, and `sequencenumber` fields
+
+If the transaction is not found in history, a new entry is created.
+
+### Example Notification Flow
+
+**Scenario**: Customer completes PayPal payment
+
+1. Customer redirected to PayPal → Completes payment
+2. Payone sends TransactionStatus: `txaction=appointed`, `transaction_status=completed`
+3. Plugin receives notification → Verifies and updates transaction
+4. Plugin responds: `TSOK`
+5. Customer redirected back to your `successurl`
+6. Later, Payone sends: `txaction=paid` (payment confirmed)
+7. Plugin updates transaction status to "paid"
+
+### Testing
+
+To test TransactionStatus notifications:
+
+1. Configure the endpoint in PMI
+2. Make a test payment
+3. Check your Strapi logs for notification processing
+4. Verify transaction history is updated correctly
+
+> 📖 **Reference**: For more details, see [Payone TransactionStatus Notification Documentation](https://docs.payone.com/integration/response-handling/transactionstatus-notification)
