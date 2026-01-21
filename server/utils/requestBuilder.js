@@ -2,38 +2,40 @@
 
 const crypto = require("crypto");
 const { normalizeCustomerId } = require("./normalize");
-const calculateKeyHash = (settings, params) => {
-  const portalKey = settings.portalKey || settings.key;
-  const portalid = String(settings.portalid || "");
-  const aid = String(settings.aid || "");
-  const mode = String(settings.mode || "test");
 
-  const requestType = params.request || "";
+// keept for fallback
+// const calculateKeyHash = (settings, params) => {
+//   const portalKey = settings.portalKey || settings.key;
+//   const portalid = String(settings.portalid || "");
+//   const aid = String(settings.aid || "");
+//   const mode = String(settings.mode || "test");
 
-  // For Capture and Refund operations
-  if (requestType === "capture" || requestType === "refund") {
-    const txid = String(params.txid || "");
-    const sequencenumber = String(params.sequencenumber || "");
-    const amount = String(params.amount || "");
-    const currency = String(params.currency || "EUR");
+//   const requestType = params.request || "";
 
-    const hashString = `${portalid}${aid}${txid}${sequencenumber}${amount}${currency}${mode}${portalKey}`;
-    return crypto.createHash("md5").update(hashString).digest("hex");
-  }
+//   // For Capture and Refund operations
+//   if (requestType === "capture" || requestType === "refund") {
+//     const txid = String(params.txid || "");
+//     const sequencenumber = String(params.sequencenumber || "");
+//     const amount = String(params.amount || "");
+//     const currency = String(params.currency || "EUR");
 
-  // For Preauthorization and Authorization operations
-  if (requestType === "preauthorization" || requestType === "authorization") {
-    const amount = String(params.amount || "");
-    const currency = String(params.currency || "EUR");
-    const reference = String(params.reference || "");
+//     const hashString = `${portalid}${aid}${txid}${sequencenumber}${amount}${currency}${mode}${portalKey}`;
+//     return crypto.createHash("md5").update(hashString).digest("hex");
+//   }
 
-    const hashString = `${portalid}${aid}${amount}${currency}${reference}${mode}${portalKey}`;
-    return crypto.createHash("md5").update(hashString).digest("hex");
-  }
+//   // For Preauthorization and Authorization operations
+//   if (requestType === "preauthorization" || requestType === "authorization") {
+//     const amount = String(params.amount || "");
+//     const currency = String(params.currency || "EUR");
+//     const reference = String(params.reference || "");
 
-  const hashString = `${portalid}${aid}${mode}${portalKey}`;
-  return crypto.createHash("md5").update(hashString).digest("hex");
-};
+//     const hashString = `${portalid}${aid}${amount}${currency}${reference}${mode}${portalKey}`;
+//     return crypto.createHash("md5").update(hashString).digest("hex");
+//   }
+
+//   const hashString = `${portalid}${aid}${mode}${portalKey}`;
+//   return crypto.createHash("md5").update(hashString).digest("hex");
+// };
 
 const buildClientRequestParams = (settings, params, logger = null) => {
   const requestParams = {
@@ -51,7 +53,10 @@ const buildClientRequestParams = (settings, params, logger = null) => {
     logger
   );
 
-  requestParams.key = calculateKeyHash(settings, requestParams);
+  requestParams.key = crypto
+    .createHash("md5")
+    .update(settings.portalKey || settings.key)
+    .digest("hex");
 
   const isCreditCard = requestParams.clearingtype === "cc";
   const enable3DSecure = settings.enable3DSecure !== false;
