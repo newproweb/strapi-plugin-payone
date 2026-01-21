@@ -137,7 +137,6 @@ const useSettings = () => {
     setTestResult(null);
     try {
       const response = await testConnection();
-      console.log("response in handleTestConnection:", response.data);
       if (response.data && response.data.success) {
         setTestResult(response.data);
         toggleNotification({
