@@ -1553,3 +1553,67 @@ For wallet payments (PayPal, Google Pay, Apple Pay), you can specify:
 
 - `capturemode: "full"`: Capture the entire preauthorized amount
 - `capturemode: "partial"`: Capture less than the preauthorized amount
+
+## 📢 TransactionStatus Notifications
+
+The Payone platform provides an asynchronous way of notifying your system of changes to a transaction. These notifications are called "TransactionStatus" and are automatically handled by this plugin.
+
+### What are TransactionStatus Notifications?
+
+TransactionStatus notifications are POST requests sent from Payone's servers to your endpoint when transaction status changes occur. This is especially important for:
+
+- **Redirect Payment Methods**: Verifying that payments were actually completed (prevents fraud)
+- **Chargeback Processes**: Being notified when customers initiate chargebacks
+- **Real-time Tracking**: Keeping your system updated with the latest transaction status
+
+### How It Works
+
+1. **Payone sends notification** → Your Strapi endpoint receives POST request
+2. **Plugin verifies request** → Checks IP address, User-Agent, and hash signature
+3. **Plugin processes notification** → Updates transaction history automatically
+4. **Plugin responds** → Returns `TSOK` to confirm receipt
+
+### Endpoint Configuration
+
+The plugin automatically provides the TransactionStatus endpoint at:
+
+**URL**: `POST /api/strapi-plugin-payone-provider/transaction-status`
+
+**No authentication required** - The endpoint is secured by:
+
+- IP address verification (only Payone IPs allowed)
+- User-Agent verification (must be "PAYONE FinanceGate")
+- Hash signature verification (MD5 hash of transaction data)
+
+### PMI Configuration
+
+You need to configure this endpoint in your Payone Merchant Interface (PMI):
+
+1. Log into your Payone Merchant Interface (PMI)
+2. Navigate to **Configuration** → **Payment Portals** → **[Your Portal]**
+3. Find the **TransactionStatus Endpoint** setting
+4. Enter your endpoint URL: `https://yourdomain.com/api/strapi-plugin-payone-provider/transaction-status`
+5. Save the configuration
+
+> ⚠️ **Important**: The endpoint must be accessible via HTTPS. Payone will not send notifications to HTTP endpoints.
+
+### Security Features
+
+The plugin automatically verifies:
+
+1. **IP Address**: Only accepts requests from Payone's IP ranges:
+
+   - `185.60.20.0/24`
+   - `54.246.203.105`
+
+2. **User-Agent**: Must be exactly `"PAYONE FinanceGate"`
+
+3. **Hash Signature**: Verifies MD5 hash using your Portal Key:
+
+   ```
+   MD5(portalid + aid + txid + sequencenumber + price + currency + mode + key)
+   ```
+
+4. **Credentials**: Verifies that `portalid` and `aid` match your configured settings
+
+> 📖 **Reference**: For more details, see [Payone TransactionStatus Notification Documentation](https://docs.payone.com/integration/response-handling/transactionstatus-notification)

@@ -24,6 +24,28 @@ const AuthorizationForm = ({
   setCardexpiredate,
   cardcvc2,
   setCardcvc2,
+  firstname,
+  setFirstname,
+  lastname,
+  setLastname,
+  email,
+  setEmail,
+  telephonenumber,
+  setTelephonenumber,
+  gender,
+  setGender,
+  salutation,
+  setSalutation,
+  country,
+  setCountry,
+  currency,
+  setCurrency,
+  city,
+  setCity,
+  street,
+  setStreet,
+  zip,
+  setZip,
 }) => {
   const handleGooglePayToken = (token, paymentData) => {
     if (!token) {
@@ -74,6 +96,29 @@ const AuthorizationForm = ({
         setPaymentAmount={setPaymentAmount}
         authReference={authReference}
         setAuthReference={setAuthReference}
+        firstname={firstname}
+        setFirstname={setFirstname}
+        lastname={lastname}
+        setLastname={setLastname}
+        email={email}
+        setEmail={setEmail}
+        telephonenumber={telephonenumber}
+        setTelephonenumber={setTelephonenumber}
+        gender={gender}
+        setGender={setGender}
+        salutation={salutation}
+        setSalutation={setSalutation}
+        country={country}
+        setCountry={setCountry}
+        currency={currency}
+        setCurrency={setCurrency}
+        city={city}
+        setCity={setCity}
+        street={street}
+        setStreet={setStreet}
+        zip={zip}
+        setZip={setZip}
+        paymentMethod={paymentMethod}
       />
 
       {paymentMethod === "cc" && settings?.enable3DSecure && (
@@ -110,4 +155,3 @@ const AuthorizationForm = ({
 };
 
 export default AuthorizationForm;
-

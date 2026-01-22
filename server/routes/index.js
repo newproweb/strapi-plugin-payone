@@ -162,6 +162,16 @@ module.exports = {
           auth: false
         }
       },
+
+      {
+        method: "POST",
+        path: "/transaction-status",
+        handler: "payone.handleTransactionStatus",
+        config: {
+          policies: ["plugin::strapi-plugin-payone-provider.is-payone-notification"],
+          auth: false
+        }
+      },
     ]
   }
 };

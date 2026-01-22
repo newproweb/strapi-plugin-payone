@@ -7,13 +7,13 @@ import {
   AccordionToggle,
   AccordionContent,
 } from "@strapi/design-system";
-import PaymentMethodSelector from "./paymentActions/PaymentMethodSelector";
-import PreauthorizationForm from "./paymentActions/preauthorization/PreauthorizationForm";
-import AuthorizationForm from "./paymentActions/authorization/AuthorizationForm";
-import CaptureForm from "./paymentActions/CaptureForm";
-import RefundForm from "./paymentActions/RefundForm";
-import PaymentResult from "./paymentActions/PaymentResult";
-import ApplePayPanel from "./paymentActions/ApplePayPanel";
+import PaymentMethodSelector from "./PaymentMethodSelector";
+import PreauthorizationForm from "./preauthorization/PreauthorizationForm";
+import AuthorizationForm from "./authorization/AuthorizationForm";
+import CaptureForm from "./CaptureForm";
+import RefundForm from "./RefundForm";
+import PaymentResult from "./PaymentResult";
+import ApplePayPanel from "./ApplePayPanel";
 
 const PaymentActionsPanel = ({
   paymentActions,
@@ -92,6 +92,28 @@ const PaymentActionsPanel = ({
         setCardcvc2={paymentActions.setCardcvc2}
         onNavigateToConfig={onNavigateToConfig}
         isLiveMode={isLiveMode}
+        firstname={paymentActions.firstname}
+        setFirstname={paymentActions.setFirstname}
+        lastname={paymentActions.lastname}
+        setLastname={paymentActions.setLastname}
+        email={paymentActions.email}
+        setEmail={paymentActions.setEmail}
+        telephonenumber={paymentActions.telephonenumber}
+        setTelephonenumber={paymentActions.setTelephonenumber}
+        gender={paymentActions.gender}
+        setGender={paymentActions.setGender}
+        salutation={paymentActions.salutation}
+        setSalutation={paymentActions.setSalutation}
+        country={paymentActions.country}
+        setCountry={paymentActions.setCountry}
+        currency={paymentActions.currency}
+        setCurrency={paymentActions.setCurrency}
+        city={paymentActions.city}
+        setCity={paymentActions.setCity}
+        street={paymentActions.street}
+        setStreet={paymentActions.setStreet}
+        zip={paymentActions.zip}
+        setZip={paymentActions.setZip}
       />
     );
   }
@@ -173,6 +195,28 @@ const PaymentActionsPanel = ({
                 cardcvc2={paymentActions.cardcvc2}
                 setCardcvc2={paymentActions.setCardcvc2}
                 isLiveMode={isLiveMode}
+                firstname={paymentActions.firstname}
+                setFirstname={paymentActions.setFirstname}
+                lastname={paymentActions.lastname}
+                setLastname={paymentActions.setLastname}
+                email={paymentActions.email}
+                setEmail={paymentActions.setEmail}
+                telephonenumber={paymentActions.telephonenumber}
+                setTelephonenumber={paymentActions.setTelephonenumber}
+                gender={paymentActions.gender}
+                setGender={paymentActions.setGender}
+                salutation={paymentActions.salutation}
+                setSalutation={paymentActions.setSalutation}
+                country={paymentActions.country}
+                setCountry={paymentActions.setCountry}
+                currency={paymentActions.currency}
+                setCurrency={paymentActions.setCurrency}
+                city={paymentActions.city}
+                setCity={paymentActions.setCity}
+                street={paymentActions.street}
+                setStreet={paymentActions.setStreet}
+                zip={paymentActions.zip}
+                setZip={paymentActions.setZip}
               />
             </Box>
           </AccordionContent>
@@ -205,6 +249,28 @@ const PaymentActionsPanel = ({
                 setCardexpiredate={paymentActions.setCardexpiredate}
                 cardcvc2={paymentActions.cardcvc2}
                 setCardcvc2={paymentActions.setCardcvc2}
+                firstname={paymentActions.firstname}
+                setFirstname={paymentActions.setFirstname}
+                lastname={paymentActions.lastname}
+                setLastname={paymentActions.setLastname}
+                email={paymentActions.email}
+                setEmail={paymentActions.setEmail}
+                telephonenumber={paymentActions.telephonenumber}
+                setTelephonenumber={paymentActions.setTelephonenumber}
+                gender={paymentActions.gender}
+                setGender={paymentActions.setGender}
+                salutation={paymentActions.salutation}
+                setSalutation={paymentActions.setSalutation}
+                country={paymentActions.country}
+                setCountry={paymentActions.setCountry}
+                currency={paymentActions.currency}
+                setCurrency={paymentActions.setCurrency}
+                city={paymentActions.city}
+                setCity={paymentActions.setCity}
+                street={paymentActions.street}
+                setStreet={paymentActions.setStreet}
+                zip={paymentActions.zip}
+                setZip={paymentActions.setZip}
               />
             </Box>
           </AccordionContent>
@@ -228,6 +294,15 @@ const PaymentActionsPanel = ({
                 setPaymentAmount={paymentActions.setPaymentAmount}
                 captureTxid={paymentActions.captureTxid}
                 setCaptureTxid={paymentActions.setCaptureTxid}
+                captureCurrency={paymentActions.captureCurrency}
+                setCaptureCurrency={paymentActions.setCaptureCurrency}
+                captureSequenceNumber={paymentActions.captureSequenceNumber}
+                setCaptureSequenceNumber={
+                  paymentActions.setCaptureSequenceNumber
+                }
+                captureMode={paymentActions.captureMode}
+                setCaptureMode={paymentActions.setCaptureMode}
+                paymentMethod={paymentActions.paymentMethod}
                 isProcessingPayment={paymentActions.isProcessingPayment}
                 onCapture={paymentActions.handleCapture}
               />
@@ -257,6 +332,8 @@ const PaymentActionsPanel = ({
                 setRefundSequenceNumber={paymentActions.setRefundSequenceNumber}
                 refundReference={paymentActions.refundReference}
                 setRefundReference={paymentActions.setRefundReference}
+                refundCurrency={paymentActions.refundCurrency}
+                setRefundCurrency={paymentActions.setRefundCurrency}
                 isProcessingPayment={paymentActions.isProcessingPayment}
                 onRefund={paymentActions.handleRefund}
               />

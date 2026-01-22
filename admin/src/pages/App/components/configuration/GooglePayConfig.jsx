@@ -9,6 +9,7 @@ import {
   Stack,
   TextInput,
 } from "@strapi/design-system";
+import InfoTooltip from "../common/InfoTooltip";
 import {
   GOOGLE_PAY_SUPPORTED_COUNTRIES,
   GOOGLE_PAY_SUPPORTED_CURRENCIES,
@@ -75,8 +76,14 @@ const GooglePayConfig = ({ config, onConfigChange, settings }) => {
               name="countryCode"
               value={countryCode}
               onChange={handleCountryChange}
-              hint="Select the country where your business operates"
               required
+              labelAction={
+                <InfoTooltip
+                  label="Country Code"
+                  description="Select the country where your business operates"
+                  id="countryCode-tooltip"
+                />
+              }
             >
               {GOOGLE_PAY_SUPPORTED_COUNTRIES.map((country) => (
                 <Option key={country.code} value={country.code}>
@@ -92,8 +99,14 @@ const GooglePayConfig = ({ config, onConfigChange, settings }) => {
               name="currencyCode"
               value={currencyCode}
               onChange={handleCurrencyChange}
-              hint="Select the currency for transactions"
               required
+              labelAction={
+                <InfoTooltip
+                  label="Currency Code"
+                  description="Select the currency for transactions. Should match the selected country."
+                  id="currencyCode-tooltip"
+                />
+              }
             >
               {GOOGLE_PAY_SUPPORTED_CURRENCIES.map((currency) => (
                 <Option key={currency.code} value={currency.code}>
@@ -113,8 +126,14 @@ const GooglePayConfig = ({ config, onConfigChange, settings }) => {
             onChange={(e) =>
               onConfigChange({ ...config, merchantName: e.target.value })
             }
-            hint="The name of your business as it will appear in Google Pay"
             placeholder="Your Store Name"
+            endAction={
+              <InfoTooltip
+                label="Merchant Name"
+                description="The name of your business as it will appear in Google Pay"
+                id="merchantName-tooltip"
+              />
+            }
           />
         </Box>
 
@@ -233,4 +252,3 @@ const GooglePayConfig = ({ config, onConfigChange, settings }) => {
 };
 
 export default GooglePayConfig;
-

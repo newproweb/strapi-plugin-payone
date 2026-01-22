@@ -52,6 +52,26 @@ const usePaymentActions = () => {
   const [cardexpiredate, setCardexpiredate] = useState("");
   const [cardcvc2, setCardcvc2] = useState("");
 
+  // Additional customer fields
+  const [firstname, setFirstname] = useState("");
+  const [lastname, setLastname] = useState("");
+  const [email, setEmail] = useState("");
+  const [telephonenumber, setTelephonenumber] = useState("");
+  const [gender, setGender] = useState("");
+  const [salutation, setSalutation] = useState("");
+  const [country, setCountry] = useState("");
+  const [currency, setCurrency] = useState("EUR");
+  const [city, setCity] = useState("");
+  const [street, setStreet] = useState("");
+  const [zip, setZip] = useState("");
+
+  // Capture form fields
+  const [captureCurrency, setCaptureCurrency] = useState("EUR");
+  const [captureSequenceNumber, setCaptureSequenceNumber] = useState("1");
+
+  // Refund form fields
+  const [refundCurrency, setRefundCurrency] = useState("EUR");
+
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   const [paymentResult, setPaymentResult] = useState(null);
   const [paymentError, setPaymentError] = useState(null);
@@ -85,16 +105,27 @@ const usePaymentActions = () => {
         setPreauthReference(finalPreauthReference);
       }
 
-      const currency = (paymentMethod === "cc" && cardtype === "A") ? "USD" : "EUR";
+      const finalCurrency = currency || ((paymentMethod === "cc" && cardtype === "A") ? "USD" : "EUR");
 
       const baseParams = {
         amount: parseInt(paymentAmount),
-        currency: currency,
+        currency: finalCurrency,
         reference: finalPreauthReference,
         enable3DSecure: settings.enable3DSecure !== false,
         invoiceid: finalPreauthReference,
         narrative_text: "Preauthorization for order " + finalPreauthReference,
-        ...DEFAULT_PAYMENT_DATA
+        ...DEFAULT_PAYMENT_DATA,
+        // Override with form values if provided
+        ...(firstname && { firstname }),
+        ...(lastname && { lastname }),
+        ...(email && { email }),
+        ...(telephonenumber && { telephonenumber }),
+        ...(gender && { gender }),
+        ...(salutation && { salutation }),
+        ...(country && { country }),
+        ...(city && { city }),
+        ...(street && { street }),
+        ...(zip && { zip }),
       };
 
       if (paymentMethod === "cc" && settings.enable3DSecure !== false) {
@@ -210,16 +241,27 @@ const usePaymentActions = () => {
         setAuthReference(finalAuthReference);
       }
 
-      const currency = (paymentMethod === "cc" && cardtype === "A") ? "USD" : "EUR";
+      const finalCurrency = currency || ((paymentMethod === "cc" && cardtype === "A") ? "USD" : "EUR");
 
       const baseParams = {
         amount: parseInt(paymentAmount),
-        currency: currency,
+        currency: finalCurrency,
         reference: finalAuthReference,
         enable3DSecure: settings.enable3DSecure !== false,
         invoiceid: finalAuthReference,
         narrative_text: "Authorization for order " + finalAuthReference,
-        ...DEFAULT_PAYMENT_DATA
+        ...DEFAULT_PAYMENT_DATA,
+        // Override with form values if provided
+        ...(firstname && { firstname }),
+        ...(lastname && { lastname }),
+        ...(email && { email }),
+        ...(telephonenumber && { telephonenumber }),
+        ...(gender && { gender }),
+        ...(salutation && { salutation }),
+        ...(country && { country }),
+        ...(city && { city }),
+        ...(street && { street }),
+        ...(zip && { zip }),
       };
 
       if (paymentMethod === "cc" && settings.enable3DSecure !== false) {
@@ -337,9 +379,9 @@ const usePaymentActions = () => {
       const params = getCaptureParams(paymentMethod, {
         txid: captureTxid,
         amount: parseInt(paymentAmount),
-        currency: "EUR",
+        currency: captureCurrency || "EUR",
         captureMode: captureMode,
-        sequencenumber: 1
+        sequencenumber: parseInt(captureSequenceNumber) || 1
       });
 
       const result = await payoneRequests.capture(params);
@@ -363,9 +405,9 @@ const usePaymentActions = () => {
     try {
       const params = getRefundParams(paymentMethod, {
         txid: refundTxid,
-        sequencenumber: parseInt(refundSequenceNumber),
+        sequencenumber: parseInt(refundSequenceNumber) || 2,
         amount: parseInt(paymentAmount),
-        currency: "EUR",
+        currency: refundCurrency || "EUR",
         reference: refundReference || `REFUND-${Date.now()}`
       });
 
@@ -427,7 +469,41 @@ const usePaymentActions = () => {
     cardexpiredate,
     setCardexpiredate,
     cardcvc2,
-    setCardcvc2
+    setCardcvc2,
+
+    // Customer fields
+    firstname,
+    setFirstname,
+    lastname,
+    setLastname,
+    email,
+    setEmail,
+    telephonenumber,
+    setTelephonenumber,
+    gender,
+    setGender,
+    salutation,
+    setSalutation,
+    country,
+    setCountry,
+    currency,
+    setCurrency,
+    city,
+    setCity,
+    street,
+    setStreet,
+    zip,
+    setZip,
+
+    // Capture form fields
+    captureCurrency,
+    setCaptureCurrency,
+    captureSequenceNumber,
+    setCaptureSequenceNumber,
+
+    // Refund form fields
+    refundCurrency,
+    setRefundCurrency,
   };
 };
 

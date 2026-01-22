@@ -6,8 +6,9 @@ import {
   TextInput,
   Select,
   Option,
-  Link
+  Link,
 } from "@strapi/design-system";
+import InfoTooltip from "../common/InfoTooltip";
 
 // 3DS Test Cards that require redirect (challenge workflow)
 const TEST_3DS_CARDS = [
@@ -17,7 +18,7 @@ const TEST_3DS_CARDS = [
     cardpan: "4716971940353559",
     cardexpiredate: "2512",
     cardcvc2: "123",
-    description: "3DS 2.0 with challenge - Password: 12345"
+    description: "3DS 2.0 with challenge - Password: 12345",
   },
   {
     name: "Mastercard - 3DS 2.0 (Challenge)",
@@ -25,7 +26,7 @@ const TEST_3DS_CARDS = [
     cardpan: "5404127720739582",
     cardexpiredate: "2512",
     cardcvc2: "123",
-    description: "3DS 2.0 with challenge - Password: 12345"
+    description: "3DS 2.0 with challenge - Password: 12345",
   },
   // {
   //   name: "AMEX - 3DS 2.0 (Challenge)",
@@ -45,7 +46,7 @@ const CardDetailsInput = ({
   cardexpiredate,
   setCardexpiredate,
   cardcvc2,
-  setCardcvc2
+  setCardcvc2,
 }) => {
   const [selectedTestCard, setSelectedTestCard] = React.useState("");
   const isUpdatingFromTestCard = useRef(false);
@@ -57,7 +58,7 @@ const CardDetailsInput = ({
     }
 
     const matchingCard = TEST_3DS_CARDS.find(
-      card => card.cardtype === cardtype && card.cardpan === cardpan
+      (card) => card.cardtype === cardtype && card.cardpan === cardpan
     );
 
     if (matchingCard) {
@@ -76,8 +77,8 @@ const CardDetailsInput = ({
       return;
     }
 
-    const selectedCard = TEST_3DS_CARDS.find(card =>
-      `${card.cardtype}-${card.cardpan}` === value
+    const selectedCard = TEST_3DS_CARDS.find(
+      (card) => `${card.cardtype}-${card.cardpan}` === value
     );
 
     if (selectedCard) {
@@ -100,13 +101,25 @@ const CardDetailsInput = ({
             name="testCard"
             value={selectedTestCard}
             placeholder="Select a 3DS test card to auto-fill"
-            hint="These cards will trigger 3DS authentication redirect. Password: 12345"
             onChange={handleTestCardSelect}
             className="payment-input"
+            labelAction={
+              <InfoTooltip
+                label="3D Secure Test Cards"
+                description="These cards will trigger 3DS authentication redirect. Password: 12345"
+                id="testCard-tooltip"
+              />
+            }
           >
-            <Option value="">-- Select a test card --</Option>
+            <Option value="" multi={false}>
+              -- Select a test card --
+            </Option>
             {TEST_3DS_CARDS.map((card, index) => (
-              <Option key={index} value={`${card.cardtype}-${card.cardpan}`}>
+              <Option
+                key={index}
+                value={`${card.cardtype}-${card.cardpan}`}
+                multi={false}
+              >
                 {card.name} - {card.description}
               </Option>
             ))}
@@ -120,16 +133,34 @@ const CardDetailsInput = ({
             value={cardtype || ""}
             onChange={(value) => setCardtype(value)}
             required
-            hint="Select credit card type"
             className="payment-input"
             style={{ flex: 1, minWidth: "200px" }}
+            labelAction={
+              <InfoTooltip
+                label="Card Type"
+                description="Select credit card type"
+                id="cardtype-tooltip"
+              />
+            }
           >
-            <Option value="V">VISA</Option>
-            <Option value="M">Mastercard</Option>
-            <Option value="A">American Express</Option>
-            <Option value="J">JCB</Option>
-            <Option value="O">Maestro International</Option>
-            <Option value="D">Diners Club</Option>
+            <Option value="V" multi={false}>
+              VISA
+            </Option>
+            <Option value="M" multi={false}>
+              Mastercard
+            </Option>
+            <Option value="A" multi={false}>
+              American Express
+            </Option>
+            <Option value="J" multi={false}>
+              JCB
+            </Option>
+            <Option value="O" multi={false}>
+              Maestro International
+            </Option>
+            <Option value="D" multi={false}>
+              Diners Club
+            </Option>
           </Select>
 
           <TextInput
@@ -138,10 +169,16 @@ const CardDetailsInput = ({
             value={cardpan || ""}
             onChange={(e) => setCardpan(e.target.value)}
             placeholder="Enter card number"
-            hint="Credit card number (PAN)"
             required
             className="payment-input"
             style={{ flex: 2, minWidth: "300px" }}
+            endAction={
+              <InfoTooltip
+                label="Card Number"
+                description="Credit card number (PAN)"
+                id="cardpan-tooltip"
+              />
+            }
           />
         </Flex>
 
@@ -152,11 +189,17 @@ const CardDetailsInput = ({
             value={cardexpiredate || ""}
             onChange={(e) => setCardexpiredate(e.target.value)}
             placeholder="YYMM (e.g., 2512)"
-            hint="Format: YYMM (e.g., 2512 = December 2025)"
             required
             maxLength={4}
             className="payment-input"
             style={{ flex: 1, minWidth: "150px" }}
+            endAction={
+              <InfoTooltip
+                label="Expiry Date"
+                description="Format: YYMM (e.g., 2512 = December 2025)"
+                id="cardexpiredate-tooltip"
+              />
+            }
           />
 
           <TextInput
@@ -165,18 +208,37 @@ const CardDetailsInput = ({
             value={cardcvc2 || ""}
             onChange={(e) => setCardcvc2(e.target.value)}
             placeholder="123 or 1234"
-            hint={cardtype === "A" ? "4 digits for AMEX" : "3 digits for other cards"}
             required
             maxLength={4}
             className="payment-input"
             style={{ flex: 1, minWidth: "150px" }}
+            endAction={
+              <InfoTooltip
+                label="CVC/CVV"
+                description={
+                  cardtype === "A"
+                    ? "4 digits for AMEX"
+                    : "3 digits for other cards"
+                }
+                id="cardcvc2-tooltip"
+              />
+            }
           />
         </Flex>
 
         <Box paddingTop={2}>
-          <Typography variant="pi" textColor="neutral600" style={{ textAlign: "left" }}>
-            For all test card numbers (positive, negative, frictionless 3DS), 3D Secure test data, and detailed documentation, please refer to the{" "}
-            <Link href="https://docs.payone.com/security-risk-management/3d-secure#/" target="_blank" rel="noopener noreferrer">
+          <Typography
+            variant="pi"
+            textColor="neutral600"
+            style={{ textAlign: "left" }}
+          >
+            For all test card numbers (positive, negative, frictionless 3DS), 3D
+            Secure test data, and detailed documentation, please refer to the{" "}
+            <Link
+              href="https://docs.payone.com/security-risk-management/3d-secure#/"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
               Payone 3D Secure Documentation
             </Link>
             .
@@ -188,4 +250,3 @@ const CardDetailsInput = ({
 };
 
 export default CardDetailsInput;
-

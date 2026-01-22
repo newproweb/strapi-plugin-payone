@@ -9,6 +9,7 @@ import {
   Alert,
 } from "@strapi/design-system";
 import pluginId from "../../../../pluginId";
+import InfoTooltip from "../common/InfoTooltip";
 import {
   getPaymentMethodOptions,
   supportsCaptureMode,
@@ -32,7 +33,15 @@ const PaymentMethodSelector = ({
           name="paymentMethod"
           value={paymentMethod}
           onChange={(value) => setPaymentMethod(value)}
-          hint={`Current: ${getPaymentMethodDisplayName(paymentMethod)}`}
+          labelAction={
+            <InfoTooltip
+              label="Payment Method"
+              description={`Current: ${getPaymentMethodDisplayName(
+                paymentMethod
+              )}`}
+              id="paymentMethod-tooltip"
+            />
+          }
         >
           {getPaymentMethodOptions(isLiveMode).map((option) => (
             <Option key={option.value} value={option.value} multi={false}>
@@ -292,7 +301,13 @@ const PaymentMethodSelector = ({
             name="captureMode"
             value={captureMode}
             onChange={(value) => setCaptureMode(value)}
-            hint="Select capture mode for wallet payments"
+            labelAction={
+              <InfoTooltip
+                label="Capture Mode"
+                description="Select capture mode for wallet payments"
+                id="captureMode-tooltip"
+              />
+            }
           >
             {getCaptureModeOptions().map((option) => (
               <Option key={option.value} value={option.value} multi={false}>

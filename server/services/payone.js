@@ -5,7 +5,7 @@ const transactionService = require("./transactionService");
 const paymentService = require("./paymentService");
 const testConnectionService = require("./testConnectionService");
 const applePayService = require("./applePayService");
-
+const transactionStatusService = require("./transactionStatusService");
 module.exports = ({ strapi }) => ({
   // Settings
   async getSettings() {
@@ -38,6 +38,7 @@ module.exports = ({ strapi }) => ({
     return await transactionService.logTransaction(strapi, transactionData);
   },
 
+
   async getTransactionHistory({ filters = {}, pagination = {} }) {
     return await transactionService.getTransactionHistory(strapi, { filters, pagination });
   },
@@ -59,5 +60,11 @@ module.exports = ({ strapi }) => ({
 
   async initializeApplePaySession(params) {
     return await applePayService.initializeApplePaySession(strapi, params);
-  }
+  },
+
+  // TransactionStatus Notification
+  async processTransactionStatus(notificationData) {
+    return await transactionStatusService.processTransactionStatus(strapi, notificationData);
+  },
+
 });

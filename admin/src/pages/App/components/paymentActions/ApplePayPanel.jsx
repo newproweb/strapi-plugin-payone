@@ -1,7 +1,6 @@
-import React from "react";
 import { Box, Typography } from "@strapi/design-system";
 import PaymentMethodSelector from "./PaymentMethodSelector";
-import AuthorizationForm from "./AuthorizationForm";
+import AuthorizationForm from "./authorization/AuthorizationForm";
 
 const ApplePayOnlyPanel = ({
   paymentAmount,
@@ -28,6 +27,28 @@ const ApplePayOnlyPanel = ({
   cardcvc2,
   applePayToken,
   setApplePayToken,
+  firstname,
+  setFirstname,
+  lastname,
+  setLastname,
+  email,
+  setEmail,
+  telephonenumber,
+  setTelephonenumber,
+  gender,
+  setGender,
+  salutation,
+  setSalutation,
+  country,
+  setCountry,
+  currency,
+  setCurrency,
+  city,
+  setCity,
+  street,
+  setStreet,
+  zip,
+  setZip,
 }) => {
   return (
     <Box
@@ -86,7 +107,28 @@ const ApplePayOnlyPanel = ({
         setCardexpiredate={setCardexpiredate}
         cardcvc2={cardcvc2}
         setCardcvc2={setCardcvc2}
-        isLiveMode={isLiveMode}
+        firstname={firstname}
+        setFirstname={setFirstname}
+        lastname={lastname}
+        setLastname={setLastname}
+        email={email}
+        setEmail={setEmail}
+        telephonenumber={telephonenumber}
+        setTelephonenumber={setTelephonenumber}
+        gender={gender}
+        setGender={setGender}
+        salutation={salutation}
+        setSalutation={setSalutation}
+        country={country}
+        setCountry={setCountry}
+        currency={currency}
+        setCurrency={setCurrency}
+        city={city}
+        setCity={setCity}
+        street={street}
+        setStreet={setStreet}
+        zip={zip}
+        setZip={setZip}
       />
     </Box>
   );

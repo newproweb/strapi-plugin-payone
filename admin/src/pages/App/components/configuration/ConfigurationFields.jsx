@@ -15,6 +15,7 @@ import {
 import { Cog } from "@strapi/icons";
 import { useHistory } from "react-router-dom";
 import pluginId from "../../../../pluginId";
+import InfoTooltip from "../common/InfoTooltip";
 
 const ConfigurationFields = ({
   settings,
@@ -40,9 +41,9 @@ const ConfigurationFields = ({
         flexWrap: "wrap",
       }}
     >
-      <Card className="payment-card">
+      <Card className="payment-card" id="config-card-1">
         <CardBody padding={6}>
-          <Stack spacing={6}>
+          <Stack spacing={6} id="config-stack-1">
             <Flex gap={4} wrap="wrap">
               <TextInput
                 label="Account ID (aid)"
@@ -50,9 +51,15 @@ const ConfigurationFields = ({
                 value={settings.aid || ""}
                 onChange={(e) => onInputChange("aid", e.target.value)}
                 required
-                hint="Your Payone account ID"
                 className="payment-input"
                 style={{ flex: 1, minWidth: "300px" }}
+                endAction={
+                  <InfoTooltip
+                    label="Account ID"
+                    description="Your Payone account ID (aid). Found in your Payone merchant portal."
+                    id="aid-tooltip"
+                  />
+                }
               />
 
               <TextInput
@@ -61,9 +68,15 @@ const ConfigurationFields = ({
                 value={settings.portalid || ""}
                 onChange={(e) => onInputChange("portalid", e.target.value)}
                 required
-                hint="Your Payone portal ID"
                 className="payment-input"
                 style={{ flex: 1, minWidth: "300px" }}
+                endAction={
+                  <InfoTooltip
+                    label="Portal ID"
+                    description="Your Payone portal ID. Found in your Payone merchant portal."
+                    id="portalid-tooltip"
+                  />
+                }
               />
             </Flex>
 
@@ -74,9 +87,15 @@ const ConfigurationFields = ({
                 value={settings.mid || ""}
                 onChange={(e) => onInputChange("mid", e.target.value)}
                 required
-                hint="Your Payone merchant ID"
                 className="payment-input"
                 style={{ flex: 1, minWidth: "300px" }}
+                endAction={
+                  <InfoTooltip
+                    label="Merchant ID"
+                    description="Your Payone merchant ID (mid). Found in your Payone merchant portal."
+                    id="mid-tooltip"
+                  />
+                }
               />
 
               <TextInput
@@ -86,9 +105,15 @@ const ConfigurationFields = ({
                 value={settings.key || ""}
                 onChange={(e) => onInputChange("key", e.target.value)}
                 required
-                hint="Your Payone portal key (will be encrypted)"
                 className="payment-input"
                 style={{ flex: 1, minWidth: "300px" }}
+                endAction={
+                  <InfoTooltip
+                    label="Portal Key"
+                    description="Your Payone portal key (will be encrypted for security). Found in your Payone merchant portal."
+                    id="key-tooltip"
+                  />
+                }
               />
             </Flex>
 
@@ -98,9 +123,15 @@ const ConfigurationFields = ({
                 name="domainName"
                 value={settings.domainName || ""}
                 onChange={(e) => onInputChange("domainName", e.target.value)}
-                hint="Your domain name (optional)"
                 className="payment-input"
                 style={{ flex: 1, minWidth: "300px" }}
+                endAction={
+                  <InfoTooltip
+                    label="Domain Name"
+                    description="Your domain name (optional). Used for payment method configuration."
+                    id="domainName-tooltip"
+                  />
+                }
               />
 
               <TextInput
@@ -108,9 +139,15 @@ const ConfigurationFields = ({
                 name="displayName"
                 value={settings.displayName || ""}
                 onChange={(e) => onInputChange("displayName", e.target.value)}
-                hint="Display name for payment methods (optional)"
                 className="payment-input"
                 style={{ flex: 1, minWidth: "300px" }}
+                endAction={
+                  <InfoTooltip
+                    label="Display Name"
+                    description="Display name for payment methods (optional). Shown to customers during checkout."
+                    id="displayName-tooltip"
+                  />
+                }
               />
             </Flex>
 
@@ -120,12 +157,22 @@ const ConfigurationFields = ({
                 name="mode"
                 value={settings.mode || "test"}
                 onChange={(value) => onInputChange("mode", value)}
-                hint="Select the API mode"
                 className="payment-input"
                 style={{ flex: 1, minWidth: "300px" }}
+                labelAction={
+                  <InfoTooltip
+                    label="Mode"
+                    description="Select the API mode: Test for development/testing, Live for production"
+                    id="mode-tooltip"
+                  />
+                }
               >
-                <Option value="test">Test</Option>
-                <Option value="live">Live</Option>
+                <Option value="test" multi={false}>
+                  Test
+                </Option>
+                <Option value="live" multi={false}>
+                  Live
+                </Option>
               </Select>
 
               <TextInput
@@ -133,9 +180,15 @@ const ConfigurationFields = ({
                 name="api_version"
                 value={settings.api_version || "3.10"}
                 onChange={(e) => onInputChange("api_version", e.target.value)}
-                hint="Payone API version"
                 className="payment-input"
                 style={{ flex: 1, minWidth: "300px" }}
+                endAction={
+                  <InfoTooltip
+                    label="API Version"
+                    description="Payone API version (e.g., 3.10). Check Payone documentation for latest version."
+                    id="api_version-tooltip"
+                  />
+                }
               />
             </Flex>
 
@@ -152,11 +205,21 @@ const ConfigurationFields = ({
                 onChange={(value) =>
                   onInputChange("enable3DSecure", value === "yes")
                 }
-                hint="Enable 3D Secure authentication for credit card payments"
                 className="payment-input"
+                labelAction={
+                  <InfoTooltip
+                    label="Enable 3D Secure"
+                    description="Enable 3D Secure authentication for credit card payments. Required for SCA compliance in Europe."
+                    id="enable3DSecure-tooltip"
+                  />
+                }
               >
-                <Option value="yes">Enabled</Option>
-                <Option value="no">Disabled</Option>
+                <Option value="yes" multi={false}>
+                  Enabled
+                </Option>
+                <Option value="no" multi={false}>
+                  Disabled
+                </Option>
               </Select>
               <Typography variant="pi" textColor="neutral600" marginTop={1}>
                 When enabled, credit card payments will require 3D Secure
@@ -167,9 +230,9 @@ const ConfigurationFields = ({
         </CardBody>
       </Card>
 
-      <Card className="payment-card">
+      <Card className="payment-card" id="config-card-2">
         <CardBody padding={6}>
-          <Stack spacing={6}>
+          <Stack spacing={6} id="config-stack-2">
             <Box>
               <Typography
                 variant="delta"
@@ -184,7 +247,7 @@ const ConfigurationFields = ({
               </Typography>
             </Box>
 
-            <Stack spacing={4}>
+            <Stack spacing={4} id="config-stack-3">
               <Flex
                 direction="row"
                 justifyContent="space-between"

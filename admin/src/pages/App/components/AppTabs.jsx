@@ -8,7 +8,7 @@ import {
 import pluginId from "../../../pluginId";
 import ConfigurationPanel from "../components/configuration/ConfigurationPanel";
 import HistoryPanel from "../components/transaction-history/HistoryPanel";
-import PaymentActionsPanel from "./PaymentActionsPanel";
+import PaymentActionsPanel from "./paymentActions/PaymentActionsPanel";
 import DocsPanel from "./DocsPanel";
 
 const AppTabs = ({

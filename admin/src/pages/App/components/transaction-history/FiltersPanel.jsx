@@ -8,6 +8,7 @@ import {
   Typography,
 } from "@strapi/design-system";
 import { Refresh, Search } from "@strapi/icons";
+import InfoTooltip from "../common/InfoTooltip";
 
 const FiltersPanel = ({ filters, handleFiltersChange, isLoading }) => {
   const getDefaultDateFrom = () => {
@@ -46,15 +47,20 @@ const FiltersPanel = ({ filters, handleFiltersChange, isLoading }) => {
         alignItems: "end",
       }}
     >
-      <div>
         <TextInput
           label="Search"
           name="search"
           value={filters?.search || ""}
-          onChange={(e) => handleFilterChange("search", e.target.value)}
+        onChange={(e) => handleFilterChange("search", e.target.value)}
           placeholder="Search by reference or transaction ID"
+        endAction={
+          <InfoTooltip
+            label="Search"
+            description="Search by reference or transaction ID"
+            id="search-tooltip"
         />
-      </div>
+        }
+      />
 
       <SingleSelect
         name="status"
@@ -62,6 +68,13 @@ const FiltersPanel = ({ filters, handleFiltersChange, isLoading }) => {
         value={filters?.status || ""}
         onChange={(value) => handleFilterChange("status", value)}
         placeholder="All Statuses"
+        labelAction={
+          <InfoTooltip
+            label="Status"
+            description="Filter transactions by status"
+            id="status-tooltip"
+          />
+        }
       >
         <SingleSelectOption value="">All Statuses</SingleSelectOption>
         <SingleSelectOption value="APPROVED">Approved</SingleSelectOption>
@@ -78,6 +91,13 @@ const FiltersPanel = ({ filters, handleFiltersChange, isLoading }) => {
         value={filters?.request_type || ""}
         onChange={(value) => handleFilterChange("request_type", value)}
         placeholder="All Types"
+        labelAction={
+          <InfoTooltip
+            label="Request Type"
+            description="Filter by payment request type"
+            id="request_type-tooltip"
+          />
+        }
       >
         <SingleSelectOption value="">All Types</SingleSelectOption>
         <SingleSelectOption value="preauthorization">
@@ -96,6 +116,13 @@ const FiltersPanel = ({ filters, handleFiltersChange, isLoading }) => {
         value={filters?.payment_method || ""}
         onChange={(value) => handleFilterChange("payment_method", value)}
         placeholder="All Methods"
+        labelAction={
+          <InfoTooltip
+            label="Payment Method"
+            description="Filter by payment method"
+            id="payment_method-tooltip"
+          />
+        }
       >
         <SingleSelectOption value="">All Methods</SingleSelectOption>
         <SingleSelectOption value="credit_card">Credit Card</SingleSelectOption>
@@ -113,6 +140,13 @@ const FiltersPanel = ({ filters, handleFiltersChange, isLoading }) => {
         value={filters?.date_from || ""}
         onChange={(e) => handleFilterChange("date_from", e.target.value)}
         placeholder="YYYY-MM-DD"
+        endAction={
+          <InfoTooltip
+            label="Date From"
+            description="Filter transactions from this date"
+            id="date_from-tooltip"
+          />
+        }
       />
 
       <TextInput
@@ -122,6 +156,13 @@ const FiltersPanel = ({ filters, handleFiltersChange, isLoading }) => {
         value={filters?.date_to || ""}
         onChange={(e) => handleFilterChange("date_to", e.target.value)}
         placeholder="YYYY-MM-DD"
+        endAction={
+          <InfoTooltip
+            label="Date To"
+            description="Filter transactions until this date"
+            id="date_to-tooltip"
+          />
+        }
       />
 
       <Button
