@@ -38,8 +38,8 @@ module.exports = ({ strapi }) => ({
     return await transactionService.logTransaction(strapi, transactionData);
   },
 
-  async getTransactionHistory(filters = {}) {
-    return await transactionService.getTransactionHistory(strapi, filters);
+  async getTransactionHistory({ filters = {}, pagination = {} }) {
+    return await transactionService.getTransactionHistory(strapi, { filters, pagination });
   },
 
   // Test connection

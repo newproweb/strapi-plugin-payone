@@ -17,11 +17,17 @@ const getSettings = async (strapi) => {
 
 const updateSettings = async (strapi, settings) => {
   const pluginStore = getPluginStore(strapi);
+  const currentSettings = await getSettings(strapi) || {};
+  const mergedSettings = {
+    ...currentSettings,
+    ...settings
+  };
+
   await pluginStore.set({
     key: "settings",
-    value: settings
+    value: mergedSettings
   });
-  return settings;
+  return mergedSettings;
 };
 
 const validateSettings = (settings) => {

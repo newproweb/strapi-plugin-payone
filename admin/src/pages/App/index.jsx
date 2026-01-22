@@ -2,12 +2,11 @@ import React, { useState, useEffect } from "react";
 import { useLocation, useHistory } from "react-router-dom";
 import { Layout, ContentLayout, Box } from "@strapi/design-system";
 import useSettings from "../hooks/useSettings";
-import useTransactionHistory from "../hooks/useTransactionHistory";
 import usePaymentActions from "../hooks/usePaymentActions";
 import AppHeader from "./components/AppHeader";
 import AppTabs from "./components/AppTabs";
-import ApplePayConfigPanel from "./components/ApplePayConfigPanel";
-import GooglePayConfigPanel from "./components/GooglePayConfigPanel";
+import ApplePayConfigPanel from "./components/configuration/ApplePayConfigPanel";
+import GooglePayConfigPanel from "./components/configuration/GooglePayConfigPanel";
 import "./styles.css";
 import pluginId from "../../pluginId";
 
@@ -18,7 +17,6 @@ const App = () => {
 
   // Custom hooks
   const settings = useSettings();
-  const transactionHistory = useTransactionHistory();
   const paymentActions = usePaymentActions();
 
   useEffect(() => {
@@ -44,13 +42,11 @@ const App = () => {
 
   if (isApplePayConfigPage) {
     return (
-      <Layout>
+      <Layout sideNav={null}>
         <AppHeader
-          title="Apple Pay Configuration"
           activeTab={null}
           isSaving={settings.isSaving}
           onSave={settings.handleSave}
-          onBack={() => history.push(`/plugins/${pluginId}`)}
         />
         <ContentLayout>
           <Box padding={6}>
@@ -68,13 +64,11 @@ const App = () => {
 
   if (isGooglePayConfigPage) {
     return (
-      <Layout>
+      <Layout sideNav={null}>
         <AppHeader
-          title="Google Pay Configuration"
           activeTab={null}
           isSaving={settings.isSaving}
           onSave={settings.handleSave}
-          onBack={() => history.push(`/plugins/${pluginId}`)}
         />
         <ContentLayout>
           <Box padding={6}>
@@ -92,7 +86,7 @@ const App = () => {
   }
 
   return (
-    <Layout>
+    <Layout sideNav={null}>
       <AppHeader
         activeTab={activeTab}
         isSaving={settings.isSaving}
@@ -104,29 +98,11 @@ const App = () => {
             activeTab={activeTab}
             setActiveTab={setActiveTab}
             settings={settings.settings}
-            isSaving={settings.isSaving}
             isTesting={settings.isTesting}
             testResult={settings.testResult}
-            onSave={settings.handleSave}
             onTestConnection={settings.handleTestConnection}
             onInputChange={settings.handleInputChange}
             onPaymentMethodToggle={settings.handlePaymentMethodToggle}
-            filters={transactionHistory.filters}
-            onFilterChange={transactionHistory.handleFilterChange}
-            onFilterApply={transactionHistory.handleFilterApply}
-            sorting={transactionHistory.sorting}
-            onSort={transactionHistory.handleSort}
-            isLoadingHistory={transactionHistory.isLoadingHistory}
-            transactionHistory={transactionHistory.transactionHistory}
-            paginatedTransactions={transactionHistory.paginatedTransactions}
-            currentPage={transactionHistory.currentPage}
-            totalPages={transactionHistory.totalPages}
-            pageSize={transactionHistory.pageSize}
-            onRefresh={transactionHistory.loadTransactionHistory}
-            onPageChange={transactionHistory.handlePageChange}
-            onPageSizeChange={transactionHistory.handlePageSizeChange}
-            selectedTransaction={transactionHistory.selectedTransaction}
-            onTransactionSelect={transactionHistory.handleTransactionSelect}
             paymentActions={paymentActions}
             history={history}
           />

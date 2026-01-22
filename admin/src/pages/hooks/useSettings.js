@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNotification } from "@strapi/helper-plugin";
 import payoneRequests from "../utils/api";
 
@@ -11,15 +11,31 @@ const useSettings = () => {
     key: "",
     mode: "test",
     api_version: "3.10",
-    enable3DSecure: false
+    merchantName: "",
+    displayName: "",
+    domainName: "",
+    merchantIdentifier: "",
+    enable3DSecure: false,
+    enableCreditCard: false,
+    enablePayPal: false,
+    enableGooglePay: false,
+    enableApplePay: false,
+    enableSepaDirectDebit: false
   });
+
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isTesting, setIsTesting] = useState(false);
   const [testResult, setTestResult] = useState(null);
+  const saveTimeoutRef = useRef(null);
 
   useEffect(() => {
     loadSettings();
+    return () => {
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+      }
+    };
   }, []);
 
   const loadSettings = async () => {
@@ -39,6 +55,37 @@ const useSettings = () => {
 
   const handleInputChange = (field, value) => {
     setSettings((prev) => ({ ...prev, [field]: value }));
+
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current);
+    }
+
+    saveTimeoutRef.current = setTimeout(async () => {
+      let updatedSettings;
+      setSettings((prev) => {
+        updatedSettings = { ...prev };
+        return prev;
+      });
+
+      setIsSaving(true);
+      try {
+        await payoneRequests.updateSettings(updatedSettings);
+        await loadSettings();
+      } catch (error) {
+        setSettings((prev) => {
+          const previousValue = prev[field];
+          return { ...prev, [field]: previousValue };
+        });
+
+        toggleNotification({
+          type: "warning",
+          message: "Failed to update settings"
+        });
+
+      } finally {
+        setIsSaving(false);
+      }
+    }, 1000);
   };
 
   const handlePaymentMethodToggle = async (field, value) => {
@@ -90,31 +137,26 @@ const useSettings = () => {
     setTestResult(null);
     try {
       const response = await payoneRequests.testConnection();
-      if (response.data) {
-        const result = response.data;
-        setTestResult(result);
-        if (result.success !== undefined) {
-          toggleNotification({
-            type: Boolean(result.success) ? "success" : "warning",
-            message: result.message || "Test completed"
-          });
-        }
+      console.log("response test connection", response?.data, response?.data?.error?.ErrorMessage);
+      if (response?.data && response?.data?.success) {
+        setTestResult(response?.data);
+        toggleNotification({
+          type: "success",
+          message: response?.data?.message || "Test completed"
+        });
       } else {
-        throw new Error("Invalid response format from server");
+        setTestResult(response?.data);
+        toggleNotification({
+          type: "warning",
+          message: response?.data?.error?.ErrorMessage
+        });
+
+        throw new Error(response?.data?.error?.ErrorMessage);
       }
     } catch (error) {
       toggleNotification({
         type: "warning",
-        message: "Failed to test connection"
-      });
-      setTestResult({
-        success: false,
-        message:
-          "Failed to test connection. Please check your network and server logs for details.",
-        details: {
-          errorCode: "NETWORK",
-          rawResponse: error.message || "Network error"
-        }
+        message: error?.message
       });
     } finally {
       setIsTesting(false);

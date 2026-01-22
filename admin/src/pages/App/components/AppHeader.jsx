@@ -8,7 +8,8 @@ const AppHeader = ({ activeTab, isSaving, onSave }) => {
   const history = useHistory();
   const location = useLocation();
   const isApplePayConfigPage = location.pathname.includes("/apple-pay-config");
-  const isGooglePayConfigPage = location.pathname.includes("/google-pay-config");
+  const isGooglePayConfigPage =
+    location.pathname.includes("/google-pay-config");
 
   return (
     <HeaderLayout
@@ -41,7 +42,7 @@ const AppHeader = ({ activeTab, isSaving, onSave }) => {
           >
             Back to Main
           </Button>
-        ) : activeTab === 0 ? (
+        ) : activeTab === 1 ? (
           <Button
             loading={isSaving}
             onClick={onSave}

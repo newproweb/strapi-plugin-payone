@@ -68,3 +68,4 @@ const ApplePayConfigPanel = ({ settings, onInputChange, isSaving, onSave }) => {
 };
 
 export default ApplePayConfigPanel;
+

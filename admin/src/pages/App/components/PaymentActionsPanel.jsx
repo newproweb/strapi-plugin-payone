@@ -1,63 +1,49 @@
-import React from "react";
-import { Box, Flex, Typography } from "@strapi/design-system";
+import React, { useState } from "react";
+import {
+  Box,
+  Flex,
+  Typography,
+  Accordion,
+  AccordionToggle,
+  AccordionContent,
+} from "@strapi/design-system";
 import PaymentMethodSelector from "./paymentActions/PaymentMethodSelector";
-import PreauthorizationForm from "./paymentActions/PreauthorizationForm";
-import AuthorizationForm from "./paymentActions/AuthorizationForm";
+import PreauthorizationForm from "./paymentActions/preauthorization/PreauthorizationForm";
+import AuthorizationForm from "./paymentActions/authorization/AuthorizationForm";
 import CaptureForm from "./paymentActions/CaptureForm";
 import RefundForm from "./paymentActions/RefundForm";
 import PaymentResult from "./paymentActions/PaymentResult";
 import ApplePayPanel from "./paymentActions/ApplePayPanel";
 
 const PaymentActionsPanel = ({
-  paymentAmount,
-  setPaymentAmount,
-  preauthReference,
-  setPreauthReference,
-  authReference,
-  setAuthReference,
-  captureTxid,
-  setCaptureTxid,
-  refundTxid,
-  setRefundTxid,
-  refundSequenceNumber,
-  setRefundSequenceNumber,
-  refundReference,
-  setRefundReference,
-  paymentMethod,
-  setPaymentMethod,
-  captureMode,
-  setCaptureMode,
-  isProcessingPayment,
-  paymentError,
-  paymentResult,
-  onPreauthorization,
-  onAuthorization,
-  onCapture,
-  onRefund,
+  paymentActions,
   settings,
-  setGooglePayToken,
-  applePayToken,
-  setApplePayToken,
-  cardtype,
-  setCardtype,
-  cardpan,
-  setCardpan,
-  cardexpiredate,
-  setCardexpiredate,
-  cardcvc2,
-  setCardcvc2,
   onNavigateToConfig,
 }) => {
   const mode = (settings?.mode || "test").toLowerCase();
   const isLiveMode = mode === "live";
 
-  React.useEffect(() => {
-    if (isLiveMode && paymentMethod !== "apl") {
-      setPaymentMethod("apl");
-    }
-  }, [isLiveMode, paymentMethod]);
+  const [expandedAccordions, setExpandedAccordions] = useState({
+    preauthorization: false,
+    authorization: false,
+    capture: false,
+    refund: false,
+  });
 
-  if (isLiveMode && paymentMethod !== "apl") {
+  const toggleAccordion = (key) => {
+    setExpandedAccordions((prev) => ({
+      ...prev,
+      [key]: !prev[key],
+    }));
+  };
+
+  React.useEffect(() => {
+    if (isLiveMode && paymentActions.paymentMethod !== "apl") {
+      paymentActions.setPaymentMethod("apl");
+    }
+  }, [isLiveMode, paymentActions.paymentMethod]);
+
+  if (isLiveMode && paymentActions.paymentMethod !== "apl") {
     return (
       <Box
         style={{
@@ -79,31 +65,31 @@ const PaymentActionsPanel = ({
     );
   }
 
-  if (paymentMethod === "apl") {
+  if (paymentActions.paymentMethod === "apl") {
     return (
       <ApplePayPanel
-        paymentAmount={paymentAmount}
-        setPaymentAmount={setPaymentAmount}
-        authReference={authReference}
-        setAuthReference={setAuthReference}
-        isProcessingPayment={isProcessingPayment}
-        onAuthorization={onAuthorization}
-        paymentMethod={paymentMethod}
-        setPaymentMethod={setPaymentMethod}
-        captureMode={captureMode}
-        setCaptureMode={setCaptureMode}
+        paymentAmount={paymentActions.paymentAmount}
+        setPaymentAmount={paymentActions.setPaymentAmount}
+        authReference={paymentActions.authReference}
+        setAuthReference={paymentActions.setAuthReference}
+        isProcessingPayment={paymentActions.isProcessingPayment}
+        onAuthorization={paymentActions.handleAuthorization}
+        paymentMethod={paymentActions.paymentMethod}
+        setPaymentMethod={paymentActions.setPaymentMethod}
+        captureMode={paymentActions.captureMode}
+        setCaptureMode={paymentActions.setCaptureMode}
         settings={settings}
-        setGooglePayToken={setGooglePayToken}
-        applePayToken={applePayToken}
-        setApplePayToken={setApplePayToken}
-        cardtype={cardtype}
-        setCardtype={setCardtype}
-        cardpan={cardpan}
-        setCardpan={setCardpan}
-        cardexpiredate={cardexpiredate}
-        setCardexpiredate={setCardexpiredate}
-        cardcvc2={cardcvc2}
-        setCardcvc2={setCardcvc2}
+        setGooglePayToken={paymentActions.setGooglePayToken}
+        applePayToken={paymentActions.applePayToken}
+        setApplePayToken={paymentActions.setApplePayToken}
+        cardtype={paymentActions.cardtype}
+        setCardtype={paymentActions.setCardtype}
+        cardpan={paymentActions.cardpan}
+        setCardpan={paymentActions.setCardpan}
+        cardexpiredate={paymentActions.cardexpiredate}
+        setCardexpiredate={paymentActions.setCardexpiredate}
+        cardcvc2={paymentActions.cardcvc2}
+        setCardcvc2={paymentActions.setCardcvc2}
         onNavigateToConfig={onNavigateToConfig}
         isLiveMode={isLiveMode}
       />
@@ -147,122 +133,140 @@ const PaymentActionsPanel = ({
         </Box>
 
         <PaymentMethodSelector
-          paymentMethod={paymentMethod}
-          setPaymentMethod={setPaymentMethod}
-          captureMode={captureMode}
-          setCaptureMode={setCaptureMode}
+          paymentMethod={paymentActions.paymentMethod}
+          setPaymentMethod={paymentActions.setPaymentMethod}
+          captureMode={paymentActions.captureMode}
+          setCaptureMode={paymentActions.setCaptureMode}
           onNavigateToConfig={onNavigateToConfig}
-          settings={settings}
           isLiveMode={isLiveMode}
         />
 
-        <hr className="payment-divider" />
-
-        <Box
-          className="payment-form-section"
-          style={{
-            opacity: isLiveMode ? 0.5 : 1,
-            pointerEvents: isLiveMode ? "none" : "auto",
-          }}
+        <Accordion
+          expanded={expandedAccordions.preauthorization}
+          onToggle={() => toggleAccordion("preauthorization")}
         >
-          <PreauthorizationForm
-            paymentAmount={paymentAmount}
-            setPaymentAmount={setPaymentAmount}
-            preauthReference={preauthReference}
-            setPreauthReference={setPreauthReference}
-            isProcessingPayment={isProcessingPayment}
-            onPreauthorization={onPreauthorization}
-            paymentMethod={paymentMethod}
-            settings={settings}
-            setGooglePayToken={setGooglePayToken}
-            applePayToken={applePayToken}
-            setApplePayToken={setApplePayToken}
-            cardtype={cardtype}
-            setCardtype={setCardtype}
-            cardpan={cardpan}
-            setCardpan={setCardpan}
-            cardexpiredate={cardexpiredate}
-            setCardexpiredate={setCardexpiredate}
-            cardcvc2={cardcvc2}
-            setCardcvc2={setCardcvc2}
-            isLiveMode={isLiveMode}
-          />
-        </Box>
+          <AccordionToggle title="Preauthorization" />
+          <AccordionContent>
+            <Box
+              className="payment-form-section"
+              style={{
+                opacity: isLiveMode ? 0.5 : 1,
+                pointerEvents: isLiveMode ? "none" : "auto",
+              }}
+            >
+              <PreauthorizationForm
+                paymentAmount={paymentActions.paymentAmount}
+                setPaymentAmount={paymentActions.setPaymentAmount}
+                preauthReference={paymentActions.preauthReference}
+                setPreauthReference={paymentActions.setPreauthReference}
+                isProcessingPayment={paymentActions.isProcessingPayment}
+                onPreauthorization={paymentActions.handlePreauthorization}
+                paymentMethod={paymentActions.paymentMethod}
+                settings={settings}
+                setGooglePayToken={paymentActions.setGooglePayToken}
+                cardtype={paymentActions.cardtype}
+                setCardtype={paymentActions.setCardtype}
+                cardpan={paymentActions.cardpan}
+                setCardpan={paymentActions.setCardpan}
+                cardexpiredate={paymentActions.cardexpiredate}
+                setCardexpiredate={paymentActions.setCardexpiredate}
+                cardcvc2={paymentActions.cardcvc2}
+                setCardcvc2={paymentActions.setCardcvc2}
+                isLiveMode={isLiveMode}
+              />
+            </Box>
+          </AccordionContent>
+        </Accordion>
 
-        <hr className="payment-divider" />
-
-        <Box className="payment-form-section">
-          <AuthorizationForm
-            paymentAmount={paymentAmount}
-            setPaymentAmount={setPaymentAmount}
-            authReference={authReference}
-            setAuthReference={setAuthReference}
-            isProcessingPayment={isProcessingPayment}
-            onAuthorization={onAuthorization}
-            paymentMethod={paymentMethod}
-            settings={settings}
-            setGooglePayToken={setGooglePayToken}
-            applePayToken={applePayToken}
-            setApplePayToken={setApplePayToken}
-            cardtype={cardtype}
-            setCardtype={setCardtype}
-            cardpan={cardpan}
-            setCardpan={setCardpan}
-            cardexpiredate={cardexpiredate}
-            setCardexpiredate={setCardexpiredate}
-            cardcvc2={cardcvc2}
-            setCardcvc2={setCardcvc2}
-            isLiveMode={isLiveMode}
-          />
-        </Box>
-
-        <hr className="payment-divider" />
-
-        <Box
-          className="payment-form-section"
-          style={{
-            opacity: isLiveMode ? 0.5 : 1,
-            pointerEvents: isLiveMode ? "none" : "auto",
-          }}
+        <Accordion
+          expanded={expandedAccordions.authorization}
+          onToggle={() => toggleAccordion("authorization")}
         >
-          <CaptureForm
-            paymentAmount={paymentAmount}
-            setPaymentAmount={setPaymentAmount}
-            captureTxid={captureTxid}
-            setCaptureTxid={setCaptureTxid}
-            isProcessingPayment={isProcessingPayment}
-            onCapture={onCapture}
-          />
-        </Box>
+          <AccordionToggle title="Authorization" />
+          <AccordionContent>
+            <Box className="payment-form-section">
+              <AuthorizationForm
+                paymentAmount={paymentActions.paymentAmount}
+                setPaymentAmount={paymentActions.setPaymentAmount}
+                authReference={paymentActions.authReference}
+                setAuthReference={paymentActions.setAuthReference}
+                isProcessingPayment={paymentActions.isProcessingPayment}
+                onAuthorization={paymentActions.handleAuthorization}
+                paymentMethod={paymentActions.paymentMethod}
+                settings={settings}
+                setGooglePayToken={paymentActions.setGooglePayToken}
+                applePayToken={paymentActions.applePayToken}
+                setApplePayToken={paymentActions.setApplePayToken}
+                cardtype={paymentActions.cardtype}
+                setCardtype={paymentActions.setCardtype}
+                cardpan={paymentActions.cardpan}
+                setCardpan={paymentActions.setCardpan}
+                cardexpiredate={paymentActions.cardexpiredate}
+                setCardexpiredate={paymentActions.setCardexpiredate}
+                cardcvc2={paymentActions.cardcvc2}
+                setCardcvc2={paymentActions.setCardcvc2}
+              />
+            </Box>
+          </AccordionContent>
+        </Accordion>
 
-        <hr className="payment-divider" />
-
-        <Box
-          className="payment-form-section"
-          style={{
-            opacity: isLiveMode ? 0.5 : 1,
-            pointerEvents: isLiveMode ? "none" : "auto",
-          }}
+        <Accordion
+          expanded={expandedAccordions.capture}
+          onToggle={() => toggleAccordion("capture")}
         >
-          <RefundForm
-            paymentAmount={paymentAmount}
-            setPaymentAmount={setPaymentAmount}
-            refundTxid={refundTxid}
-            setRefundTxid={setRefundTxid}
-            refundSequenceNumber={refundSequenceNumber}
-            setRefundSequenceNumber={setRefundSequenceNumber}
-            refundReference={refundReference}
-            setRefundReference={setRefundReference}
-            isProcessingPayment={isProcessingPayment}
-            onRefund={onRefund}
-          />
-        </Box>
+          <AccordionToggle title="Capture" />
+          <AccordionContent>
+            <Box
+              className="payment-form-section"
+              style={{
+                opacity: isLiveMode ? 0.5 : 1,
+                pointerEvents: isLiveMode ? "none" : "auto",
+              }}
+            >
+              <CaptureForm
+                paymentAmount={paymentActions.paymentAmount}
+                setPaymentAmount={paymentActions.setPaymentAmount}
+                captureTxid={paymentActions.captureTxid}
+                setCaptureTxid={paymentActions.setCaptureTxid}
+                isProcessingPayment={paymentActions.isProcessingPayment}
+                onCapture={paymentActions.handleCapture}
+              />
+            </Box>
+          </AccordionContent>
+        </Accordion>
 
-        <hr className="payment-divider" />
+        <Accordion
+          expanded={expandedAccordions.refund}
+          onToggle={() => toggleAccordion("refund")}
+        >
+          <AccordionToggle title="Refund" />
+          <AccordionContent>
+            <Box
+              className="payment-form-section"
+              style={{
+                opacity: isLiveMode ? 0.5 : 1,
+                pointerEvents: isLiveMode ? "none" : "auto",
+              }}
+            >
+              <RefundForm
+                paymentAmount={paymentActions.paymentAmount}
+                setPaymentAmount={paymentActions.setPaymentAmount}
+                refundTxid={paymentActions.refundTxid}
+                setRefundTxid={paymentActions.setRefundTxid}
+                refundSequenceNumber={paymentActions.refundSequenceNumber}
+                setRefundSequenceNumber={paymentActions.setRefundSequenceNumber}
+                refundReference={paymentActions.refundReference}
+                setRefundReference={paymentActions.setRefundReference}
+                isProcessingPayment={paymentActions.isProcessingPayment}
+                onRefund={paymentActions.handleRefund}
+              />
+            </Box>
+          </AccordionContent>
+        </Accordion>
 
         <PaymentResult
-          paymentError={paymentError}
-          paymentResult={paymentResult}
+          paymentError={paymentActions.paymentError}
+          paymentResult={paymentActions.paymentResult}
         />
 
         <Box paddingTop={4}>

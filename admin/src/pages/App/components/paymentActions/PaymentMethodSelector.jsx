@@ -35,7 +35,7 @@ const PaymentMethodSelector = ({
           hint={`Current: ${getPaymentMethodDisplayName(paymentMethod)}`}
         >
           {getPaymentMethodOptions(isLiveMode).map((option) => (
-            <Option key={option.value} value={option.value}>
+            <Option key={option.value} value={option.value} multi={false}>
               {option.label}
             </Option>
           ))}
@@ -231,6 +231,9 @@ const PaymentMethodSelector = ({
               closeLabel="Close"
               title="⚠️ Important: Middleware Configuration Required"
               variant="warning"
+              onClose={() => {}}
+              action={null}
+              titleAs="h2"
             >
               <Typography variant="pi" marginTop={2}>
                 <strong>Google Pay requires middleware configuration</strong> to
@@ -292,7 +295,7 @@ const PaymentMethodSelector = ({
             hint="Select capture mode for wallet payments"
           >
             {getCaptureModeOptions().map((option) => (
-              <Option key={option.value} value={option.value}>
+              <Option key={option.value} value={option.value} multi={false}>
                 {option.label}
               </Option>
             ))}

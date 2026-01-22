@@ -118,9 +118,15 @@ module.exports = ({ strapi }) => ({
 
   async getTransactionHistory(ctx) {
     try {
-      const filters = ctx.query || {};
-      const history = await getPayoneService(strapi).getTransactionHistory(filters);
-      ctx.body = { data: history };
+      const { filters = {}, pagination = {} } = ctx.query || {};
+      const page = parseInt(pagination.page || "1", 10);
+      const pageSize = parseInt(pagination.pageSize || "10", 10);
+
+      const result = await getPayoneService(strapi).getTransactionHistory({
+        filters: filters || {},
+        pagination: { page, pageSize }
+      });
+      ctx.body = result
     } catch (error) {
       handleError(ctx, error);
     }

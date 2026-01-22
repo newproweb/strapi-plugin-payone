@@ -65,36 +65,32 @@ const logTransaction = async (strapi, transactionData) => {
   strapi.log.info("Transaction logged:", logEntry);
 };
 
-const getTransactionHistory = async (strapi, filters = {}) => {
-  const pluginStore = getPluginStore(strapi);
-  let transactionHistory =
-    (await pluginStore.get({ key: "transactionHistory" })) || [];
+const applyFilters = (transactions, filters = {}) => {
+  let result = [...transactions];
 
-  if (filters.search) {
-    const searchLower = filters.search.toLowerCase().trim();
-    transactionHistory = transactionHistory.filter((transaction) => {
-      const status = (transaction.status || "").toLowerCase();
-      const txid = (transaction.txid || "").toLowerCase();
-      const reference = (transaction.reference || "").toLowerCase();
-
-      return (
-        status.includes(searchLower) ||
-        txid.includes(searchLower) ||
-        reference.includes(searchLower)
-      );
+  if (filters.search && typeof filters.search === 'string' && filters.search.trim() !== '') {
+    const search = filters.search.toLowerCase().trim();
+    result = result.filter((t) => {
+      const txid = (t.txid || "").toString().toLowerCase();
+      const reference = (t.reference || "").toString().toLowerCase();
+      return txid.includes(search) || reference.includes(search);
     });
   }
 
-  if (filters.request_type) {
-    transactionHistory = transactionHistory.filter(
-      (transaction) => transaction.request_type === filters.request_type
+  if (filters.status) {
+    result = result.filter(
+      (t) => (t.status || "").toUpperCase() === filters.status.toUpperCase()
     );
   }
 
+  if (filters.request_type) {
+    result = result.filter((t) => t.request_type === filters.request_type);
+  }
+
   if (filters.payment_method) {
-    transactionHistory = transactionHistory.filter((transaction) => {
-      const clearingtype = transaction.raw_request?.clearingtype || "";
-      const wallettype = transaction.raw_request?.wallettype || "";
+    result = result.filter((t) => {
+      const clearingtype = t.raw_request?.clearingtype;
+      const wallettype = t.raw_request?.wallettype;
 
       switch (filters.payment_method) {
         case "credit_card":
@@ -102,82 +98,66 @@ const getTransactionHistory = async (strapi, filters = {}) => {
         case "paypal":
           return clearingtype === "wlt" && wallettype === "PPE";
         case "google_pay":
-          return clearingtype === "wlt" && (wallettype === "GPY" || wallettype === "GOOGLEPAY");
+          return clearingtype === "wlt" && ["GPY", "GOOGLEPAY"].includes(wallettype);
         case "apple_pay":
-          return clearingtype === "wlt" && (wallettype === "APL" || wallettype === "APPLEPAY");
+          return clearingtype === "wlt" && ["APL", "APPLEPAY"].includes(wallettype);
         case "sofort":
           return clearingtype === "sb";
         case "sepa":
           return clearingtype === "elv";
         default:
-          return false;
+          return true;
       }
     });
   }
 
   if (filters.date_from) {
-    transactionHistory = transactionHistory.filter(
-      (transaction) =>
-        new Date(transaction.timestamp) >= new Date(filters.date_from)
+    const dateFrom = new Date(filters.date_from);
+    dateFrom.setHours(0, 0, 0, 0);
+    result = result.filter(
+      (t) => new Date(t.timestamp || t.created_at) >= dateFrom
     );
   }
 
   if (filters.date_to) {
-    transactionHistory = transactionHistory.filter(
-      (transaction) =>
-        new Date(transaction.timestamp) <= new Date(filters.date_to)
+    const dateTo = new Date(filters.date_to);
+    dateTo.setHours(23, 59, 59, 999);
+    result = result.filter(
+      (t) => new Date(t.timestamp || t.created_at) <= dateTo
     );
   }
 
-  if (filters.status) {
-    transactionHistory = transactionHistory.filter(
-      (transaction) => transaction.status === filters.status
-    );
-  }
+  return result;
+};
 
-  // Apply sorting
-  if (filters.sort_by && filters.sort_order) {
-    const sortOrder = filters.sort_order === "desc" ? -1 : 1;
-    
-    transactionHistory.sort((a, b) => {
-      let aValue, bValue;
+const getTransactionHistory = async (strapi, { filters = {}, pagination = {} }) => {
+  const pluginStore = getPluginStore(strapi);
 
-      switch (filters.sort_by) {
-        case "amount":
-          aValue = a.amount || 0;
-          bValue = b.amount || 0;
-          break;
-        case "created_at":
-          aValue = new Date(a.created_at || a.timestamp || 0).getTime();
-          bValue = new Date(b.created_at || b.timestamp || 0).getTime();
-          break;
-        case "status":
-          aValue = (a.status || "").toLowerCase();
-          bValue = (b.status || "").toLowerCase();
-          break;
-        case "reference":
-          aValue = (a.reference || "").toLowerCase();
-          bValue = (b.reference || "").toLowerCase();
-          break;
-        case "method":
-          const aClearingType = a.raw_request?.clearingtype || "";
-          const bClearingType = b.raw_request?.clearingtype || "";
-          const aWalletType = a.raw_request?.wallettype || "";
-          const bWalletType = b.raw_request?.wallettype || "";
-          aValue = `${aClearingType}_${aWalletType}`.toLowerCase();
-          bValue = `${bClearingType}_${bWalletType}`.toLowerCase();
-          break;
-        default:
-          return 0;
-      }
+  let transactions =
+    (await pluginStore.get({ key: "transactionHistory" })) || [];
 
-      if (aValue < bValue) return -1 * sortOrder;
-      if (aValue > bValue) return 1 * sortOrder;
-      return 0;
-    });
-  }
+  transactions = applyFilters(transactions, filters);
+  const page = Number(pagination.page) || 1;
+  const pageSize = Number(pagination.pageSize) || 10;
 
-  return transactionHistory;
+  const total = transactions.length;
+  const pageCount = Math.max(1, Math.ceil(total / pageSize));
+
+  const validPage = Math.min(Math.max(1, page), pageCount);
+
+  const start = (validPage - 1) * pageSize;
+  const end = Math.min(start + pageSize, total);
+
+  const paginatedData = start < total ? transactions.slice(start, end) : [];
+  return {
+    data: paginatedData,
+    pagination: {
+      page: validPage,
+      pageSize,
+      pageCount,
+      total,
+    },
+  };
 };
 
 module.exports = {

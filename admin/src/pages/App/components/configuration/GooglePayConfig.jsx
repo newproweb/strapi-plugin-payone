@@ -7,6 +7,7 @@ import {
   Option,
   Checkbox,
   Stack,
+  TextInput,
 } from "@strapi/design-system";
 import {
   GOOGLE_PAY_SUPPORTED_COUNTRIES,
@@ -14,7 +15,7 @@ import {
   GOOGLE_PAY_SUPPORTED_NETWORKS,
   GOOGLE_PAY_AUTH_METHODS,
   DEFAULT_GOOGLE_PAY_CONFIG,
-} from "../../utils/googlePayConstants";
+} from "../../../utils/googlePayConstants";
 
 const GooglePayConfig = ({ config, onConfigChange, settings }) => {
   const {
@@ -105,34 +106,14 @@ const GooglePayConfig = ({ config, onConfigChange, settings }) => {
 
         {/* Merchant Name */}
         <Box>
-          <Typography
-            variant="pi"
-            fontWeight="semiBold"
-            style={{ marginLeft: "2px" }}
-          >
-            Merchant Name
-          </Typography>
-          <Typography
-            variant="pi"
-            textColor="neutral600"
-            style={{ marginLeft: "2px" }}
-          >
-            The name of your business as it will appear in Google Pay
-          </Typography>
-          <input
-            type="text"
+          <TextInput
+            name="merchantName"
+            label="Merchant Name"
             value={merchantName}
             onChange={(e) =>
               onConfigChange({ ...config, merchantName: e.target.value })
             }
-            style={{
-              width: "100%",
-              padding: "8px 12px",
-              marginTop: "8px",
-              border: "1px solid #dcdce4",
-              borderRadius: "4px",
-              fontSize: "14px",
-            }}
+            hint="The name of your business as it will appear in Google Pay"
             placeholder="Your Store Name"
           />
         </Box>
@@ -252,3 +233,4 @@ const GooglePayConfig = ({ config, onConfigChange, settings }) => {
 };
 
 export default GooglePayConfig;
+

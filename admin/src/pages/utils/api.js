@@ -15,14 +15,42 @@ const payoneRequests = {
     });
   },
 
-  getTransactionHistory: (params = {}) => {
-    const queryString = new URLSearchParams(params).toString();
-    return request(
+  getTransactionHistory: async (params = {}) => {
+    const queryParams = new URLSearchParams();
+
+    if (params.filters) {
+      Object.keys(params.filters).forEach((key) => {
+        const value = params.filters[key];
+        if (value !== undefined && value !== null && value !== '') {
+          queryParams.append(`filters[${key}]`, String(value));
+        }
+      });
+    }
+
+    if (params.pagination) {
+      if (params.pagination.page) {
+        queryParams.append('pagination[page]', String(params.pagination.page));
+      }
+      if (params.pagination.pageSize) {
+        queryParams.append('pagination[pageSize]', String(params.pagination.pageSize));
+      }
+    }
+
+    if (params.sort_by) {
+      queryParams.append('sort_by', String(params.sort_by));
+    }
+    if (params.sort_order) {
+      queryParams.append('sort_order', String(params.sort_order));
+    }
+
+    const queryString = queryParams.toString();
+    const response = await request(
       `/${pluginId}/transaction-history${queryString ? `?${queryString}` : ""}`,
       {
         method: "GET"
       }
     );
+    return response;
   },
 
   testConnection: () => {
