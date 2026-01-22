@@ -53,7 +53,7 @@ const TransactionHistoryTableFilters = ({
           <Option value="PENDING">PENDING</Option>
           <Option value="ERROR">ERROR</Option>
           <Option value="CANCELLED">CANCELLED</Option>
-          <Option value="REDIRECTED">REDIRECTED</Option>
+          <Option value="REDIRECT">REDIRECT</Option>
           <Option value="CREATED">CREATED</Option>
         </Select>
         <Select

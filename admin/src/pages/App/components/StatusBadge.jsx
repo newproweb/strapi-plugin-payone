@@ -10,7 +10,7 @@ const StatusBadge = ({ status, transaction }) => {
     PENDING: "warning200",
     ERROR: "danger200",
     CANCELLED: "warning100",
-    REDIRECTED: "success100",
+    REDIRECT: "success100",
     CREATED: "success100"
   };
 
