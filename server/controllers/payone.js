@@ -118,13 +118,15 @@ module.exports = ({ strapi }) => ({
 
   async getTransactionHistory(ctx) {
     try {
-      const { filters = {}, pagination = {} } = ctx.query || {};
+      const { filters = {}, pagination = {}, sort_by, sort_order } = ctx.query || {};
       const page = parseInt(pagination.page || "1", 10);
       const pageSize = parseInt(pagination.pageSize || "10", 10);
 
       const result = await getPayoneService(strapi).getTransactionHistory({
         filters: filters || {},
-        pagination: { page, pageSize }
+        pagination: { page, pageSize },
+        sort_by: sort_by || undefined,
+        sort_order: sort_order || undefined,
       });
       ctx.body = result
     } catch (error) {

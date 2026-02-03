@@ -1,7 +1,7 @@
 import React from "react";
 import { Box, Button, Flex, Typography, Tr, Td } from "@strapi/design-system";
 import { Table } from "@strapi/helper-plugin";
-import { ChevronDown, ChevronUp } from "@strapi/icons";
+import { ChevronDown, ChevronUp, ArrowUp, ArrowDown } from "@strapi/icons";
 
 import StatusBadge from "../StatusBadge";
 import FiltersPanel from "./FiltersPanel";
@@ -23,19 +23,49 @@ const TransactionTable = () => {
     handleFiltersChange,
     handleTransactionSelect,
     pagination,
+    sort,
+    handleSort,
   } = useTransactionHistory();
 
   const headers = [
-    { name: "txid", label: "TxId" },
-    { name: "reference", label: "Reference" },
-    { name: "amount", label: "Amount" },
-    { name: "paymentMethod", label: "Payment Method" },
-    { name: "type", label: "Type" },
-    { name: "status", label: "Status" },
-    { name: "created_at", label: "Created At" },
-    { name: "updated_at", label: "Updated At" },
-    { name: "details", label: "Details" },
+    { name: "txid", label: "TxId", sortKey: "txid", sortable: true },
+    { name: "reference", label: "Reference", sortKey: "reference", sortable: true },
+    { name: "amount", label: "Amount", sortKey: "amount", sortable: true },
+    { name: "paymentMethod", label: "Payment Method", sortKey: null, sortable: false },
+    { name: "type", label: "Type", sortKey: "request_type", sortable: true },
+    { name: "status", label: "Status", sortKey: "status", sortable: true },
+    { name: "created_at", label: "Created At", sortKey: "createdAt", sortable: true },
+    { name: "updated_at", label: "Updated At", sortKey: "updatedAt", sortable: true },
+    { name: "details", label: "Details", sortKey: null, sortable: false },
   ];
+
+  const renderHeaderLabel = (header) => {
+    const isSorted = header.sortKey && sort.sort_by === header.sortKey;
+    const SortIcon = isSorted && sort.sort_order === "asc" ? ArrowUp : ArrowDown;
+
+    if (!header.sortable || !header.sortKey) {
+      return header.label;
+    }
+
+    return (
+      <Flex
+        alignItems="center"
+        gap={1}
+        onClick={() => handleSort(header.sortKey)}
+        style={{ cursor: "pointer", userSelect: "none" }}
+        title={`Sort by ${header.label}`}
+      >
+        <Typography variant="sigma" textColor="neutral600">
+          {header.label}
+        </Typography>
+        {isSorted ? (
+          <SortIcon width={12} height={12} />
+        ) : (
+          <Box width={12} height={12} aria-hidden />
+        )}
+      </Flex>
+    );
+  };
 
   return (
     <Flex direction="column" alignItems="stretch" gap={4} minHeight={"800px"}>
@@ -56,9 +86,9 @@ const TransactionTable = () => {
               {headers.map((header) => (
                 <Table.HeaderCell
                   fieldSchemaType="custom"
-                  isSortable={true}
+                  isSortable={header.sortable}
                   key={header.name}
-                  label={header.label}
+                  label={renderHeaderLabel(header)}
                   name={header.name}
                 />
               ))}
@@ -122,12 +152,12 @@ const TransactionTable = () => {
                         </Td>
                         <Td>
                           <Typography variant="pi" textColor="neutral600">
-                            {formatDate(transaction.created_at)}
+                            {formatDate(transaction.createdAt ?? transaction.created_at)}
                           </Typography>
                         </Td>
                         <Td>
                           <Typography variant="pi" textColor="neutral600">
-                            {formatDate(transaction.updated_at)}
+                            {formatDate(transaction.updatedAt ?? transaction.updated_at)}
                           </Typography>
                         </Td>
                         <Td>

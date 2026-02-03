@@ -8,13 +8,14 @@ const controllers = require("./controllers");
 const routes = require("./routes");
 const services = require("./services");
 const policies = require("./policies");
-
+const contentTypes = require("./content-types");
 module.exports = {
   register,
   bootstrap,
   destroy,
   config,
   controllers,
+  contentTypes,
   routes,
   services,
   policies

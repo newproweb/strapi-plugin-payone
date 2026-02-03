@@ -39,8 +39,13 @@ module.exports = ({ strapi }) => ({
   },
 
 
-  async getTransactionHistory({ filters = {}, pagination = {} }) {
-    return await transactionService.getTransactionHistory(strapi, { filters, pagination });
+  async getTransactionHistory({ filters = {}, pagination = {}, sort_by = "createdAt", sort_order = "desc" } = {}) {
+    return await transactionService.getTransactionHistory(strapi, {
+      filters,
+      pagination,
+      sort_by,
+      sort_order,
+    });
   },
 
   // Test connection

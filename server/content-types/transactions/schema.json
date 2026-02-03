@@ -1,0 +1,87 @@
+{
+  "kind": "collectionType",
+  "collectionName": "transactions",
+  "info": {
+    "singularName": "transaction",
+    "pluralName": "transactions",
+    "displayName": "Transaction"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {
+    "content-manager": {
+      "visible": false
+    },
+    "content-type-builder": {
+      "visible": false
+    }
+  },
+  "attributes": {
+    "txid": {
+      "type": "string",
+      "required": false,
+      "default": "NO TXID"
+    },
+    "reference": {
+      "type": "string",
+      "required": false,
+      "default": "NO REFERENCE"
+    },
+    "invoiceid": {
+      "type": "string",
+      "required": false,
+      "default": "NO INVOICE ID"
+    },
+    "amount": {
+      "type": "string",
+      "required": false,
+      "default": "0"
+    },
+    "currency": {
+      "type": "string",
+      "required": false,
+      "default": "EUR"
+    },
+    "status": {
+      "type": "string",
+      "required": false,
+      "default": "unknown"
+    },
+    "error_code": {
+      "type": "string",
+      "required": false,
+      "default": "NO ERROR CODE"
+    },
+    "request_type": {
+      "type": "string",
+      "required": false,
+      "default": "unknown"
+    },
+    "error_message": {
+      "type": "string",
+      "required": false,
+      "default": "NO ERROR MESSAGE"
+    },
+    "customer_message": {
+      "type": "string",
+      "required": false,
+      "default": "NO CUSTOMER MESSAGE"
+    },
+    "body": {
+      "type": "json",
+      "required": false,
+      "default": {}
+    },
+    "raw_request": {
+      "type": "json",
+      "required": false,
+      "default": {}
+    },
+    "raw_response": {
+      "type": "json",
+      "required": false,
+      "default": {}
+    }
+  }
+}

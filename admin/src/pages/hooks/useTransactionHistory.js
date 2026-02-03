@@ -24,10 +24,12 @@ const useTransactionHistory = () => {
 
   const getQueryParams = () => {
     const searchParams = new URLSearchParams(location.search);
-    const page = parseInt(searchParams.get('page') || '1', 10);
-    const pageSize = parseInt(searchParams.get('pageSize') || String(PAGE_SIZE), 10);
+    const page = parseInt(searchParams.get("page") || "1", 10);
+    const pageSize = parseInt(searchParams.get("pageSize") || String(PAGE_SIZE), 10);
+    const sort_by = searchParams.get("sort_by") || "createdAt";
+    const sort_order = searchParams.get("sort_order") || "desc";
 
-    return { page, pageSize };
+    return { page, pageSize, sort_by, sort_order };
   };
 
   const [filters, setFilters] = useState({
@@ -47,6 +49,11 @@ const useTransactionHistory = () => {
     total: 0,
   });
 
+  const [sort, setSort] = useState({
+    sort_by: initialQueryParams.sort_by,
+    sort_order: initialQueryParams.sort_order,
+  });
+
   const [transactionHistory, setTransactionHistory] = useState([]);
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
   const [selectedTransaction, setSelectedTransaction] = useState(null);
@@ -56,7 +63,9 @@ const useTransactionHistory = () => {
     try {
       const response = await payoneRequests.getTransactionHistory({
         filters,
-        pagination
+        pagination,
+        sort_by: sort.sort_by,
+        sort_order: sort.sort_order,
       });
 
       if (response && response.data && response.pagination) {
@@ -94,6 +103,7 @@ const useTransactionHistory = () => {
       page: params.page,
       pageSize: params.pageSize,
     }));
+    setSort({ sort_by: params.sort_by, sort_order: params.sort_order });
   }, [location.search]);
 
   useEffect(() => {
@@ -107,6 +117,8 @@ const useTransactionHistory = () => {
     filters.date_to,
     pagination.page,
     pagination.pageSize,
+    sort.sort_by,
+    sort.sort_order,
   ]);
 
   const handleTransactionSelect = (transaction) => {
@@ -135,11 +147,21 @@ const useTransactionHistory = () => {
         ...prev,
         ...newFilters,
       }));
-      // Reset to first page when filters change
       const updatedQuery = new URLSearchParams(location.search);
-      updatedQuery.set('page', '1');
+      updatedQuery.set("page", "1");
       history.push({ search: updatedQuery.toString() });
     }
+  };
+
+  const handleSort = (sortBy) => {
+    const nextOrder =
+      sort.sort_by === sortBy && sort.sort_order === "asc" ? "desc" : "asc";
+    setSort({ sort_by: sortBy, sort_order: nextOrder });
+    const updatedQuery = new URLSearchParams(location.search);
+    updatedQuery.set("sort_by", sortBy);
+    updatedQuery.set("sort_order", nextOrder);
+    updatedQuery.set("page", "1");
+    history.push({ search: updatedQuery.toString() });
   };
 
   useEffect(() => {
@@ -156,6 +178,8 @@ const useTransactionHistory = () => {
     handleFiltersChange,
     pagination,
     handlePaginationChange,
+    sort,
+    handleSort,
   };
 };
 

@@ -139,7 +139,7 @@ const TransactionDetails = ({ transaction }) => {
         </Typography>
         <Box marginTop={4}>
           <JsonView
-            value={transaction?.body}
+            value={transaction?.body  || transaction?.raw_request || {}}
             style={githubDarkTheme}
             displayDataTypes={false}
             enableClipboard

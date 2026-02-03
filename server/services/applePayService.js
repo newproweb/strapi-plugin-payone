@@ -174,8 +174,6 @@ const validateApplePayMerchant = async (strapi, params) => {
 
     const sessionResponse = await initializeApplePaySession(strapi, params);
 
-    // Extract add_paydata[applepay_payment_session] from response
-    // Payone returns this in URL-encoded format: add_paydata[applepay_payment_session]=BASE64_STRING
     const applePaySessionBase64 =
       sessionResponse["add_paydata[applepay_payment_session]"] ||
       sessionResponse["add_paydata_applepay_payment_session"] ||
