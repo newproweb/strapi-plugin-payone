@@ -14,7 +14,13 @@ module.exports = {
       merchantName: "",
       displayName: "",
       domainName: "",
-      merchantIdentifier: ""
+      merchantIdentifier: "",
+      enable3DSecure: false,
+      enableCreditCard: false,
+      enablePayPal: false,
+      enableGooglePay: false,
+      enableApplePay: false,
+      enableSepaDirectDebit: false
     }
   },
   validator(config) {

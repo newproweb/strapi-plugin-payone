@@ -258,19 +258,20 @@ module.exports = ({ strapi }) => ({
 
   async handleTransactionStatus(ctx) {
     try {
-      const notificationData = ctx.request.body || {};
-      await getPayoneService(strapi).processTransactionStatus(notificationData);
-
-      ctx.status = 200;
-      ctx.body = "TSOK";
-      ctx.type = "text/plain";
-      console.log(`[Payone TransactionStatus] Responded TSOK`);
+      if (!ctx.state.payoneAllowed) {
+        console.log("[Payone] Notification ignored (policy failed)");
+      } else {
+        const notificationData = ctx.request.body || {};
+        await getPayoneService(strapi).processTransactionStatus(notificationData);
+      }
     } catch (error) {
-      console.log("[Payone TransactionStatus] Error handling notification:", error);
-      ctx.status = 200;
-      ctx.body = "TSOK";
-      ctx.type = "text/plain";
+      console.log("[Payone TransactionStatus] Error:", error);
     }
+
+    ctx.status = 200;
+    ctx.body = "TSOK";
+    ctx.type = "text/plain";
   }
+
 
 });

@@ -1,30 +1,19 @@
-"use strict";
-
-module.exports = async (ctx, config, { strapi }) => {
+module.exports = async (ctx) => {
   const { request } = ctx;
-  const userAgent = request.header["user-agent"] || request.header["User-Agent"] || "";
-  const clientIp = request.ip || request.connection?.remoteAddress || "";
 
-  if (userAgent !== "PAYONE FinanceGate") {
-    console.log(`[Payone TransactionStatus] Invalid User-Agent: ${userAgent}, IP: ${clientIp}`);
-    return false;
-  }
+  const userAgent = request.headers["user-agent"] || "";
+  const clientIp =
+    request.headers["x-payone-client-ip"]?.trim() ||
+    request.headers["x-forwarded-for"]?.split(",")[0]?.trim() ||
+    request.ip ||
+    "";
 
+  const isValid = userAgent === "PAYONE FinanceGate" && (clientIp.startsWith("185.60.20.") || clientIp === "54.246.203.105");
 
-  const isValidIp = (ip) => {
-    if (ip.startsWith("185.60.20.")) {
-      return true;
-    }
+  ctx.state.payoneAllowed = isValid;
 
-    if (ip === "54.246.203.105") {
-      return true;
-    }
-    return false;
-  };
-
-  if (!isValidIp(clientIp)) {
-    console.log(`[Payone TransactionStatus] Invalid IP address: ${clientIp}, User-Agent: ${userAgent}`);
-    return false;
+  if (!isValid) {
+    console.log("[Payone] Policy failed", { userAgent, clientIp });
   }
 
   return true;
