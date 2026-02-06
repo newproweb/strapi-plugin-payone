@@ -31,8 +31,9 @@ export const formatDate = (dateString) => {
 };
 
 export const getPaymentMethodName = (clearingtype, wallettype) => {
+
   switch (clearingtype) {
-    case "cc":
+    case "cc" || "card" | "c":
       return "Credit Card";
     case "sb":
       return "Online Banking";

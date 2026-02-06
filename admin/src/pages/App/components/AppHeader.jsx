@@ -26,7 +26,7 @@ const AppHeader = ({ activeTab, isSaving, onSave, title, onBack }) => {
           >
             Back to Main
           </Button>
-        ) : activeTab === 1 ? (
+        ) : activeTab === 2 ? (
           <Button
             loading={isSaving}
             onClick={onSave}

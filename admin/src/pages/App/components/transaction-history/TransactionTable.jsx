@@ -11,6 +11,7 @@ import TransactionDetails from "./details/TransactionDetails";
 import FiltersPanel from "./FiltersPanel";
 import useTransactionHistory from "../../../hooks/useTransactionHistory";
 import StatusBadge from "../StatusBadge";
+
 const TransactionTable = () => {
   const {
     transactions,
@@ -87,8 +88,8 @@ const TransactionTable = () => {
                         <Table.Cell>
                           <Typography variant="pi">
                             {getPaymentMethodName(
-                              transaction.raw_request?.clearingtype,
-                              transaction.raw_request?.wallettype
+                              (transaction.raw_request?.clearingtype || transaction.body?.raw_request?.clearingtype),
+                              (transaction.raw_request?.wallettype || transaction.body?.raw_request?.wallettype)
                             )}
                           </Typography>
                         </Table.Cell>
@@ -98,16 +99,16 @@ const TransactionTable = () => {
                           </Typography>
                         </Table.Cell>
                         <Table.Cell>
-                          <StatusBadge status={transaction?.status} size="M" />
+                          <StatusBadge status={transaction?.status} transaction={transaction} />
                         </Table.Cell>
                         <Table.Cell>
                           <Typography variant="pi" textColor="neutral600">
-                            {formatDate(transaction.created_at)}
+                            {formatDate(transaction.created_at ?? transaction.createdAt)}
                           </Typography>
                         </Table.Cell>
                         <Table.Cell>
                           <Typography variant="pi" textColor="neutral600">
-                            {formatDate(transaction.updated_at)}
+                            {formatDate(transaction.updated_at ?? transaction.updatedAt)}
                           </Typography>
                         </Table.Cell>
                         <Table.Cell>

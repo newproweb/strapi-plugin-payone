@@ -1,139 +1,172 @@
 "use strict";
 
-const { getPluginStore } = require("./settingsService");
+const { sanitizeSensitive } = require("../utils/sanitize");
+
+const TRANSACTION_UID = "plugin::strapi-plugin-payone-provider.transaction";
 
 const logTransaction = async (strapi, transactionData) => {
-  const pluginStore = getPluginStore(strapi);
-  let transactionHistory =
-    (await pluginStore.get({ key: "transactionHistory" })) || [];
+  try {
+    const data = {
+      txid: transactionData.txid || 'NO TXID',
+      reference: transactionData.reference || 'NO REFERENCE',
+      invoiceid: transactionData.raw_request.invoiceid || 'NO INVOICE ID',
+      request_type: transactionData.request_type || "unknown",
+      amount: transactionData.amount || "0",
+      currency: transactionData.currency || "EUR",
+      status: transactionData.status || transactionData.raw_response.Status || "unknown",
+      error_code: transactionData.error_code || "NO ERROR CODE",
+      error_message: transactionData.error_message || "NO ERROR MESSAGE",
+      customer_message: transactionData.customer_message || "NO CUSTOMER MESSAGE",
+      body: transactionData ? { ...transactionData, raw_request: sanitizeSensitive(transactionData.raw_request), raw_response: sanitizeSensitive(transactionData.raw_response) } : {},
+      raw_request: sanitizeSensitive(transactionData.raw_request || {}),
+      raw_response: sanitizeSensitive(transactionData.raw_response || {}),
+    };
 
-  const logEntry = {
-    id: Date.now().toString(),
-    timestamp: new Date().toISOString(),
-    txid: transactionData.txid || null,
-    reference: transactionData.reference || null,
-    invoiceid: transactionData.invoiceid || null,
-    request_type:
-      transactionData.request_type || transactionData.request || "unknown",
-    amount: transactionData.amount || null,
-    currency: transactionData.currency || "EUR",
-    status: transactionData.status || transactionData.Status || "unknown",
-    error_code:
-      transactionData.error_code || transactionData.Error?.ErrorCode || null,
-    error_message:
-      transactionData.error_message ||
-      transactionData.Error?.ErrorMessage ||
-      null,
-    customer_message:
-      transactionData.customer_message ||
-      transactionData.Error?.CustomerMessage ||
-      null,
-    body: transactionData || null,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString()
-  };
+    const entry = await strapi.db.query(TRANSACTION_UID).create({ data });
+    console.info("Transaction logged to DB:", {
+      id: entry.id,
+      txid: entry.txid,
+      status: entry.status
+    });
 
-  transactionHistory.unshift(logEntry);
-
-  if (transactionHistory.length > 1000) {
-    transactionHistory = transactionHistory.slice(0, 1000);
+    return entry;
+  } catch (error) {
+    console.error("Failed to log transaction:", error);
   }
-
-  await pluginStore.set({
-    key: "transactionHistory",
-    value: transactionHistory
-  });
-
-  console.log(`Transaction logged: ${logEntry}`);
 };
 
 
-const applyFilters = (transactions, filters = {}) => {
-  let result = [...transactions];
-  if (filters.search && typeof filters.search === 'string' && filters.search.trim() !== '') {
-    const search = filters.search.toLowerCase().trim();
-    result = result.filter((t) => {
-      const txid = (t.txid || "").toString().toLowerCase();
-      const reference = (t.reference || "").toString().toLowerCase();
-      return txid.includes(search) || reference.includes(search);
+const hasFilterValue = (v) =>
+  typeof v === "string" && v.trim() !== "" && v.trim().toLowerCase() !== "all";
+
+const buildWhereFromFilters = (filters = {}) => {
+  const conditions = [];
+
+  if (hasFilterValue(filters.search)) {
+    const search = String(filters.search).trim();
+    conditions.push({
+      $or: [
+        { txid: { $containsi: search } },
+        { reference: { $containsi: search } },
+      ],
     });
   }
 
-  if (filters.status) {
-    result = result.filter(
-      (t) => (t.status || "").toUpperCase() === filters.status.toUpperCase()
-    );
+  if (hasFilterValue(filters.status)) {
+    conditions.push({ status: { $eqi: String(filters.status).trim() } });
   }
 
-  if (filters.request_type) {
-    result = result.filter((t) => t.request_type === filters.request_type);
+  if (hasFilterValue(filters.request_type)) {
+    conditions.push({ request_type: String(filters.request_type).trim() });
   }
 
-  if (filters.payment_method) {
-    result = result.filter((t) => {
-      const clearingtype = t.raw_request?.clearingtype;
-      const wallettype = t.raw_request?.wallettype;
-
-      switch (filters.payment_method) {
-        case "credit_card":
-          return clearingtype === "cc";
-        case "paypal":
-          return clearingtype === "wlt" && wallettype === "PPE";
-        case "google_pay":
-          return clearingtype === "wlt" && ["GPY", "GOOGLEPAY"].includes(wallettype);
-        case "apple_pay":
-          return clearingtype === "wlt" && ["APL", "APPLEPAY"].includes(wallettype);
-        case "sofort":
-          return clearingtype === "sb";
-        case "sepa":
-          return clearingtype === "elv";
-        default:
-          return true;
-      }
-    });
-  }
-
-  if (filters.date_from) {
+  if (hasFilterValue(filters.date_from)) {
     const dateFrom = new Date(filters.date_from);
     dateFrom.setHours(0, 0, 0, 0);
-    result = result.filter(
-      (t) => new Date(t.timestamp) >= dateFrom
-    );
+    conditions.push({ createdAt: { $gte: dateFrom.toISOString() } });
   }
 
-  if (filters.date_to) {
+  if (hasFilterValue(filters.date_to)) {
     const dateTo = new Date(filters.date_to);
     dateTo.setHours(23, 59, 59, 999);
-    result = result.filter(
-      (t) => new Date(t.timestamp) <= dateTo
-    );
+    conditions.push({ createdAt: { $lte: dateTo.toISOString() } });
   }
 
-  return result;
+  if (hasFilterValue(filters.payment_method)) {
+    switch (filters.payment_method) {
+      case "credit_card":
+        conditions.push({ raw_request: { $containsi: '"clearingtype":"cc"' } });
+        break;
+      case "paypal":
+        conditions.push({
+          $and: [
+            { raw_request: { $containsi: '"clearingtype":"wlt"' } },
+            { raw_request: { $containsi: '"wallettype":"PPE"' } },
+          ],
+        });
+        break;
+      case "google_pay":
+        conditions.push({
+          $and: [
+            { raw_request: { $containsi: '"clearingtype":"wlt"' } },
+            {
+              $or: [
+                { raw_request: { $containsi: '"wallettype":"GPY"' } },
+                { raw_request: { $containsi: '"wallettype":"GOOGLEPAY"' } },
+              ],
+            },
+          ],
+        });
+        break;
+      case "apple_pay":
+        conditions.push({
+          $and: [
+            { raw_request: { $containsi: '"clearingtype":"wlt"' } },
+            {
+              $or: [
+                { raw_request: { $containsi: '"wallettype":"APL"' } },
+                { raw_request: { $containsi: '"wallettype":"APPLEPAY"' } },
+              ],
+            },
+          ],
+        });
+        break;
+      case "sofort":
+        conditions.push({ raw_request: { $containsi: '"clearingtype":"sb"' } });
+        break;
+      case "sepa":
+        conditions.push({ raw_request: { $containsi: '"clearingtype":"elv"' } });
+        break;
+      default:
+        break;
+    }
+  }
+
+  if (conditions.length === 0) return undefined;
+  if (conditions.length === 1) return conditions[0];
+  return { $and: conditions };
 };
 
-const getTransactionHistory = async (strapi, { filters = {}, pagination = {} }) => {
-  const pluginStore = getPluginStore(strapi);
+const ALLOWED_SORT_FIELDS = [
+  "txid",
+  "reference",
+  "amount",
+  "request_type",
+  "status",
+  "createdAt",
+  "updatedAt",
+];
 
-  let transactions =
-    (await pluginStore.get({ key: "transactionHistory" })) || [];
+const getTransactionHistory = async (
+  strapi,
+  { filters = {}, pagination = {}, sort_by, sort_order }
+) => {
+  const page = Math.max(1, Number(pagination.page) || 1);
+  const pageSize = Math.min(100, Math.max(1, Number(pagination.pageSize) || 10));
+  const offset = (page - 1) * pageSize;
 
-  transactions = applyFilters(transactions, filters);
-  const page = Number(pagination.page) || 1;
-  const pageSize = Number(pagination.pageSize) || 10;
+  const where = buildWhereFromFilters(filters);
 
-  const total = transactions.length;
+  const sortField =
+    sort_by && ALLOWED_SORT_FIELDS.includes(sort_by) ? sort_by : "createdAt";
+  const order = sort_order === "asc" ? "asc" : "desc";
+
+  const queryOptions = {
+    orderBy: { [sortField]: order },
+    limit: pageSize,
+    offset,
+  };
+  if (where !== undefined) queryOptions.where = where;
+
+  const [data, total] = await strapi.db
+    .query(TRANSACTION_UID)
+    .findWithCount(queryOptions);
+
   const pageCount = Math.max(1, Math.ceil(total / pageSize));
-
-  const validPage = Math.min(Math.max(1, page), pageCount);
-
-  const start = (validPage - 1) * pageSize;
-  const end = Math.min(start + pageSize, total);
-
-  const paginatedData = start < total ? transactions.slice(start, end) : [];
+  const validPage = Math.min(page, pageCount);
 
   return {
-    data: paginatedData,
+    data,
     pagination: {
       page: validPage,
       pageSize,

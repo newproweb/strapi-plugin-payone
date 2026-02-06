@@ -22,18 +22,21 @@ const AppTabs = ({
       }
     >
       <Tabs.List style={{ width: "100%" }}>
-        <Tabs.Trigger value="tab-1">Configuration</Tabs.Trigger>
-        <Tabs.Trigger value="tab-2">Transaction History</Tabs.Trigger>
+        <Tabs.Trigger value="tab-1">Transaction History</Tabs.Trigger>
+        <Tabs.Trigger value="tab-2">Configuration</Tabs.Trigger>
         <Tabs.Trigger value="tab-3">Payment Actions</Tabs.Trigger>
         <Tabs.Trigger value="tab-4">Documentation</Tabs.Trigger>
       </Tabs.List>
       <Tabs.Content value="tab-1">
-        <ConfigurationPanel settings={settings} />
-      </Tabs.Content>
-
-      <Tabs.Content value="tab-2">
         <HistoryPanel />
       </Tabs.Content>
+      <Tabs.Content value="tab-2">
+        <ConfigurationPanel
+          settings={settings}
+          onNavigateToConfig={onNavigateToConfig}
+        />
+      </Tabs.Content>
+
 
       <Tabs.Content value="tab-3">
         <PaymentActionsPanel

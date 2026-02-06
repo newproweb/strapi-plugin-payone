@@ -1,87 +1,81 @@
 "use strict";
 
-const crypto = require("crypto");
-const { getPluginStore, getSettings } = require("./settingsService");
+const { getSettings } = require("./settingsService");
+const { sanitizeSensitive } = require("../utils/sanitize");
 
-const verifyHash = (notificationData, portalKey) => {
-  const {
-    portalid = "",
-    aid = "",
-    txid = "",
-    sequencenumber = "",
-    price = "",
-    currency = "",
-    mode = "",
-  } = notificationData;
+const TRANSACTION_UID = "plugin::strapi-plugin-payone-provider.transaction";
 
-  const hashString = `${portalid}${aid}${txid}${sequencenumber}${price}${currency}${mode}${portalKey}`;
-  const expectedHash = crypto.createHash("md5").update(hashString).digest("hex");
+const genreateUpdateData = (notificationData, existing, safeNotification) => {
+  const amount = String(notificationData.clearing_amount) || String(Math.round(parseFloat(notificationData.price) * 100)) || existing.amount;
+  const raw_request = {
+    ...existing.raw_request,
+    ...notificationData,
+    mode: notificationData.mode,
+    amount,
+    clearingtype: notificationData.clearingtype || existing.clearingtype,
+  }
 
-  return expectedHash.toLowerCase() === (notificationData.key || "").toLowerCase();
+  return {
+    status: notificationData.transaction_status || existing.status,
+    currency: notificationData.currency || existing.currency,
+    reference: notificationData.reference || existing.reference,
+    amount,
+    body: {
+      ...existing.body,
+      status: notificationData.transaction_status,
+      amount,
+      raw_request: sanitizeSensitive(raw_request),
+      payone_notification_data: safeNotification,
+    },
+  };
+}
+
+const validateData = (notificationData, settings) => {
+  const isExist = (settings.portalid && settings.aid && settings.key) && (notificationData.portalid && notificationData.aid && notificationData.key);
+  const isMatch = notificationData.portalid === settings.portalid && notificationData.aid === settings.aid && notificationData.key === settings.key;
+
+  if (!isExist) {
+    console.log("[Payone TransactionStatus] Settings not found or payone data missing");
+    return false;
+  }
+
+  if (!isMatch) {
+    console.log("[Payone TransactionStatus] Payone data mismatch with settings");
+    return false;
+  }
+
+  return true;
 };
+
 
 const processTransactionStatus = async (strapi, notificationData) => {
   try {
     const settings = await getSettings(strapi);
+    if (!validateData(notificationData, settings)) {
+      return;
+    }
+
     const txid = notificationData.txid;
+    const existing = await strapi.db.query(TRANSACTION_UID).findOne({ where: { txid } });
 
-    if (!settings || !settings.key) {
-      console.log("[Payone TransactionStatus] Settings not found or key missing");
+    if (!existing) {
+      console.log(`[Payone TransactionStatus] Transaction ${txid} not found. Notification ignored.`);
       return;
     }
 
-    const isValid = verifyHash(notificationData, settings.key);
-    if (!isValid) {
-      console.log(`[Payone TransactionStatus] Hash verification failed txid: ${txid}`);
-      return;
-    }
+    const safeNotification = sanitizeSensitive({ ...notificationData });
+    const data = genreateUpdateData(notificationData, existing, safeNotification);
+    await strapi.db.query(TRANSACTION_UID).update({
+      where: { id: existing.id },
+      data,
+    });
 
-    if (notificationData.portalid !== settings.portalid || notificationData.aid !== settings.aid) {
-      console.log(`[Payone TransactionStatus] Portal ID or AID mismatch txid: ${txid}`);
-      return;
-    }
-
-    const pluginStore = getPluginStore(strapi);
-    let transactionHistory = (await pluginStore.get({ key: "transactionHistory" })) || [];
-
-    const transaction = transactionHistory.find((t) => t.txid === txid || t.id === txid);
-
-    if (transaction) {
-      Object.assign(transaction, {
-        ...notificationData,
-        status: notificationData?.transaction_status,
-        txaction: notificationData?.txaction,
-        txtime: notificationData?.txtime,
-        sequencenumber: notificationData?.sequencenumber,
-        balance: notificationData?.balance,
-        receivable: notificationData?.receivable,
-        price: notificationData?.price,
-        amount: notificationData?.price ? parseFloat(notificationData?.price) * 100 : transaction?.amount,
-        userid: notificationData?.userid,
-        updated_at: new Date().toISOString(),
-        body: {
-          ...transaction?.body,
-          ...notificationData,
-          status: notificationData?.transaction_status
-        }
-      });
-
-      await pluginStore.set({
-        key: "transactionHistory",
-        value: transactionHistory,
-      });
-
-      console.log(`[Payone TransactionStatus] Successfully updated transaction txid: ${txid}`);
-    } else {
-      console.log(`[Payone TransactionStatus] Transaction ${txid} not found in history. Notification ignored.`);
-    }
-
+    console.log(`[Payone TransactionStatus] Successfully updated transaction txid: ${txid}`);
   } catch (error) {
     console.log(`[Payone TransactionStatus] Error processing notification: ${error}`);
   }
 };
 
 module.exports = {
-  verifyHash,
   processTransactionStatus,
 };

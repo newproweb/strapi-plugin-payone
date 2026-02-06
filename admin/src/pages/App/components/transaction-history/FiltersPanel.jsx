@@ -95,12 +95,13 @@ const FiltersPanel = ({ filters, handleFiltersChange }) => {
         <RenderInput
           key={filter.name}
           name={filter.name}
-          value={filters[filter.name] || ""}
+          value={filters[filter.name] ?? ""}
           onChange={(e) => {
-            const value =
+            const raw =
               filter.inputType === "textInput"
                 ? e.target.value
-                : e.target?.value || e;
+                : e.target?.value ?? e;
+            const value = raw === "all" || raw === undefined ? "" : String(raw);
             handleFiltersChange({ [filter.name]: value });
           }}
           inputType={filter.inputType}

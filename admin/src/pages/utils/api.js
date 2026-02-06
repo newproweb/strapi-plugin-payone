@@ -12,10 +12,11 @@ const usePayoneRequests = () => {
   const getTransactionHistory = (params = {}) => {
     const queryParams = new URLSearchParams();
 
-    if (params.filters) {
+    if (params.filters && typeof params.filters === "object") {
       Object.keys(params.filters).forEach((key) => {
         const value = params.filters[key];
-        if (value !== undefined && value !== null && value !== '') {
+        const v = value == null ? "" : String(value).trim();
+        if (v !== "" && v.toLowerCase() !== "all") {
           queryParams.append(`filters[${key}]`, String(value));
         }
       });

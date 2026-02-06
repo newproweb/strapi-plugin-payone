@@ -3,7 +3,7 @@ import { Box, Flex, Typography } from "@strapi/design-system";
 import ConfigurationFields from "./ConfigurationFields";
 import TestConnection from "./TestConnection";
 
-const ConfigurationPanel = ({ settings }) => {
+const ConfigurationPanel = ({ settings, onNavigateToConfig }) => {
   return (
     <Flex direction="column" alignItems="stretch" gap={8} paddingTop={8}>
       <Box>
@@ -31,7 +31,7 @@ const ConfigurationPanel = ({ settings }) => {
         settings={settings.settings}
         onInputChange={settings.handleInputChange}
         onPaymentMethodToggle={settings.handlePaymentMethodToggle}
-        onNavigateToConfig={settings.onNavigateToConfig}
+        onNavigateToConfig={onNavigateToConfig}
       />
 
       <TestConnection

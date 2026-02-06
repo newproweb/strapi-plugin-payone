@@ -156,12 +156,22 @@ module.exports = ({ strapi }) => ({
 
   async getTransactionHistory(ctx) {
     try {
-      const { filters = {}, pagination = {} } = ctx.query || {};
+      const { filters: rawFilters = {}, pagination = {} } = ctx.query || {};
       const page = parseInt(pagination.page || "1", 10);
       const pageSize = parseInt(pagination.pageSize || "10", 10);
 
+      const filters = {};
+      if (rawFilters && typeof rawFilters === "object") {
+        for (const [key, value] of Object.entries(rawFilters)) {
+          const v = value == null ? "" : String(value).trim();
+          if (v !== "" && v.toLowerCase() !== "all") {
+            filters[key] = value;
+          }
+        }
+      }
+
       const result = await getPayoneService(strapi).getTransactionHistory({
-        filters: filters || {},
+        filters,
         pagination: { page, pageSize }
       });
 
@@ -299,19 +309,20 @@ module.exports = ({ strapi }) => ({
 
   async handleTransactionStatus(ctx) {
     try {
-      const notificationData = ctx.request.body || {};
-      await getPayoneService(strapi).processTransactionStatus(notificationData);
-
-      ctx.status = 200;
-      ctx.body = "TSOK";
-      ctx.type = "text/plain";
-      console.log(`[Payone TransactionStatus] Responded TSOK`);
+      if (!ctx.state.payoneAllowed) {
+        console.log("[Payone] Notification ignored (policy failed)");
+      } else {
+        const notificationData = ctx.request.body || {};
+        console.log(notificationData);
+        await getPayoneService(strapi).processTransactionStatus(notificationData);
+      }
     } catch (error) {
-      console.log("[Payone TransactionStatus] Error handling notification:", error);
-      ctx.status = 200;
-      ctx.body = "TSOK";
-      ctx.type = "text/plain";
+      console.log("[Payone TransactionStatus] Error:", error);
     }
+
+    ctx.status = 200;
+    ctx.body = "TSOK";
+    ctx.type = "text/plain";
   }
 
 });
