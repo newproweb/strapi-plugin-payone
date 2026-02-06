@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { Badge, Box, Typography, Flex } from "@strapi/design-system";
 import { ExclamationMarkCircle } from "@strapi/icons";
 

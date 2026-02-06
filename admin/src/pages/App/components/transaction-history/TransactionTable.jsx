@@ -133,20 +133,20 @@ const TransactionTable = () => {
                         <Td>
                           <Typography variant="pi">
                             {getPaymentMethodName(
-                              transaction.raw_request?.clearingtype,
-                              transaction.raw_request?.wallettype,
-                              transaction.raw_request?.cardtype
+                              (transaction.raw_request?.clearingtype || transaction?.body?.raw_request?.clearingtype),
+                              (transaction.raw_request?.wallettype || transaction?.body?.raw_request?.wallettype),
+                              (transaction.raw_request?.cardtype || transaction?.body?.raw_request?.cardtype)
                             )}
                           </Typography>
                         </Td>
                         <Td>
                           <Typography variant="pi" fontWeight="semiBold">
-                            {transaction.request_type || "N/A"}
+                            {(transaction.request_type || transaction?.body?.request_type) || "N/A"}
                           </Typography>
                         </Td>
                         <Td>
                           <StatusBadge
-                            status={transaction?.status}
+                            status={(transaction.status || transaction?.body?.status)}
                             transaction={transaction}
                           />
                         </Td>

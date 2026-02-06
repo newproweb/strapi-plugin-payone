@@ -8,13 +8,24 @@ A comprehensive Strapi plugin that integrates the Payone payment gateway into yo
 - [Requirements](#requirements)
 - [Installation](#installation)
 - [Configuration](#configuration)
-- [Getting Started](#getting-started)
+  - [Using the Admin Panel](#using-the-admin-panel-recommended)
+  - [Apple Pay Setup](#apple-pay-setup)
+  - [Google Pay Configuration](#google-pay-configuration)
 - [Usage](#usage)
-- [3D Secure (3DS) Authentication](#-3d-secure-3ds-authentication)
-- [Payment Methods & Operations](#-payment-methods--operations)
-- [Supported Payment Methods](#supported-payment-methods)
+  - [Base URL](#base-url)
+  - [Common Request Headers](#common-request-headers)
+  - [Common Response Fields](#common-response-fields)
+- [Payment Methods & Operations](#payment-methods--operations)
+  - [Credit Card](#credit-card)
+  - [PayPal](#paypal)
+  - [Google Pay](#google-pay)
+  - [Apple Pay](#apple-pay)
+  - [SEPA Direct Debit](#sepa-direct-debit)
+  - [Sofort Banking](#sofort-banking)
+- [TransactionStatus Notifications](#transactionstatus-notifications)
+- [Notes](#notes)
 
-## ✨ Features
+## Features
 
 - **Payone API Integration**: Full integration with Payone's Server API (v3.10)
 - **Payment Operations**:
@@ -29,13 +40,14 @@ A comprehensive Strapi plugin that integrates the Payone payment gateway into yo
   - Connection testing
 - **Transaction Logging**: Automatic logging of all payment operations
 - **Security**: Secure credential storage with masked API keys
-- **Test & Live Modes**: Support for both test and production environments
 
-## 🔧 Requirements
+## Requirements
 
 Before installing this plugin, ensure you have:
 
-- **Strapi**: Version 4.6.0 or higher
+- **Strapi**:
+  - Version 5.x.x for plugin version 5.x.x
+  - Version 4.6.0 or higher for plugin version 4.x.x
 - **Node.js**: Version 18.0.0 to 20.x.x
 - **npm**: Version 6.0.0 or higher
 - **Payone Account**: Active Payone merchant account with API credentials
@@ -51,55 +63,46 @@ You will need the following credentials from your Payone account:
 
 > ℹ️ **How to get Payone credentials**: Log into your Payone Merchant Interface (PMI) and navigate to Configuration → Payment Portals → [Your Portal] → Advanced Tab to find these credentials.
 
-## 📦 Installation
+## Installation
 
-### Install from npm
+
+**Important**: Choose the correct version based on your Strapi version:
+
+- **For Strapi 5.x.x**: Use plugin version `^5.x.x`
+- **For Strapi 4.x.x**: Use plugin version `^4.x.x`
 
 ```bash
-# Using npm
+# npm
 npm install strapi-plugin-payone-provider
-
-# Using yarn
+# yarn
 yarn add strapi-plugin-payone-provider
-
-# Using pnpm
+# pnpm
 pnpm add strapi-plugin-payone-provider
+
 ```
 
-## ⚙️ Configuration
+> **Version Compatibility**: Make sure to install the correct plugin version that matches your Strapi version. Using an incompatible version may cause errors or unexpected behavior.
+
+
+
+## Configuration
 
 After installation, you need to configure your Payone credentials:
 
 ### Using the Admin Panel (Recommended)
 
-1. Log into your Strapi admin panel
-2. Navigate to **Payone Provider** in the sidebar menu
-3. Go to the **Configuration** tab
-4. Fill in your Payone credentials:
+1. Open **Payone Provider** in the sidebar menu
+2. Go to the **Configuration** tab
+3. Fill in your Payone credentials and save:
    - **Account ID (AID)**: Your Payone account ID
    - **Portal ID**: Your Payone portal ID
    - **Merchant ID (MID)**: Your merchant ID
    - **Portal Key**: Your API security key
    - **Mode**: Select `test` for testing or `live` for production
    - **API Version**: Leave as `3.10` (default)
-5. Click **"Test Connection"** to verify your credentials
-6. Click **"Save Configuration"** to store your settings
+4. Click **"Test Connection"** to verify your credentials
 
-### Apple Pay Configuration
-
-To configure Apple Pay settings:
-
-1. Navigate to **Payone Provider** in the sidebar menu
-2. Go to **Payment Actions** tab
-3. Select **Apple Pay** as the payment method
-4. Click on the Apple Pay configuration link: `/plugins/strapi-plugin-payone-provider/apple-pay-config`
-5. Configure the following settings:
-   - **Country Code**: Select the country where your business operates
-   - **Currency Code**: Select the currency for transactions
-   - **Supported Networks**: Select payment card networks (Visa, Mastercard, Amex, etc.)
-   - **Merchant Capabilities**: Select payment capabilities (3D Secure is recommended)
-   - **Button Style & Type**: Customize the Apple Pay button appearance
-6. Click **"Save Apple Pay Configuration"** to store your settings
+### Apple Pay setup
 
 > ⚠️ **Important**: Apple Pay requires a registered domain with HTTPS. It does NOT work on localhost. For testing, use a production domain with HTTPS or test on a device with Safari (iOS/macOS).
 
@@ -118,7 +121,6 @@ https://yourdomain.com/.well-known/apple-developer-merchantid-domain-association
    - Download the domain verification file from Payone documentation: [https://docs.payone.com/payment-methods/apple-pay/apple-pay-without-dev](https://docs.payone.com/payment-methods/apple-pay/apple-pay-without-dev)
    - Alternatively, log into your Payone Merchant Interface (PMI)
    - Navigate to **Configuration** → **Payment Portals** → **Apple Pay**
-   - Download the `apple-developer-merchantid-domain-association` file
 
 2. **Place the file in Strapi:**
 
@@ -138,7 +140,7 @@ https://yourdomain.com/.well-known/apple-developer-merchantid-domain-association
 
 #### Middleware Configuration for Apple Pay
 
-Apple Pay requires Content Security Policy (CSP) configuration in `config/middlewares.js` to allow Apple Pay scripts. Without this configuration, Apple Pay will NOT work.
+Apple Pay requires Content Security Policy (CSP) configuration in `config/middlewares.js` to allow Apple Pay scripts. Without this configuration, Apple Pay will NOT work on your strapi admin for make test transaction.
 
 **Required CSP directives:**
 
@@ -181,25 +183,10 @@ module.exports = [
 
 ### Google Pay Configuration
 
-To configure Google Pay settings:
-
-1. Navigate to **Payone Provider** in the sidebar menu
-2. Go to **Payment Actions** tab
-3. Select **Google Pay** as the payment method
-4. Click on the Google Pay configuration link: `/plugins/strapi-plugin-payone-provider/google-pay-config`
-5. Configure the following settings:
-   - **Country Code**: Select the country where your business operates
-   - **Currency Code**: Select the currency for transactions
-   - **Merchant Name**: Enter your business name as it will appear in Google Pay
-   - **Allowed Card Networks**: Select payment card networks (Mastercard, Visa, Amex, etc.)
-   - **Allowed Authentication Methods**: Select authentication methods (PAN Only, 3D Secure)
-6. Click **"Save Google Pay Configuration"** to store your settings
-
-> ℹ️ **Note**: The Gateway Merchant ID will be automatically obtained from your Payone Merchant ID (MID) or Portal ID configured in the main Configuration tab.
 
 #### Middleware Configuration for Google Pay
 
-Google Pay requires Content Security Policy (CSP) configuration in `config/middlewares.js` to allow Google Pay scripts. Without this configuration, Google Pay will NOT work.
+Google Pay requires Content Security Policy (CSP) configuration in `config/middlewares.js` to allow Google Pay scripts. Without this configuration, Google Pay will NOT work on your strapi admin for make test transactions.
 
 **Required CSP directives:**
 
@@ -238,27 +225,8 @@ module.exports = [
 
 > ⚠️ **Important**: Without this middleware configuration, Google Pay scripts will be blocked and Google Pay will NOT work!
 
-## 🚀 Getting Started
 
-### 1. Test Your Connection
-
-After configuring your credentials:
-
-1. Open the **Configuration** tab in the Payone Provider admin panel
-2. Click the **"Test Connection"** button
-3. If successful, you'll see a green success message
-4. If it fails, check your credentials and try again
-
-### 2. Try a Test Payment
-
-1. Go to the **Payment Actions** tab
-2. Try a **Preauthorization** operation:
-   - Amount: 1000 (equals 10.00 EUR in cents)
-   - Reference: Leave empty for auto-generation
-   - Click **"Execute Preauthorization"**
-3. Check the **Transaction History** tab to see the logged transaction
-
-## 📖 Usage
+## Usage
 
 ### Base URL
 
@@ -290,176 +258,22 @@ All responses include:
 
 ---
 
-## 🔐 3D Secure (3DS) Authentication
+## Payment Methods & Operations
 
-3D Secure (3DS) is a security protocol that adds an extra layer of authentication for credit card payments, ensuring compliance with Strong Customer Authentication (SCA) requirements.
-
-### Enabling 3D Secure
-
-1. Navigate to **Payone Provider** in the Strapi admin panel
-2. Go to the **Configuration** tab
-3. Find the **"Enable 3D Secure"** dropdown
-4. Select **"Enabled"** to activate 3DS for credit card payments
-5. Click **"Save Configuration"**
-
-> ⚠️ **Note**: When 3DS is enabled, it only applies to **credit card** payments (`clearingtype: "cc"`). Other payment methods are not affected.
-
-### Supported Operations
-
-3D Secure works with the following operations:
-
-- ✅ **Preauthorization** (`POST /api/strapi-plugin-payone-provider/preauthorization`)
-- ✅ **Authorization** (`POST /api/strapi-plugin-payone-provider/authorization`)
-- ❌ **Capture** - Not applicable (uses preauthorized transaction)
-- ❌ **Refund** - Not applicable (uses existing transaction)
-
-### Required Parameters for Preauthorization/Authorization with 3DS
-
-When 3DS is enabled and you're making a credit card payment, the following parameters are required:
-
-**Credit Card Details** (required when 3DS is enabled):
-
-- `cardtype`: Card type (`"V"` for VISA, `"M"` for Mastercard, `"A"` for AMEX, etc.)
-- `cardpan`: Card number (PAN)
-- `cardexpiredate`: Expiry date in format `YYMM` (e.g., `"2512"` for December 2025)
-- `cardcvc2`: CVC/CVV code (3 digits for most cards, 4 digits for AMEX)
-
-**Redirect URLs** (required for 3DS authentication flow):
-
-- `successurl`: URL to redirect after successful 3DS authentication
-- `errorurl`: URL to redirect after 3DS authentication error
-- `backurl`: URL to redirect if user cancels 3DS authentication
-
-**Example Request**:
-
-```json
-{
-  "amount": 1000,
-  "currency": "EUR",
-  "reference": "PAY1234567890ABCDEF",
-  "clearingtype": "cc",
-  "cardtype": "V",
-  "cardpan": "4111111111111111",
-  "cardexpiredate": "2512",
-  "cardcvc2": "123",
-  "firstname": "John",
-  "lastname": "Doe",
-  "email": "john.doe@example.com",
-  "street": "Main Street 123",
-  "zip": "12345",
-  "city": "Berlin",
-  "country": "DE",
-  "successurl": "https://www.example.com/success",
-  "errorurl": "https://www.example.com/error",
-  "backurl": "https://www.example.com/back"
-}
-```
-
-### 3DS Response Handling
-
-When 3DS is required, the API response will include:
-
-```json
-{
-  "data": {
-    "status": "REDIRECT",
-    "redirecturl": "https://secure.pay1.de/3ds/...",
-    "requires3DSRedirect": true,
-    "txid": "123456789"
-  }
-}
-```
-
-**Response Fields**:
-
-- `status`: `"REDIRECT"` when 3DS authentication is required
-- `redirecturl`: URL to redirect the customer for 3DS authentication
-- `requires3DSRedirect`: Boolean indicating if redirect is needed
-- `txid`: Transaction ID (if available)
-
-### 3DS Callback Endpoint
-
-After the customer completes 3DS authentication, Payone will send a callback to:
-
-**URL**: `POST /api/strapi-plugin-payone-provider/3ds-callback`
-
-This endpoint processes the 3DS authentication result and updates the transaction status.
-
-> ℹ️ **Note**: The callback endpoint is automatically handled by the plugin. You don't need to manually process it unless you're implementing custom callback handling.
-
-### How It Works
-
-1. **Request**: Send a preauthorization or authorization request with credit card details and redirect URLs
-2. **Response**: If 3DS is required, you'll receive a `REDIRECT` status with a `redirecturl`
-3. **Redirect**: Redirect the customer to the `redirecturl` for 3DS authentication
-4. **Callback**: After authentication, Payone redirects back to your `successurl`, `errorurl`, or `backurl` with transaction data
-5. **Completion**: The transaction is completed based on the authentication result
-
-### Testing 3DS
-
-For testing 3DS authentication, use test cards that trigger 3DS challenges. Refer to the [Payone 3D Secure Documentation](https://docs.payone.com/security-risk-management/3d-secure#/) for test card numbers and scenarios.
-
----
-
-## 💳 Payment Methods & Operations
+This section provides detailed API documentation for each supported payment method. Click on any payment method below to see the full implementation details:
 
 ### Credit Card
 
 <details>
 <summary><strong>Credit Card Payment Method</strong></summary>
 
-#### Preauthorization
+#### Preauthorization/Authorization
 
-**URL**: `POST /api/strapi-plugin-payone-provider/preauthorization`
+**Endpoints:**
+- `POST /api/strapi-plugin-payone-provider/preauthorization`
+- `POST /api/strapi-plugin-payone-provider/authorization`
 
 **Request Body**:
-
-```json
-{
-  "amount": 1000,
-  "currency": "EUR",
-  "reference": "PAY1234567890ABCDEF",
-  "clearingtype": "cc",
-  "cardtype": "V",
-  "cardpan": "4111111111111111",
-  "cardexpiredate": "2512",
-  "cardcvc2": "123",
-  "firstname": "John",
-  "lastname": "Doe",
-  "email": "john.doe@example.com",
-  "telephonenumber": "+4917512345678",
-  "street": "Main Street 123",
-  "zip": "12345",
-  "city": "Berlin",
-  "country": "DE",
-  "successurl": "https://www.example.com/success",
-  "errorurl": "https://www.example.com/error",
-  "backurl": "https://www.example.com/back",
-  "salutation": "Herr",
-  "gender": "m",
-  "ip": "127.0.0.1",
-  "language": "de",
-  "customer_is_present": "yes"
-}
-```
-
-**Response**:
-
-```json
-{
-  "data": {
-    "status": "APPROVED",
-    "txid": "123456789",
-    "userid": "987654321"
-  }
-}
-```
-
-#### Authorization
-
-**URL**: `POST /api/strapi-plugin-payone-provider/authorization`
-
-**Request Body**: (Same as Preauthorization)
 
 ```json
 {
@@ -504,7 +318,8 @@ For testing 3DS authentication, use test cards that trigger 3DS challenges. Refe
 
 #### Capture
 
-**URL**: `POST /api/strapi-plugin-payone-provider/capture`
+**Endpoint:**
+- `POST /api/strapi-plugin-payone-provider/capture`
 
 **Request Body**:
 
@@ -530,7 +345,8 @@ For testing 3DS authentication, use test cards that trigger 3DS challenges. Refe
 
 #### Refund
 
-**URL**: `POST /api/strapi-plugin-payone-provider/refund`
+**Endpoint:**
+- `POST /api/strapi-plugin-payone-provider/refund`
 
 **Request Body**:
 
@@ -564,9 +380,11 @@ For testing 3DS authentication, use test cards that trigger 3DS challenges. Refe
 <details>
 <summary><strong>PayPal Payment Method</strong></summary>
 
-#### Preauthorization
+#### Preauthorization/Authorization
 
-**URL**: `POST /api/strapi-plugin-payone-provider/preauthorization`
+**Endpoints:**
+- `POST /api/strapi-plugin-payone-provider/preauthorization`
+- `POST /api/strapi-plugin-payone-provider/authorization`
 
 **Request Body**:
 
@@ -614,59 +432,11 @@ For testing 3DS authentication, use test cards that trigger 3DS challenges. Refe
 }
 ```
 
-#### Authorization
-
-**URL**: `POST /api/strapi-plugin-payone-provider/authorization`
-
-**Request Body**: (Same as Preauthorization)
-
-```json
-{
-  "amount": 1000,
-  "currency": "EUR",
-  "reference": "PAY1234567890ABCDEF",
-  "clearingtype": "wlt",
-  "wallettype": "PPE",
-  "firstname": "John",
-  "lastname": "Doe",
-  "email": "john.doe@example.com",
-  "telephonenumber": "+4917512345678",
-  "street": "Main Street 123",
-  "zip": "12345",
-  "city": "Berlin",
-  "country": "DE",
-  "shipping_firstname": "John",
-  "shipping_lastname": "Doe",
-  "shipping_street": "Main Street 123",
-  "shipping_zip": "12345",
-  "shipping_city": "Berlin",
-  "shipping_country": "DE",
-  "successurl": "https://www.example.com/success",
-  "errorurl": "https://www.example.com/error",
-  "backurl": "https://www.example.com/back",
-  "salutation": "Herr",
-  "gender": "m",
-  "ip": "127.0.0.1",
-  "language": "de",
-  "customer_is_present": "yes"
-}
-```
-
-**Response**:
-
-```json
-{
-  "data": {
-    "status": "REDIRECT",
-    "txid": "123456789",
-    "redirecturl": "https://secure.pay1.de/redirect/..."
-  }
-}
-```
 
 #### Capture
 
-**URL**: `POST /api/strapi-plugin-payone-provider/capture`
+**Endpoint:**
+- `POST /api/strapi-plugin-payone-provider/capture`
 
 **Request Body**:
 
@@ -693,7 +463,8 @@ For testing 3DS authentication, use test cards that trigger 3DS challenges. Refe
 
 #### Refund
 
-**URL**: `POST /api/strapi-plugin-payone-provider/refund`
+**Endpoint:**
+- `POST /api/strapi-plugin-payone-provider/refund`
 
 **Request Body**:
 
@@ -743,7 +514,7 @@ Google Pay integration requires obtaining an encrypted payment token from Google
 
 ```javascript
 const paymentsClient = new google.payments.api.PaymentsClient({
-  environment: "TEST", // or "PRODUCTION" for live
+  environment: "TEST", // or "PRODUCTION" for live mode
 });
 
 const baseRequest = {
@@ -850,9 +621,11 @@ The token from Google Pay is a JSON string with the following structure:
 
 **Important**: The token must be Base64 encoded before sending to Payone.
 
-#### Preauthorization
+#### Preauthorization/Authorization
 
-**URL**: `POST /api/strapi-plugin-payone-provider/preauthorization`
+**Endpoints:**
+- `POST /api/strapi-plugin-payone-provider/preauthorization`
+- `POST /api/strapi-plugin-payone-provider/authorization`
 
 **Request Body**:
 
@@ -934,53 +707,11 @@ The token from Google Pay is a JSON string with the following structure:
 }
 ```
 
-#### Authorization
-
-**URL**: `POST /api/strapi-plugin-payone-provider/authorization`
-
-**Request Body**: (Same as Preauthorization, include `googlePayToken`)
-
-```json
-{
-  "amount": 1000,
-  "currency": "EUR",
-  "reference": "PAY1234567890ABCDEF",
-  "clearingtype": "wlt",
-  "wallettype": "GGP",
-  "googlePayToken": "BASE64_ENCODED_TOKEN",
-  "firstname": "John",
-  "lastname": "Doe",
-  "email": "john.doe@example.com",
-  "street": "Main Street 123",
-  "zip": "12345",
-  "city": "Berlin",
-  "country": "DE",
-  "shipping_firstname": "John",
-  "shipping_lastname": "Doe",
-  "shipping_street": "Main Street 123",
-  "shipping_zip": "12345",
-  "shipping_city": "Berlin",
-  "shipping_country": "DE",
-  "successurl": "https://www.example.com/success",
-  "errorurl": "https://www.example.com/error",
-  "backurl": "https://www.example.com/back"
-}
-```
-
-**Response**:
-
-```json
-{
-  "data": {
-    "status": "APPROVED",
-    "txid": "123456789"
-  }
-}
-```
 
 #### Capture
 
-**URL**: `POST /api/strapi-plugin-payone-provider/capture`
+**Endpoint:**
+- `POST /api/strapi-plugin-payone-provider/capture`
 
 **Request Body**:
 
@@ -1006,7 +737,8 @@ The token from Google Pay is a JSON string with the following structure:
 
 #### Refund
 
-**URL**: `POST /api/strapi-plugin-payone-provider/refund`
+**Endpoint:**
+- `POST /api/strapi-plugin-payone-provider/refund`
 
 **Request Body**:
 
@@ -1051,61 +783,13 @@ The token from Google Pay is a JSON string with the following structure:
 <details>
 <summary><strong>Apple Pay Payment Method</strong></summary>
 
-#### Preauthorization
+#### Preauthorization/Authorization
 
-**URL**: `POST /api/strapi-plugin-payone-provider/preauthorization`
+**Endpoints:**
+- `POST /api/strapi-plugin-payone-provider/preauthorization`
+- `POST /api/strapi-plugin-payone-provider/authorization`
 
 **Request Body**:
-
-```json
-{
-  "amount": 1000,
-  "currency": "EUR",
-  "reference": "PAY1234567890ABCDEF",
-  "clearingtype": "wlt",
-  "wallettype": "APL",
-  "firstname": "John",
-  "lastname": "Doe",
-  "email": "john.doe@example.com",
-  "telephonenumber": "+4917512345678",
-  "street": "Main Street 123",
-  "zip": "12345",
-  "city": "Berlin",
-  "country": "DE",
-  "shipping_firstname": "John",
-  "shipping_lastname": "Doe",
-  "shipping_street": "Main Street 123",
-  "shipping_zip": "12345",
-  "shipping_city": "Berlin",
-  "shipping_country": "DE",
-  "successurl": "https://www.example.com/success",
-  "errorurl": "https://www.example.com/error",
-  "backurl": "https://www.example.com/back",
-  "salutation": "Herr",
-  "gender": "m",
-  "ip": "127.0.0.1",
-  "language": "de",
-  "customer_is_present": "yes"
-}
-```
-
-**Response**:
-
-```json
-{
-  "data": {
-    "status": "REDIRECT",
-    "txid": "123456789",
-    "redirecturl": "https://secure.pay1.de/redirect/..."
-  }
-}
-```
-
-#### Authorization
-
-**URL**: `POST /api/strapi-plugin-payone-provider/authorization`
-
-**Request Body**: (Same as Preauthorization)
 
 ```json
 {
@@ -1153,7 +837,8 @@ The token from Google Pay is a JSON string with the following structure:
 
 #### Capture
 
-**URL**: `POST /api/strapi-plugin-payone-provider/capture`
+**Endpoint:**
+- `POST /api/strapi-plugin-payone-provider/capture`
 
 **Request Body**:
 
@@ -1180,7 +865,8 @@ The token from Google Pay is a JSON string with the following structure:
 
 #### Refund
 
-**URL**: `POST /api/strapi-plugin-payone-provider/refund`
+**Endpoint:**
+- `POST /api/strapi-plugin-payone-provider/refund`
 
 **Request Body**:
 
@@ -1214,55 +900,13 @@ The token from Google Pay is a JSON string with the following structure:
 <details>
 <summary><strong>SEPA Direct Debit Payment Method</strong></summary>
 
-#### Preauthorization
+#### Preauthorization/Authorization
 
-**URL**: `POST /api/strapi-plugin-payone-provider/preauthorization`
+**Endpoints:**
+- `POST /api/strapi-plugin-payone-provider/preauthorization`
+- `POST /api/strapi-plugin-payone-provider/authorization`
 
 **Request Body**:
-
-```json
-{
-  "amount": 1000,
-  "currency": "EUR",
-  "reference": "PAY1234567890ABCDEF",
-  "clearingtype": "elv",
-  "iban": "DE89370400440532013000",
-  "bic": "COBADEFFXXX",
-  "bankaccountholder": "John Doe",
-  "bankcountry": "DE",
-  "firstname": "John",
-  "lastname": "Doe",
-  "email": "john.doe@example.com",
-  "telephonenumber": "+4917512345678",
-  "street": "Main Street 123",
-  "zip": "12345",
-  "city": "Berlin",
-  "country": "DE",
-  "salutation": "Herr",
-  "gender": "m",
-  "ip": "127.0.0.1",
-  "language": "de",
-  "customer_is_present": "yes"
-}
-```
-
-**Response**:
-
-```json
-{
-  "data": {
-    "status": "APPROVED",
-    "txid": "123456789",
-    "userid": "987654321"
-  }
-}
-```
-
-#### Authorization
-
-**URL**: `POST /api/strapi-plugin-payone-provider/authorization`
-
-**Request Body**: (Same as Preauthorization)
 
 ```json
 {
@@ -1304,7 +948,8 @@ The token from Google Pay is a JSON string with the following structure:
 
 #### Capture
 
-**URL**: `POST /api/strapi-plugin-payone-provider/capture`
+**Endpoint:**
+- `POST /api/strapi-plugin-payone-provider/capture`
 
 **Request Body**:
 
@@ -1330,7 +975,8 @@ The token from Google Pay is a JSON string with the following structure:
 
 #### Refund
 
-**URL**: `POST /api/strapi-plugin-payone-provider/refund`
+**Endpoint:**
+- `POST /api/strapi-plugin-payone-provider/refund`
 
 **Request Body**:
 
@@ -1364,9 +1010,12 @@ The token from Google Pay is a JSON string with the following structure:
 <details>
 <summary><strong>Sofort Banking Payment Method</strong></summary>
 
-#### Preauthorization
+#### Preauthorization/Authorization
 
-**URL**: `POST /api/strapi-plugin-payone-provider/preauthorization`
+**Endpoint:**
+- `POST /api/strapi-plugin-payone-provider/preauthorization`
+- `POST /api/strapi-plugin-payone-provider/authorization`
+
 
 **Request Body**:
 
@@ -1409,54 +1058,11 @@ The token from Google Pay is a JSON string with the following structure:
 }
 ```
 
-#### Authorization
-
-**URL**: `POST /api/strapi-plugin-payone-provider/authorization`
-
-**Request Body**: (Same as Preauthorization)
-
-```json
-{
-  "amount": 1000,
-  "currency": "EUR",
-  "reference": "PAY1234567890ABCDEF",
-  "clearingtype": "sb",
-  "onlinebanktransfertype": "PNT",
-  "bankcountry": "DE",
-  "firstname": "John",
-  "lastname": "Doe",
-  "email": "john.doe@example.com",
-  "telephonenumber": "+4917512345678",
-  "street": "Main Street 123",
-  "zip": "12345",
-  "city": "Berlin",
-  "country": "DE",
-  "successurl": "https://www.example.com/success",
-  "errorurl": "https://www.example.com/error",
-  "backurl": "https://www.example.com/back",
-  "salutation": "Herr",
-  "gender": "m",
-  "ip": "127.0.0.1",
-  "language": "de",
-  "customer_is_present": "yes"
-}
-```
-
-**Response**:
-
-```json
-{
-  "data": {
-    "status": "REDIRECT",
-    "txid": "123456789",
-    "redirecturl": "https://secure.pay1.de/redirect/..."
-  }
-}
-```
 
 #### Capture
 
-**URL**: `POST /api/strapi-plugin-payone-provider/capture`
+**Endpoint:**
+- `POST /api/strapi-plugin-payone-provider/capture`
 
 **Request Body**:
 
@@ -1482,7 +1088,8 @@ The token from Google Pay is a JSON string with the following structure:
 
 #### Refund
 
-**URL**: `POST /api/strapi-plugin-payone-provider/refund`
+**Endpoint:**
+- `POST /api/strapi-plugin-payone-provider/refund`
 
 **Request Body**:
 
@@ -1511,50 +1118,7 @@ The token from Google Pay is a JSON string with the following structure:
 
 ---
 
-## ✅ Supported Payment Methods
-
-Click on any payment method to see detailed API documentation:
-
-- [Credit Card](#credit-card)
-- [PayPal](#paypal)
-- [Google Pay](#google-pay)
-- [Apple Pay](#apple-pay)
-- [SEPA Direct Debit](#sepa-direct-debit)
-- [Sofort Banking](#sofort-banking)
-
----
-
-## 📝 Notes
-
-### Important Parameters
-
-- **amount**: Always in cents (e.g., 1000 = 10.00 EUR)
-- **reference**: Max 20 characters, alphanumeric only. Auto-normalized by the plugin.
-- **cardexpiredate**: Format is YYMM (e.g., "2512" = December 2025)
-- **sequencenumber**: Start with 1 for capture, 2 for first refund, increment for subsequent refunds
-- **Refund amount**: Must be negative (e.g., -1000 for 10.00 EUR refund)
-
-### Redirect URLs
-
-For redirect-based payment methods (PayPal, Google Pay, Apple Pay, Sofort), you must provide:
-
-- `successurl`: URL to redirect after successful payment
-- `errorurl`: URL to redirect after payment error
-- `backurl`: URL to redirect if user cancels payment
-
-### Preauthorization vs Authorization
-
-- **Preauthorization**: Reserves funds but doesn't charge immediately. Requires a Capture call later.
-- **Authorization**: Immediately charges the customer's payment method.
-
-### Capture Mode
-
-For wallet payments (PayPal, Google Pay, Apple Pay), you can specify:
-
-- `capturemode: "full"`: Capture the entire preauthorized amount
-- `capturemode: "partial"`: Capture less than the preauthorized amount
-
-## 📢 TransactionStatus Notifications
+## TransactionStatus Notifications
 
 The Payone platform provides an asynchronous way of notifying your system of changes to a transaction. These notifications are called "TransactionStatus" and are automatically handled by this plugin.
 
@@ -1617,3 +1181,11 @@ The plugin automatically verifies:
 4. **Credentials**: Verifies that `portalid` and `aid` match your configured settings
 
 > 📖 **Reference**: For more details, see [Payone TransactionStatus Notification Documentation](https://docs.payone.com/integration/response-handling/transactionstatus-notification)
+
+---
+
+## Notes
+
+For additional information and updates, please refer to the official Payone documentation:
+
+**Payone Documentation**: [https://docs.payone.com/payment-methods](https://docs.payone.com/payment-methods)

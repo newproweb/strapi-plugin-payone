@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Box,
   Card,
@@ -9,6 +9,7 @@ import {
   Accordion,
   AccordionToggle,
   AccordionContent,
+  Link,
 } from "@strapi/design-system";
 
 const CodeBlock = ({ children }) => {
@@ -123,31 +124,31 @@ const DocsPanel = () => {
           <AccordionContent>
             <Stack spacing={2} padding={4}>
               <Typography variant="pi">
-                1. <a href="#base-url">Base URL & Authentication</a>
+                1. <a style={{ color: "inherit", textDecoration:"none" }} href="#base-url">Base URL & Authentication</a>
               </Typography>
               <Typography variant="pi">
-                2. <a href="#payment-methods">Supported Payment Methods</a>
+                2. <a style={{ color: "inherit", textDecoration:"none" }} href="#payment-methods">Supported Payment Methods</a>
               </Typography>
               <Typography variant="pi">
-                3. <a href="#credit-card">Credit Card Integration</a>
+                3. <a style={{ color: "inherit", textDecoration:"none" }} href="#credit-card">Credit Card Integration</a>
               </Typography>
               <Typography variant="pi">
-                4. <a href="#paypal">PayPal Integration</a>
+                4. <a style={{ color: "inherit", textDecoration:"none" }} href="#paypal">PayPal Integration</a>
               </Typography>
               <Typography variant="pi">
-                5. <a href="#google-pay">Google Pay Integration</a>
+                5. <a style={{ color: "inherit", textDecoration:"none" }} href="#google-pay">Google Pay Integration</a>
               </Typography>
               <Typography variant="pi">
-                6. <a href="#apple-pay">Apple Pay Integration</a>
+                6. <a style={{ color: "inherit", textDecoration:"none" }} href="#apple-pay">Apple Pay Integration</a>
               </Typography>
               <Typography variant="pi">
-                7. <a href="#3d-secure">3D Secure Authentication</a>
+                7. <a style={{ color: "inherit", textDecoration:"none" }} href="#3d-secure">3D Secure Authentication</a>
               </Typography>
               <Typography variant="pi">
-                8. <a href="#capture-refund">Capture & Refund Operations</a>
+                8. <a style={{ color: "inherit", textDecoration:"none" }} href="#capture-refund">Capture & Refund Operations</a>
               </Typography>
               <Typography variant="pi">
-                9. <a href="#test-credentials">Test Credentials</a>
+                9. <a style={{ color: "inherit", textDecoration:"none" }} href="#test-credentials">Test Credentials</a>
               </Typography>
             </Stack>
           </AccordionContent>

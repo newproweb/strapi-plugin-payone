@@ -46,8 +46,8 @@ const TransactionDetails = ({ transaction }) => {
               Name:
             </Typography>
             <Typography variant="pi" textColor="neutral800">
-              {transaction.raw_request?.firstname}{" "}
-              {transaction.raw_request?.lastname}
+              {(transaction.raw_request?.firstname || transaction?.body?.raw_request?.firstname)}{" "}
+              {(transaction.raw_request?.lastname || transaction?.body?.raw_request?.lastname)}
             </Typography>
           </Flex>
           <Flex gap={3}>
@@ -55,7 +55,7 @@ const TransactionDetails = ({ transaction }) => {
               Email:
             </Typography>
             <Typography variant="pi" textColor="neutral800">
-              {transaction.raw_request?.email || "N/A"}
+              {(transaction.raw_request?.email || transaction?.body?.raw_request?.email) || "N/A"}
             </Typography>
           </Flex>
           <Flex gap={3}>
@@ -63,7 +63,7 @@ const TransactionDetails = ({ transaction }) => {
               Phone:
             </Typography>
             <Typography variant="pi" textColor="neutral800">
-              {transaction.raw_request?.telephonenumber || "N/A"}
+              {(transaction.raw_request?.telephonenumber || transaction?.body?.raw_request?.telephonenumber) || "N/A"}
             </Typography>
           </Flex>
           <Flex gap={3}>
@@ -71,8 +71,8 @@ const TransactionDetails = ({ transaction }) => {
               Address:
             </Typography>
             <Typography variant="pi" textColor="neutral800">
-              {transaction.raw_request?.street}, {transaction.raw_request?.zip}{" "}
-              {transaction.raw_request?.city}
+              {(transaction.raw_request?.street || transaction?.body?.raw_request?.street)}, {(transaction.raw_request?.zip || transaction?.body?.raw_request?.zip)}{" "}
+              {(transaction.raw_request?.city || transaction?.body?.raw_request?.city)}
             </Typography>
           </Flex>
         </Flex>
@@ -90,7 +90,7 @@ const TransactionDetails = ({ transaction }) => {
               TX ID:
             </Typography>
             <Typography variant="pi" textColor="neutral800">
-              {transaction.txid || "N/A"}
+              {(transaction.txid || transaction?.body?.txid) || "N/A"}
             </Typography>
           </Flex>
           {transaction.raw_request?.clearingtype === "cc" && (
@@ -104,7 +104,7 @@ const TransactionDetails = ({ transaction }) => {
                   Card Type:
                 </Typography>
                 <Typography variant="pi" textColor="neutral800">
-                  {getCardTypeName(transaction.raw_request?.cardtype)}
+                  {getCardTypeName(transaction.raw_request?.cardtype || transaction?.body?.raw_request?.cardtype)}
                 </Typography>
               </Flex>
               <Flex gap={3}>
@@ -117,7 +117,7 @@ const TransactionDetails = ({ transaction }) => {
                 </Typography>
                 <Typography variant="pi" textColor="neutral800">
                   **** **** ****{" "}
-                  {transaction.raw_request?.cardpan?.slice(-4) || "****"}
+                  {(transaction.raw_request?.cardpan || transaction?.body?.raw_request?.cardpan)?.slice(-4) || "****"}
                 </Typography>
               </Flex>
             </>
@@ -127,7 +127,7 @@ const TransactionDetails = ({ transaction }) => {
               Mode:
             </Typography>
             <Typography variant="pi" textColor="neutral800">
-              {transaction.raw_request?.mode || "N/A"}
+              {(transaction.raw_request?.mode || transaction?.body?.raw_request?.mode) || "N/A"}
             </Typography>
           </Flex>
         </Flex>
