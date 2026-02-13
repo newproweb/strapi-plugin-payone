@@ -1,16 +1,7 @@
-import {
-  Field,
-  Flex,
-  DesignSystemProvider,
-  Tooltip,
-  Typography,
-  darkTheme,
-  lightTheme,
-} from "@strapi/design-system";
+import { Field, Flex, Tooltip, Typography } from "@strapi/design-system";
 import { Information } from "@strapi/icons";
 import { InputComponent } from "../../utils/getInputComponent";
 import { shouldShowTooltip } from "../../utils/tooltipHelpers";
-import { useSystemTheme } from "../../hooks/use-system-theme";
 
 const RenderInput = ({
   hint,
@@ -32,14 +23,12 @@ const RenderInput = ({
   labelDirection = "column",
   ...props
 }) => {
-  const systemTheme = useSystemTheme();
-  const theme = systemTheme === "dark" ? darkTheme : lightTheme;
   const getLabelStyle = () => {
     if (labelDirection === "row") {
       return {
         display: "flex",
         flexDirection: "row",
-        justifyContent: "space-between",
+        justifyContent: "space-between"
       };
     }
     return { display: "flex", flexDirection: "column" };
@@ -51,16 +40,13 @@ const RenderInput = ({
         <Flex alignItems="center" gap={1} style={{ marginBottom: "5px" }}>
           <Field.Label style={labelStyle}>{label}</Field.Label>
           {shouldShowTooltip(inputType, tooltipContent) && (
-            <DesignSystemProvider theme={theme}>
-              <Tooltip label={tooltipContent}>
-                <Information
-                  style={{
-                    cursor: "pointer",
-                    color: systemTheme === "dark" ? "#fff" : "#000",
-                  }}
-                />
-              </Tooltip>
-            </DesignSystemProvider>
+            <Tooltip label={tooltipContent}>
+              <Information
+                style={{
+                  cursor: "pointer"
+                }}
+              />
+            </Tooltip>
           )}
         </Flex>
         <InputComponent
@@ -75,8 +61,6 @@ const RenderInput = ({
           placeholder={placeholder}
           onLabel={onLabel}
           offLabel={offLabel}
-          systemTheme={systemTheme}
-          theme={theme}
           type={type}
           {...props}
         />

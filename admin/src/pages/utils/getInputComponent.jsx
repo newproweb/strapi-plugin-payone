@@ -4,14 +4,27 @@ import {
   SingleSelect,
   SingleSelectOption,
   Switch,
-  DesignSystemProvider,
   Tooltip,
   Textarea,
   Toggle,
   Checkbox,
-  Typography,
+  Typography
 } from "@strapi/design-system";
 import { Information } from "@strapi/icons";
+
+const TooltipIcon = ({ tooltipContent }) => {
+  if (!tooltipContent) return null;
+  return (
+    <Tooltip label={tooltipContent ?? ""}>
+      <Information
+        style={{
+          cursor: "pointer"
+        }}
+      />
+    </Tooltip>
+  );
+};
+
 export const InputComponent = ({
   inputType,
   name,
@@ -23,8 +36,6 @@ export const InputComponent = ({
   placeholder = "",
   onLabel = "True",
   offLabel = "False",
-  systemTheme,
-  theme,
   className = "payment-input",
   type = "text",
   ...props
@@ -43,16 +54,7 @@ export const InputComponent = ({
           type={type}
           endAction={
             tooltipContent ? (
-              <DesignSystemProvider theme={theme}>
-                <Tooltip label={tooltipContent ?? ""}>
-                  <Information
-                    style={{
-                      cursor: "pointer",
-                      color: systemTheme === "dark" ? "#fff" : "#000",
-                    }}
-                  />
-                </Tooltip>
-              </DesignSystemProvider>
+              <TooltipIcon tooltipContent={tooltipContent} />
             ) : null
           }
           {...props}
@@ -71,16 +73,7 @@ export const InputComponent = ({
           required={required}
           startAction={
             tooltipContent ? (
-              <DesignSystemProvider theme={theme}>
-                <Tooltip label={tooltipContent ?? ""}>
-                  <Information
-                    style={{
-                      cursor: "pointer",
-                      color: systemTheme === "dark" ? "#fff" : "#000",
-                    }}
-                  />
-                </Tooltip>
-              </DesignSystemProvider>
+              <TooltipIcon tooltipContent={tooltipContent} />
             ) : null
           }
           {...props}
@@ -143,16 +136,7 @@ export const InputComponent = ({
           type="date"
           startAction={
             tooltipContent ? (
-              <DesignSystemProvider theme={theme}>
-                <Tooltip label={tooltipContent ?? ""}>
-                  <Information
-                    style={{
-                      cursor: "pointer",
-                      color: systemTheme === "dark" ? "#fff" : "#000",
-                    }}
-                  />
-                </Tooltip>
-              </DesignSystemProvider>
+              <TooltipIcon tooltipContent={tooltipContent} />
             ) : null
           }
           {...props}
@@ -179,7 +163,7 @@ export const InputComponent = ({
             if (typeof onChange === "function") {
               const syntheticEvent = {
                 target: { value: selectedValue },
-                currentTarget: { value: selectedValue },
+                currentTarget: { value: selectedValue }
               };
               onChange(syntheticEvent);
             }
@@ -188,16 +172,7 @@ export const InputComponent = ({
           placeholder={placeholder}
           startIcon={
             tooltipContent ? (
-              <DesignSystemProvider theme={theme}>
-                <Tooltip label={tooltipContent ?? ""}>
-                  <Information
-                    style={{
-                      cursor: "pointer",
-                      color: systemTheme === "dark" ? "#fff" : "#000",
-                    }}
-                  />
-                </Tooltip>
-              </DesignSystemProvider>
+              <TooltipIcon tooltipContent={tooltipContent} />
             ) : null
           }
           {...props}

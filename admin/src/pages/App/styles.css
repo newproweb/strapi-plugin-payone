@@ -1,5 +1,5 @@
-[data-state="inactive"],
-[data-state="active"] {
+.payone-provider-root [data-state="inactive"],
+.payone-provider-root [data-state="active"] {
   background: transparent !important;
 }
 
@@ -29,7 +29,6 @@
 }
 
 @keyframes pulse {
-
   0%,
   100% {
     opacity: 1;
@@ -50,9 +49,8 @@
   }
 }
 
-
 /* Tab Button Base Styles */
-button[role="tab"] {
+.payone-provider-root button[role="tab"] {
   box-shadow: none !important;
   border: none !important;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
@@ -60,44 +58,49 @@ button[role="tab"] {
   background: transparent !important;
   outline: none !important;
   transform: scale(1) !important;
-
 }
 
-
-
-button[role="tab"]:active {
+.payone-provider-root button[role="tab"]:active {
   transform: scale(1) !important;
 }
 
 /* Remove shake animation */
-button[role="tab"]:focus,
-button[role="tab"]:focus-visible {
+.payone-provider-root button[role="tab"]:focus,
+.payone-provider-root button[role="tab"]:focus-visible {
   outline: none !important;
   box-shadow: none !important;
   transform: none !important;
 }
 
-button[role="tab"][data-state="active"] {
-  background: linear-gradient(180deg, rgba(73, 69, 255, 0.05) 0%, transparent 100%) !important;
+.payone-provider-root button[role="tab"][data-state="active"] {
+  background: linear-gradient(
+    180deg,
+    rgba(73, 69, 255, 0.05) 0%,
+    transparent 100%
+  ) !important;
   color: #4945ff !important;
   font-weight: 600 !important;
   box-shadow: none !important;
   border: none !important;
 }
 
-button[role="tab"][data-state="inactive"] {
+.payone-provider-root button[role="tab"][data-state="inactive"] {
   background: transparent !important;
   color: #6b7280 !important;
   box-shadow: none !important;
   border: none !important;
 }
 
-button[role="tab"][data-state="inactive"]::after {
+.payone-provider-root button[role="tab"][data-state="inactive"]::after {
   background: transparent;
 }
 
-button[role="tab"][data-state="inactive"]:hover {
-  background: linear-gradient(180deg, rgba(73, 69, 255, 0.02) 0%, transparent 100%) !important;
+.payone-provider-root button[role="tab"][data-state="inactive"]:hover {
+  background: linear-gradient(
+    180deg,
+    rgba(73, 69, 255, 0.02) 0%,
+    transparent 100%
+  ) !important;
   box-shadow: none !important;
 }
 
@@ -144,14 +147,16 @@ button[role="tab"][data-state="inactive"]:hover {
 .payment-divider {
   border: none;
   height: 1px;
-  background: linear-gradient(90deg, transparent 0%, #e8e8ea 20%, #e8e8ea 80%, transparent 100%);
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    #e8e8ea 20%,
+    #e8e8ea 80%,
+    transparent 100%
+  );
   margin: 32px 0;
   animation: fadeIn 0.4s ease-out;
 }
-
-
-
-
 
 /* ===== Responsive ===== */
 @media (max-width: 768px) {

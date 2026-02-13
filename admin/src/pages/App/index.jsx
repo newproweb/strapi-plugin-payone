@@ -24,7 +24,7 @@ const App = () => {
 
   if (isApplePayConfigPage) {
     return (
-      <Layouts.Root>
+      <Layouts.Root className="payone-provider-root">
         <AppHeader
           title="Apple Pay Configuration"
           activeTab={null}
@@ -48,7 +48,7 @@ const App = () => {
 
   if (isGooglePayConfigPage) {
     return (
-      <Layouts.Root>
+      <Layouts.Root className="payone-provider-root">
         <AppHeader
           title="Google Pay Configuration"
           activeTab={null}
@@ -72,7 +72,7 @@ const App = () => {
   }
 
   return (
-    <Layouts.Root>
+    <Layouts.Root className="payone-provider-root">
       <AppHeader
         activeTab={activeTab}
         isSaving={settings.isSaving}
