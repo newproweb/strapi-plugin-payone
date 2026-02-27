@@ -1,25 +1,27 @@
-import * as React from "@strapi/strapi/admin";
+import * as React from "react";
 import { Box, Flex, Typography, Link, Alert } from "@strapi/design-system";
 import pluginId from "../../../../pluginId";
 import {
   getPaymentMethodOptions,
+  getPaymentMethodDisplayName,
   supportsCaptureMode,
   getCaptureModeOptions,
-  getPaymentMethodDisplayName,
 } from "../../../utils/paymentUtils";
 import RenderInput from "../RenderInput";
+import { usePluginTranslations } from "../../../hooks/usePluginTranslations";
 
 const PaymentMethodSelector = ({
   paymentActions,
   onNavigateToConfig,
   isLiveMode,
 }) => {
+  const { t } = usePluginTranslations();
   return (
     <Box>
       <Flex direction="column" alignItems="stretch" gap={4}>
         <RenderInput
           name="paymentMethod"
-          label="Select Payment Method"
+          label={t("paymentMethodSelector.label", "Select Payment Method")}
           value={paymentActions.paymentState.paymentMethod || ""}
           onChange={(e) => {
             const value = e.target?.value || e;
@@ -30,9 +32,9 @@ const PaymentMethodSelector = ({
             value: option.value,
             label: option.label,
           }))}
-          placeholder="Select payment method"
-          hint={`Current: ${getPaymentMethodDisplayName(paymentActions.paymentState.paymentMethod)}`}
-          tooltipContent="Select the payment method you want to use for this transaction"
+          placeholder={t("paymentMethodSelector.placeholder", "Select payment method")}
+          hint={`${t("paymentMethodSelector.hintCurrent", "Current")}: ${getPaymentMethodDisplayName(paymentActions.paymentState.paymentMethod)}`}
+          tooltipContent={t("paymentMethodSelector.tooltip", "Select the payment method you want to use for this transaction")}
         />
         {paymentActions.paymentState.paymentMethod === "apl" &&
           onNavigateToConfig && (

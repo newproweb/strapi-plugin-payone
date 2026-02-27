@@ -1,7 +1,8 @@
-import * as React from "@strapi/strapi/admin";
+import * as React from "react";
 import { Box, Typography } from "@strapi/design-system";
 import PaymentMethodSelector from "./PaymentMethodSelector";
 import AuthorizationForm from "./AuthorizationForm";
+import { usePluginTranslations } from "../../../hooks/usePluginTranslations";
 
 const ApplePayOnlyPanel = ({
   onNavigateToConfig,
@@ -9,6 +10,7 @@ const ApplePayOnlyPanel = ({
   paymentActions,
   settings,
 }) => {
+  const { t } = usePluginTranslations();
   return (
     <Box
       style={{
@@ -30,9 +32,7 @@ const ApplePayOnlyPanel = ({
           fontWeight: "bold",
         }}
       >
-        ⚠️ Apple Pay can only be tested on a production domain with HTTPS and
-        Live mode. Testing in Strapi admin panel is not supported. Please test
-        Apple Pay on your production website.
+        ⚠️ {t("applePayPanel.warning", "Apple Pay can only be tested on a production domain with HTTPS and Live mode. Testing in Strapi admin panel is not supported. Please test Apple Pay on your production website.")}
       </Typography>
 
       <PaymentMethodSelector

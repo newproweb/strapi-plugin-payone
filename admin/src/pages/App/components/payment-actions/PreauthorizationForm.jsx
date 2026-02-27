@@ -10,8 +10,10 @@ import {
   getCurrencyOptions,
   getCountryOptions,
 } from "../../../utils/countryLanguageUtils";
+import { usePluginTranslations } from "../../../hooks/usePluginTranslations";
 
 const PreauthorizationForm = ({ paymentActions, settings }) => {
+  const { t } = usePluginTranslations();
   const handleGooglePayToken = (token) => {
     if (!token) {
       return;
@@ -39,20 +41,11 @@ const PreauthorizationForm = ({ paymentActions, settings }) => {
   return (
     <Flex direction="column" alignItems="stretch" gap={4}>
       <Flex direction="row" gap={2}>
-        <Typography
-          variant="omega"
-          fontWeight="semiBold"
-          textColor="neutral800"
-          className="payment-form-title"
-        >
-          Preauthorization
+        <Typography variant="omega" fontWeight="semiBold" textColor="neutral800" className="payment-form-title">
+          {t("preauth.title", "Preauthorization")}
         </Typography>
-        <Typography
-          variant="pi"
-          textColor="neutral600"
-          className="payment-form-description"
-        >
-          Reserve an amount on a credit card without capturing it immediately.
+        <Typography variant="pi" textColor="neutral600" className="payment-form-description">
+          {t("preauth.description", "Reserve an amount on a credit card without capturing it immediately.")}
         </Typography>
       </Flex>
 
@@ -65,20 +58,20 @@ const PreauthorizationForm = ({ paymentActions, settings }) => {
       >
         <RenderInput
           name="paymentAmount"
-          label="Amount *"
+          label={t("preauth.amount", "Amount *")}
           value={paymentActions.paymentState.paymentAmount || ""}
           onChange={(e) =>
             paymentActions.handleFieldChange("paymentAmount", e.target.value)
           }
           inputType="textInput"
-          placeholder="Enter amount (e.g., 1000 for €10.00)"
+          placeholder={t("preauth.amountPlaceholder", "Enter amount (e.g., 1000 for €10.00)")}
           required
-          tooltipContent="Amount in cents (e.g., 1000 = €10.00)"
+          tooltipContent={t("preauth.amountTooltip", "Amount in cents (e.g., 1000 = €10.00)")}
         />
 
         <RenderInput
           name="firstname"
-          label="First Name"
+          label={t("preauth.firstName", "First Name")}
           value={paymentActions.paymentState.firstname || ""}
           onChange={(e) =>
             paymentActions.handleFieldChange("firstname", e.target.value)
@@ -90,7 +83,7 @@ const PreauthorizationForm = ({ paymentActions, settings }) => {
 
         <RenderInput
           name="lastname"
-          label="Last Name"
+          label={t("preauth.lastName", "Last Name")}
           value={paymentActions.paymentState.lastname || ""}
           onChange={(e) =>
             paymentActions.handleFieldChange("lastname", e.target.value)
@@ -270,7 +263,7 @@ const PreauthorizationForm = ({ paymentActions, settings }) => {
             paymentActions.isLiveMode
           }
         >
-          Process Preauthorization
+          {t("preauth.submit", "Preauthorize")}
         </Button>
       )}
     </Flex>

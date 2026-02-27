@@ -1,6 +1,7 @@
-import * as React from "@strapi/strapi/admin";
+import * as React from "react";
 import { Box, Flex, Typography, Checkbox } from "@strapi/design-system";
 import RenderInput from "./RenderInput";
+import { usePluginTranslations } from "../../hooks/usePluginTranslations";
 import {
   GOOGLE_PAY_SUPPORTED_COUNTRIES,
   GOOGLE_PAY_SUPPORTED_CURRENCIES,
@@ -10,6 +11,7 @@ import {
 } from "../../utils/googlePayConstants";
 
 const GooglePayConfig = ({ config, onConfigChange }) => {
+  const { t } = usePluginTranslations();
   const {
     countryCode = DEFAULT_GOOGLE_PAY_CONFIG.countryCode,
     currencyCode = DEFAULT_GOOGLE_PAY_CONFIG.currencyCode,
@@ -76,7 +78,7 @@ const GooglePayConfig = ({ config, onConfigChange }) => {
         <Box>
           <RenderInput
             name="countryCode"
-            label="Country Code"
+            label={t("googlePayConfig.countryCode", "Country Code")}
             value={countryCode || ""}
             onChange={(e) => {
               const value = e.target?.value || e;
@@ -84,7 +86,7 @@ const GooglePayConfig = ({ config, onConfigChange }) => {
             }}
             inputType="select"
             required
-            tooltipContent="Select the country where your business operates"
+            tooltipContent={t("googlePayConfig.countryTooltip", "Select the country where your business operates")}
             options={GOOGLE_PAY_SUPPORTED_COUNTRIES.map((country) => ({
               value: country.code,
               label: `${country.name} (${country.code})`,
@@ -95,7 +97,7 @@ const GooglePayConfig = ({ config, onConfigChange }) => {
         <Box>
           <RenderInput
             name="currencyCode"
-            label="Currency Code"
+            label={t("googlePayConfig.currencyCode", "Currency Code")}
             value={currencyCode || ""}
             onChange={(e) => {
               const value = e.target?.value || e;
@@ -103,7 +105,7 @@ const GooglePayConfig = ({ config, onConfigChange }) => {
             }}
             inputType="select"
             required
-            tooltipContent="Select the currency for transactions"
+            tooltipContent={t("googlePayConfig.currencyTooltip", "Select the currency for transactions")}
             options={GOOGLE_PAY_SUPPORTED_CURRENCIES.map((currency) => ({
               value: currency.code,
               label: `${currency.name} (${currency.code}) ${currency.symbol}`,
@@ -113,14 +115,14 @@ const GooglePayConfig = ({ config, onConfigChange }) => {
         <Box>
           <RenderInput
             name="merchantName"
-            label="Merchant Name"
+            label={t("googlePayConfig.merchantName", "Merchant Name")}
             value={merchantName || ""}
             onChange={(e) =>
               onConfigChange({ ...config, merchantName: e.target.value })
             }
             inputType="textInput"
-            placeholder="Your Store Name"
-            tooltipContent="The name of your business as it will appear in Google Pay"
+            placeholder={t("googlePayConfig.merchantNamePlaceholder", "Your Store Name")}
+            tooltipContent={t("googlePayConfig.merchantNameTooltip", "The name of your business as it will appear in Google Pay")}
           />
         </Box>
       </Box>
@@ -129,10 +131,10 @@ const GooglePayConfig = ({ config, onConfigChange }) => {
       <Box width="100%" marginBottom={4} marginTop={4}>
         <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
           <Typography variant="pi" fontWeight="semiBold">
-            Allowed Card Networks
+            {t("googlePayConfig.allowedNetworks", "Allowed Card Networks")}
           </Typography>
           <Typography variant="pi" textColor="neutral600">
-            Select payment card networks to accept
+            {t("googlePayConfig.allowedNetworksHint", "Select payment card networks to accept")}
           </Typography>
         </div>
         <Flex
@@ -165,7 +167,7 @@ const GooglePayConfig = ({ config, onConfigChange }) => {
             textColor="danger600"
             style={{ marginTop: "8px" }}
           >
-            At least one card network must be selected
+            {t("googlePayConfig.atLeastOneNetwork", "At least one card network must be selected")}
           </Typography>
         )}
       </Box>
@@ -174,10 +176,10 @@ const GooglePayConfig = ({ config, onConfigChange }) => {
       <Box width="100%">
         <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
           <Typography variant="pi" fontWeight="semiBold">
-            Allowed Authentication Methods
+            {t("googlePayConfig.allowedAuthMethods", "Allowed Authentication Methods")}
           </Typography>
           <Typography variant="pi" textColor="neutral600">
-            Select authentication methods for card payments
+            {t("googlePayConfig.allowedAuthMethodsHint", "Select authentication methods for card payments")}
           </Typography>
         </div>
         <Flex
@@ -210,7 +212,7 @@ const GooglePayConfig = ({ config, onConfigChange }) => {
             textColor="danger600"
             style={{ marginTop: "8px" }}
           >
-            At least one authentication method must be selected
+            {t("googlePayConfig.atLeastOneAuth", "At least one authentication method must be selected")}
           </Typography>
         )}
       </Box>

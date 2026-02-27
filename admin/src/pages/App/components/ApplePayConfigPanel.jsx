@@ -9,8 +9,10 @@ import {
 } from "@strapi/design-system";
 import { Check } from "@strapi/icons";
 import ApplePayConfig from "./ApplePayConfig";
+import { usePluginTranslations } from "../../hooks/usePluginTranslations";
 
 const ApplePayConfigPanel = ({ settings, onInputChange, isSaving, onSave }) => {
+  const { t } = usePluginTranslations();
   const [applePayConfig, setApplePayConfig] = React.useState(
     settings?.applePayConfig || {}
   );
@@ -36,9 +38,7 @@ const ApplePayConfigPanel = ({ settings, onInputChange, isSaving, onSave }) => {
 
       <Flex direction="column" gap={4} alignItems="stretch" paddingTop={4}>
         <Typography variant="sigma" textColor="neutral600">
-          Note: Apple Pay configuration is used for Apple Pay payment requests.
-          Make sure to configure the correct merchant identifier, supported
-          networks, and capabilities for your region.
+          {t("applePayConfigPanel.note", "Note: Apple Pay configuration is used for Apple Pay payment requests. Make sure to configure the correct merchant identifier, supported networks, and capabilities for your region.")}
         </Typography>
         <Button
           loading={isSaving}
@@ -48,7 +48,7 @@ const ApplePayConfigPanel = ({ settings, onInputChange, isSaving, onSave }) => {
           variant="default"
           maxWidth={"220px"}
         >
-          Save Configuration
+          {t("applePayConfigPanel.save", "Save Configuration")}
         </Button>
       </Flex>
     </Flex>

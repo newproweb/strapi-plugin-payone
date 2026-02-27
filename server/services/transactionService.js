@@ -176,8 +176,87 @@ const getTransactionHistory = async (
   };
 };
 
+const EXPORT_MAX = 10000;
+
+const getTransactionsForExport = async (
+  strapi,
+  { filters = {}, sort_by, sort_order }
+) => {
+  const where = buildWhereFromFilters(filters);
+  const sortField =
+    sort_by && ALLOWED_SORT_FIELDS.includes(sort_by) ? sort_by : "createdAt";
+  const order = sort_order === "asc" ? "asc" : "desc";
+
+  const queryOptions = {
+    orderBy: { [sortField]: order },
+    limit: EXPORT_MAX,
+  };
+  if (where !== undefined) queryOptions.where = where;
+
+  const data = await strapi.db.query(TRANSACTION_UID).findMany(queryOptions);
+  return data;
+};
+
+const TRANSACTION_ATTRS = [
+  "txid", "reference", "invoiceid", "amount", "currency", "status",
+  "error_code", "request_type", "error_message", "customer_message",
+  "body", "raw_request", "raw_response", "createdAt", "updatedAt"
+];
+
+const parseJsonField = (val) => {
+  if (val == null || val === "") return {};
+  if (typeof val === "object") return val;
+  try {
+    const parsed = JSON.parse(String(val));
+    return typeof parsed === "object" ? parsed : {};
+  } catch {
+    return {};
+  }
+};
+
+const normalizeImportRow = (row) => {
+  const data = {
+    txid: (row.txid ?? row.TxId ?? "NO TXID").toString().trim(),
+    reference: (row.reference ?? row.Reference ?? "NO REFERENCE").toString().trim(),
+    invoiceid: (row.invoiceid ?? row.invoiceId ?? "NO INVOICE ID").toString().trim(),
+    amount: (row.amount ?? "0").toString().trim(),
+    currency: (row.currency ?? "EUR").toString().trim(),
+    status: (row.status ?? "unknown").toString().trim(),
+    error_code: (row.error_code ?? row.errorCode ?? "NO ERROR CODE").toString().trim(),
+    request_type: (row.request_type ?? row.requestType ?? "unknown").toString().trim(),
+    error_message: (row.error_message ?? row.errorMessage ?? "NO ERROR MESSAGE").toString().trim(),
+    customer_message: (row.customer_message ?? row.customerMessage ?? "NO CUSTOMER MESSAGE").toString().trim(),
+    body: parseJsonField(row.body),
+    raw_request: parseJsonField(row.raw_request),
+    raw_response: parseJsonField(row.raw_response),
+  };
+  data.raw_request = sanitizeSensitive(data.raw_request || {});
+  data.raw_response = sanitizeSensitive(data.raw_response || {});
+  return data;
+};
+
+const importTransactions = async (strapi, rows) => {
+  const results = { imported: 0, failed: 0, errors: [] };
+  if (!Array.isArray(rows) || rows.length === 0) return results;
+  for (let i = 0; i < rows.length; i++) {
+    try {
+      const row = rows[i];
+      const data = normalizeImportRow(row);
+      await strapi.db.query(TRANSACTION_UID).create({ data });
+      results.imported += 1;
+    } catch (err) {
+      results.failed += 1;
+      results.errors.push({ row: i + 1, message: err.message || String(err) });
+    }
+  }
+  return results;
+};
+
 module.exports = {
   logTransaction,
-  getTransactionHistory
+  getTransactionHistory,
+  getTransactionsForExport,
+  importTransactions,
+  TRANSACTION_ATTRS,
 };
 

@@ -3,26 +3,19 @@ import { Box, Flex, Typography, Button } from "@strapi/design-system";
 import { Play } from "@strapi/icons";
 import RenderInput from "../RenderInput";
 import { getCurrencyOptions } from "../../../utils/countryLanguageUtils";
+import { usePluginTranslations } from "../../../hooks/usePluginTranslations";
 
 const RefundForm = ({ paymentActions }) => {
+  const { t } = usePluginTranslations();
   const currencyOptions = getCurrencyOptions();
   return (
     <Flex direction="column" alignItems="stretch" gap={4}>
       <Flex direction="row" gap={2}>
-        <Typography
-          variant="omega"
-          fontWeight="semiBold"
-          textColor="neutral800"
-          className="payment-form-title"
-        >
-          Refund
+        <Typography variant="omega" fontWeight="semiBold" textColor="neutral800" className="payment-form-title">
+          {t("refund.title", "Refund")}
         </Typography>
-        <Typography
-          variant="pi"
-          textColor="neutral600"
-          className="payment-form-description"
-        >
-          Refund a previously captured amount.
+        <Typography variant="pi" textColor="neutral600" className="payment-form-description">
+          {t("refund.description", "Refund a captured payment.")}
         </Typography>
       </Flex>
 
@@ -35,20 +28,20 @@ const RefundForm = ({ paymentActions }) => {
       >
         <RenderInput
           name="refundTxid"
-          label="Transaction ID *"
+          label={t("common.transactionId", "Transaction ID *")}
           value={paymentActions.paymentState.refundTxid || ""}
           onChange={(e) =>
             paymentActions.handleFieldChange("refundTxid", e.target.value)
           }
           inputType="textInput"
-          placeholder="Enter TxId from capture"
+          placeholder={t("refund.placeholderTxid", "Enter TxId from capture")}
           required
-          tooltipContent="Transaction ID from a previous capture"
+          tooltipContent={t("refund.tooltipTxid", "Transaction ID from a previous capture")}
         />
 
         <RenderInput
           name="refundSequenceNumber"
-          label="Sequence Number"
+          label={t("refund.sequenceNumber", "Sequence Number")}
           value={paymentActions.paymentState.refundSequenceNumber || "2"}
           onChange={(e) =>
             paymentActions.handleFieldChange(
@@ -58,12 +51,12 @@ const RefundForm = ({ paymentActions }) => {
           }
           inputType="textInput"
           placeholder="2"
-          tooltipContent="Sequence number for this refund (1-127), default is 2 for first refund"
+          tooltipContent={t("refund.tooltipSequence", "Sequence number for this refund (1-127), default is 2 for first refund")}
         />
 
         <RenderInput
           name="refundAmount"
-          label="Amount *"
+          label={t("common.amount", "Amount *")}
           value={paymentActions.paymentState.paymentAmount || ""}
           onChange={(e) =>
             paymentActions.handleFieldChange("paymentAmount", e.target.value)
@@ -71,12 +64,12 @@ const RefundForm = ({ paymentActions }) => {
           inputType="textInput"
           placeholder="1000"
           required
-          tooltipContent="Amount in cents to refund (will be negative automatically)"
+          tooltipContent={t("refund.tooltipAmount", "Amount in cents to refund (will be negative automatically)")}
         />
 
         <RenderInput
           name="refundCurrency"
-          label="Currency"
+          label={t("common.currency", "Currency")}
           value={paymentActions.paymentState.refundCurrency || "EUR"}
           onChange={(e) =>
             paymentActions.handleFieldChange("refundCurrency", e.target.value)
@@ -112,7 +105,7 @@ const RefundForm = ({ paymentActions }) => {
           !paymentActions.paymentState.paymentAmount.trim()
         }
       >
-        Process Refund
+        {t("refund.submit", "Refund")}
       </Button>
     </Flex>
   );

@@ -8,6 +8,7 @@ import {
 } from "@strapi/design-system";
 import { Cog } from "@strapi/icons";
 import RenderInput from "../RenderInput";
+import { usePluginTranslations } from "../../../hooks/usePluginTranslations";
 
 const ConfigurationFields = ({
   settings,
@@ -15,6 +16,7 @@ const ConfigurationFields = ({
   onPaymentMethodToggle,
   onNavigateToConfig,
 }) => {
+  const { t } = usePluginTranslations();
   const handleNavigateToApplePayConfig = () => {
     if (onNavigateToConfig) {
       onNavigateToConfig("apple-pay-config");
@@ -39,82 +41,79 @@ const ConfigurationFields = ({
         <Flex direction="column" alignItems={"stretch"} gap={6}>
           <Flex direction="row" gap={2}>
             <RenderInput
-              label="Account ID (aid)"
+              label={t("config.fields.aid", "Account ID (aid)")}
               name="aid"
               value={settings.aid}
               onChange={(e) => onInputChange("aid", e.target.value)}
               required
               inputType="textInput"
-              tooltipContent={"Your Payone account ID"}
+              tooltipContent={t("config.fields.aidTooltip", "Your Payone account ID")}
             />
-
             <RenderInput
-              label="Portal ID"
+              label={t("config.fields.portalid", "Portal ID")}
               name="portalid"
               value={settings.portalid}
               onChange={(e) => onInputChange("portalid", e.target.value)}
               required
               inputType="textInput"
-              tooltipContent={"Your Payone portal ID"}
+              tooltipContent={t("config.fields.portalidTooltip", "Your Payone portal ID")}
             />
           </Flex>
           <Flex direction="row" gap={2}>
             <RenderInput
-              label="Merchant ID (mid)"
+              label={t("config.fields.mid", "Merchant ID (mid)")}
               name="mid"
               value={settings.mid}
               onChange={(e) => onInputChange("mid", e.target.value)}
               required
               inputType="textInput"
-              tooltipContent={"Your Payone merchant ID"}
+              tooltipContent={t("config.fields.midTooltip", "Your Payone merchant ID")}
             />
-
             <RenderInput
-              label="Portal Key"
+              label={t("config.fields.key", "Portal Key")}
               name="key"
               type="password"
               value={settings.key}
               onChange={(e) => onInputChange("key", e.target.value)}
               required
               inputType="textInput"
-              tooltipContent={"Your Payone portal key (will be encrypted)"}
+              tooltipContent={t("config.fields.keyTooltip", "Your Payone portal key (will be encrypted)")}
             />
           </Flex>
           <Flex direction="row" gap={2}>
             <RenderInput
-              label="Domain Name"
+              label={t("config.fields.domainName", "Domain Name")}
               name="domainName"
               value={settings.domainName}
               onChange={(e) => onInputChange("domainName", e.target.value)}
               inputType="textInput"
-              tooltipContent={"Your Payone domain name"}
+              tooltipContent={t("config.fields.domainNameTooltip", "Your Payone domain name")}
             />
-
             <RenderInput
-              label="Display Name"
+              label={t("config.fields.displayName", "Display Name")}
               name="displayName"
               value={settings.displayName}
               onChange={(e) => onInputChange("displayName", e.target.value)}
               inputType="textInput"
-              tooltipContent={"Display name for payment methods (optional)"}
+              tooltipContent={t("config.fields.displayNameTooltip", "Display name for payment methods (optional)")}
             />
           </Flex>
           <Flex direction="row" gap={2}>
             <RenderInput
-              label="Mode"
+              label={t("config.fields.mode", "Mode")}
               name="mode"
               value={settings.mode || "test"}
               onChange={(e) => onInputChange("mode", e.target.value)}
               required
               inputType="select"
-              tooltipContent={"Select the API mode"}
+              tooltipContent={t("config.fields.modeTooltip", "Select the API mode")}
               options={[
-                { value: "test", label: "Test" },
-                { value: "live", label: "Live" },
+                { value: "test", label: t("config.fields.modeTest", "Test") },
+                { value: "live", label: t("config.fields.modeLive", "Live") },
               ]}
             />
             <RenderInput
-              label="Enable 3D Secure"
+              label={t("config.fields.enable3DSecure", "Enable 3D Secure")}
               name="enable3DSecure"
               value={settings.enable3DSecure ? "yes" : "no"}
               onChange={(e) =>
@@ -122,35 +121,33 @@ const ConfigurationFields = ({
               }
               required
               inputType="select"
-              tooltipContent={
-                "Enable 3D Secure authentication for credit card payments"
-              }
+              tooltipContent={t("config.fields.enable3DSecureTooltip", "Enable 3D Secure authentication for credit card payments")}
               options={[
-                { value: "yes", label: "Enabled" },
-                { value: "no", label: "Disabled" },
+                { value: "yes", label: t("config.fields.enabled", "Enabled") },
+                { value: "no", label: t("config.fields.disabled", "Disabled") },
               ]}
             />
           </Flex>
           <Flex direction="row">
             <RenderInput
-              label="API Version"
+              label={t("config.fields.apiVersion", "API Version")}
               name="api_version"
               value={settings.api_version || "3.10"}
               onChange={(e) => onInputChange("api_version", e.target.value)}
               required
               inputType="textInput"
-              tooltipContent={"Payone API version"}
+              tooltipContent={t("config.fields.apiVersionTooltip", "Payone API version")}
             />
           </Flex>
         </Flex>
 
         <Flex direction="column" alignItems="stretch" gap={4} marginTop={6}>
           <Typography variant="pi" textColor="neutral600" marginBottom={4}>
-            Enable or disable payment methods for your Payone integration
+            {t("config.paymentMethods.title", "Enable or disable payment methods for your Payone integration")}
           </Typography>
 
           <RenderInput
-            label="Credit Card (Visa, Mastercard)"
+            label={t("config.paymentMethods.creditCard", "Credit Card (Visa, Mastercard)")}
             name="enableCreditCard"
             value={settings.enableCreditCard === true}
             onChange={(selected) =>
@@ -159,11 +156,10 @@ const ConfigurationFields = ({
             inputType="switch"
             labelDirection="row"
             labelStyle={{ fontSize: "16px" }}
-            tooltipContent="Enable or disable credit card payments"
+            tooltipContent={t("config.paymentMethods.creditCardTooltip", "Enable or disable credit card payments")}
           />
-
           <RenderInput
-            label="PayPal"
+            label={t("config.paymentMethods.paypal", "PayPal")}
             name="enablePayPal"
             value={settings.enablePayPal === true}
             onChange={(selected) =>
@@ -172,11 +168,10 @@ const ConfigurationFields = ({
             inputType="switch"
             labelDirection="row"
             labelStyle={{ fontSize: "16px" }}
-            tooltipContent="Enable or disable PayPal payments"
+            tooltipContent={t("config.paymentMethods.paypalTooltip", "Enable or disable PayPal payments")}
           />
-
           <RenderInput
-            label="Google Pay"
+            label={t("config.paymentMethods.googlePay", "Google Pay")}
             name="enableGooglePay"
             value={settings.enableGooglePay === true}
             onChange={(selected) =>
@@ -185,11 +180,10 @@ const ConfigurationFields = ({
             inputType="switch"
             labelDirection="row"
             labelStyle={{ fontSize: "16px" }}
-            tooltipContent="Enable or disable Google Pay payments"
+            tooltipContent={t("config.paymentMethods.googlePayTooltip", "Enable or disable Google Pay payments")}
           />
-
           <RenderInput
-            label="Apple Pay"
+            label={t("config.paymentMethods.applePay", "Apple Pay")}
             name="enableApplePay"
             value={settings.enableApplePay === true}
             onChange={(selected) =>
@@ -198,11 +192,10 @@ const ConfigurationFields = ({
             inputType="switch"
             labelDirection="row"
             labelStyle={{ fontSize: "16px" }}
-            tooltipContent="Enable or disable Apple Pay payments"
+            tooltipContent={t("config.paymentMethods.applePayTooltip", "Enable or disable Apple Pay payments")}
           />
-
           <RenderInput
-            label="Sofort Banking"
+            label={t("config.paymentMethods.sofort", "Sofort Banking")}
             name="enableSofort"
             value={settings.enableSofort === true}
             onChange={(selected) =>
@@ -211,11 +204,10 @@ const ConfigurationFields = ({
             inputType="switch"
             labelDirection="row"
             labelStyle={{ fontSize: "16px" }}
-            tooltipContent="Enable or disable Sofort Banking payments"
+            tooltipContent={t("config.paymentMethods.sofortTooltip", "Enable or disable Sofort Banking payments")}
           />
-
           <RenderInput
-            label="SEPA Direct Debit"
+            label={t("config.paymentMethods.sepa", "SEPA Direct Debit")}
             name="enableSepaDirectDebit"
             value={settings.enableSepaDirectDebit === true}
             onChange={(selected) =>
@@ -224,7 +216,7 @@ const ConfigurationFields = ({
             inputType="switch"
             labelDirection="row"
             labelStyle={{ fontSize: "16px" }}
-            tooltipContent="Enable or disable SEPA Direct Debit payments"
+            tooltipContent={t("config.paymentMethods.sepaTooltip", "Enable or disable SEPA Direct Debit payments")}
           />
 
           <Flex direction="row" gap={2} marginTop={10}>
@@ -234,7 +226,7 @@ const ConfigurationFields = ({
               onClick={handleNavigateToApplePayConfig}
               className="payment-button"
             >
-              Apple Pay Config
+              {t("config.buttons.applePayConfig", "Apple Pay Config")}
             </Button>
             <Button
               variant="secondary"
@@ -242,7 +234,7 @@ const ConfigurationFields = ({
               onClick={handleNavigateToGooglePayConfig}
               className="payment-button"
             >
-              Google Pay Config
+              {t("config.buttons.googlePayConfig", "Google Pay Config")}
             </Button>
           </Flex>
         </Flex>

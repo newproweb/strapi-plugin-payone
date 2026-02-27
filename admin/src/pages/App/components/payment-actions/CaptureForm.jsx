@@ -3,27 +3,19 @@ import { Box, Flex, Typography, Button } from "@strapi/design-system";
 import { Play } from "@strapi/icons";
 import RenderInput from "../RenderInput";
 import { getCurrencyOptions } from "../../../utils/countryLanguageUtils";
+import { usePluginTranslations } from "../../../hooks/usePluginTranslations";
 
 const CaptureForm = ({ paymentActions }) => {
+  const { t } = usePluginTranslations();
   const currencyOptions = getCurrencyOptions();
   return (
     <Flex direction="column" alignItems="stretch" gap={4}>
       <Flex direction="row" gap={2}>
-        <Typography
-          variant="omega"
-          fontWeight="semiBold"
-          textColor="neutral800"
-          className="payment-form-title"
-        >
-          Capture
+        <Typography variant="omega" fontWeight="semiBold" textColor="neutral800" className="payment-form-title">
+          {t("capture.title", "Capture")}
         </Typography>
-        <Typography
-          variant="pi"
-          textColor="neutral600"
-          className="payment-form-description"
-        >
-          Capture a previously authorized amount. Note: Reference parameter is
-          not supported by Payone capture.
+        <Typography variant="pi" textColor="neutral600" className="payment-form-description">
+          {t("capture.description", "Capture a previously preauthorized amount.")}
         </Typography>
       </Flex>
 
@@ -36,20 +28,20 @@ const CaptureForm = ({ paymentActions }) => {
       >
         <RenderInput
           name="captureTxid"
-          label="Transaction ID *"
+          label={t("common.transactionId", "Transaction ID *")}
           value={paymentActions.paymentState.captureTxid || ""}
           onChange={(e) =>
             paymentActions.handleFieldChange("captureTxid", e.target.value)
           }
           inputType="textInput"
-          placeholder="Enter TxId from preauthorization"
+          placeholder={t("capture.placeholderTxid", "Enter TxId from preauthorization")}
           required
-          tooltipContent="Transaction ID from a previous preauthorization"
+          tooltipContent={t("capture.tooltipTxid", "Transaction ID from a previous preauthorization")}
         />
 
         <RenderInput
           name="captureAmount"
-          label="Amount *"
+          label={t("common.amount", "Amount *")}
           value={paymentActions.paymentState.paymentAmount || ""}
           onChange={(e) =>
             paymentActions.handleFieldChange("paymentAmount", e.target.value)
@@ -57,12 +49,12 @@ const CaptureForm = ({ paymentActions }) => {
           inputType="textInput"
           placeholder="1000"
           required
-          tooltipContent="Amount in cents to capture"
+          tooltipContent={t("capture.tooltipAmount", "Amount in cents to capture")}
         />
 
         <RenderInput
           name="captureCurrency"
-          label="Currency"
+          label={t("common.currency", "Currency")}
           value={paymentActions.paymentState.captureCurrency || "EUR"}
           onChange={(e) =>
             paymentActions.handleFieldChange("captureCurrency", e.target.value)
@@ -75,7 +67,7 @@ const CaptureForm = ({ paymentActions }) => {
 
         <RenderInput
           name="captureSequenceNumber"
-          label="Sequence Number"
+          label={t("capture.sequenceNumber", "Sequence Number")}
           value={paymentActions.paymentState.captureSequenceNumber || "1"}
           onChange={(e) =>
             paymentActions.handleFieldChange(
@@ -85,7 +77,7 @@ const CaptureForm = ({ paymentActions }) => {
           }
           inputType="textInput"
           placeholder="1"
-          tooltipContent="Sequence number for this capture (1-127), default is 1"
+          tooltipContent={t("capture.tooltipSequence", "Sequence number for this capture (1-127), default is 1")}
         />
 
         {["wlt", "gpp", "apl"].includes(
@@ -119,7 +111,7 @@ const CaptureForm = ({ paymentActions }) => {
           !paymentActions.paymentState.paymentAmount?.trim()
         }
       >
-        Process Capture
+        {t("capture.submit", "Capture")}
       </Button>
     </Flex>
   );

@@ -7,12 +7,14 @@ import CaptureForm from "./CaptureForm";
 import RefundForm from "./RefundForm";
 import PaymentResult from "./PaymentResult";
 import ApplePayPanel from "./ApplePayPanel";
+import { usePluginTranslations } from "../../../hooks/usePluginTranslations";
 
 const PaymentActionsPanel = ({
   onNavigateToConfig,
   settings,
   paymentActions,
 }) => {
+  const { t } = usePluginTranslations();
   const mode = (settings?.settings?.mode || "test").toLowerCase();
   const isLiveMode = mode === "live";
 
@@ -39,10 +41,10 @@ const PaymentActionsPanel = ({
         }}
       >
         <Typography variant="pi" textColor="neutral600">
-          Test Payments are only works in test mode.
+          {t("paymentActions.testModeOnly", "Test Payments are only works in test mode.")}
         </Typography>
         <Typography variant="pi" textColor="neutral600">
-          Please switch to test mode in plugin settings to use test payments.
+          {t("paymentActions.switchToTestMode", "Please switch to test mode in plugin settings to use test payments.")}
         </Typography>
       </Box>
     );
@@ -76,22 +78,11 @@ const PaymentActionsPanel = ({
             gap: "8px",
           }}
         >
-          <Typography
-            variant="beta"
-            as="h2"
-            className="payment-title"
-            style={{ fontSize: "20px", marginBottom: "4px" }}
-          >
-            Payment Actions
+          <Typography variant="beta" as="h2" className="payment-title" style={{ fontSize: "20px", marginBottom: "4px" }}>
+            {t("paymentActions.title", "Payment Actions")}
           </Typography>
-          <Typography
-            variant="pi"
-            textColor="neutral600"
-            className="payment-subtitle"
-            style={{ fontSize: "14px" }}
-          >
-            Process payments, captures, and refunds with multiple payment
-            methods
+          <Typography variant="pi" textColor="neutral600" className="payment-subtitle" style={{ fontSize: "14px" }}>
+            {t("paymentActions.subtitle", "Perform preauthorization, capture, refund and other payment operations.")}
           </Typography>
         </Box>
 
@@ -105,7 +96,7 @@ const PaymentActionsPanel = ({
           {/* Preauthorization */}
           <Accordion.Item value="preauthorization">
             <Accordion.Header>
-              <Accordion.Trigger>Preauthorization</Accordion.Trigger>
+              <Accordion.Trigger>{t("preauth.title", "Preauthorization")}</Accordion.Trigger>
             </Accordion.Header>
             <Accordion.Content>
               <Box
@@ -125,7 +116,7 @@ const PaymentActionsPanel = ({
           {/* Authorization */}
           <Accordion.Item value="authorization">
             <Accordion.Header>
-              <Accordion.Trigger>Authorization</Accordion.Trigger>
+              <Accordion.Trigger>{t("auth.title", "Authorization")}</Accordion.Trigger>
             </Accordion.Header>
             <Accordion.Content>
               <Box className="payment-form-section">
@@ -139,7 +130,7 @@ const PaymentActionsPanel = ({
           {/* Capture */}
           <Accordion.Item value="capture">
             <Accordion.Header>
-              <Accordion.Trigger>Capture</Accordion.Trigger>
+              <Accordion.Trigger>{t("capture.title", "Capture")}</Accordion.Trigger>
             </Accordion.Header>
             <Accordion.Content>
               <Box
@@ -156,7 +147,7 @@ const PaymentActionsPanel = ({
           {/* Refund */}
           <Accordion.Item value="refund">
             <Accordion.Header>
-              <Accordion.Trigger>Refund</Accordion.Trigger>
+              <Accordion.Trigger>{t("refund.title", "Refund")}</Accordion.Trigger>
             </Accordion.Header>
             <Accordion.Content>
               <Box
@@ -181,9 +172,7 @@ const PaymentActionsPanel = ({
 
         <Box paddingTop={4}>
           <Typography variant="sigma" textColor="neutral600">
-            Note: These payment actions allow you to test the complete payment
-            flow: Preauthorization → Capture → Refund. Make sure to use valid
-            Transaction IDs for capture and refund operations.
+            {t("paymentActions.note", "Note: These payment actions allow you to test the complete payment flow: Preauthorization → Capture → Refund. Make sure to use valid Transaction IDs for capture and refund operations.")}
           </Typography>
         </Box>
       </Flex>

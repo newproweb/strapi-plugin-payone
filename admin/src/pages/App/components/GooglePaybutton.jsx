@@ -1,6 +1,7 @@
 import * as React from "react";
 import { Box, Flex, Typography } from "@strapi/design-system";
 import { injectGooglePayScript } from "../../utils/injectGooglePayScript";
+import { usePluginTranslations } from "../../hooks/usePluginTranslations";
 
 const GooglePayButton = ({
   amount,
@@ -9,6 +10,7 @@ const GooglePayButton = ({
   onError,
   settings,
 }) => {
+  const { t } = usePluginTranslations();
   const [isReady, setIsReady] = React.useState(false);
   const [isLoading, setIsLoading] = React.useState(true);
   const buttonContainerRef = React.useRef(null);
@@ -308,7 +310,7 @@ const GooglePayButton = ({
             textColor="neutral600"
             style={{ textAlign: "left" }}
           >
-            Loading Google Pay...
+            {t("googlePay.loading", "Loading Google Pay...")}
           </Typography>
         )}
         {!isLoading && !isReady && (
@@ -317,7 +319,7 @@ const GooglePayButton = ({
             textColor="neutral600"
             style={{ textAlign: "left" }}
           >
-            Google Pay is not available
+            {t("googlePay.notAvailable", "Google Pay is not available")}
           </Typography>
         )}
         {!isLoading && isReady && (
@@ -328,15 +330,14 @@ const GooglePayButton = ({
               fontWeight="semiBold"
               style={{ textAlign: "left" }}
             >
-              Google Pay Payment
+              {t("googlePay.paymentTitle", "Google Pay Payment")}
             </Typography>
             <Typography
               variant="pi"
               textColor="neutral600"
               style={{ textAlign: "left" }}
             >
-              Click the button below to pay with Google Pay. The token will be
-              automatically sent to Payone.
+              {t("googlePay.paymentHint", "Click the button below to pay with Google Pay. The token will be automatically sent to Payone.")}
             </Typography>
           </>
         )}

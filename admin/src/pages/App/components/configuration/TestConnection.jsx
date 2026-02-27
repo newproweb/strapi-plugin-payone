@@ -6,9 +6,9 @@ import {
   CardBody,
   Flex,
   Typography,
-  Alert,
 } from "@strapi/design-system";
 import { Play } from "@strapi/icons";
+import { usePluginTranslations } from "../../../hooks/usePluginTranslations";
 
 const TestConnection = ({
   settings,
@@ -16,6 +16,7 @@ const TestConnection = ({
   testResult,
   onTestConnection,
 }) => {
+  const { t } = usePluginTranslations();
   const mode = (settings?.mode || "test").toLowerCase();
 
   return (
@@ -23,26 +24,16 @@ const TestConnection = ({
       <CardBody>
         <Flex direction="column" alignItems="stretch" gap={6} paddingTop={6}>
           <Box>
-            <Typography
-              variant="delta"
-              as="h3"
-              fontWeight="bold"
-              style={{ marginBottom: "16px" }}
-            >
-              Test Connection
+            <Typography variant="delta" as="h3" fontWeight="bold" style={{ marginBottom: "16px" }}>
+              {t("testConnection.title", "Test Connection")}
             </Typography>
-
             {mode === "test" ? (
               <Typography variant="pi" textColor="neutral600">
-                Verify your Payone configuration by testing the API connection
+                {t("testConnection.description", "Verify your Payone configuration by testing the API connection")}
               </Typography>
             ) : (
-              <Typography
-                variant="pi"
-                textColor="neutral600"
-                style={{ marginTop: "8px" }}
-              >
-                Test Connection is disabled in live mode.
+              <Typography variant="pi" textColor="neutral600" style={{ marginTop: "8px" }}>
+                {t("testConnection.disabledInLive", "Test Connection is disabled in live mode.")}
               </Typography>
             )}
           </Box>
@@ -56,16 +47,12 @@ const TestConnection = ({
             disabled={mode === "live"}
             style={{ maxWidth: "200px" }}
           >
-            {isTesting ? "Testing Connection..." : "Test Connection"}
+            {isTesting ? t("testConnection.testing", "Testing Connection...") : t("testConnection.button", "Test Connection")}
           </Button>
 
           {testResult && (
-            <Flex direction={"column"} alignItems={"stretch"} gap={2}>
-              <Typography
-                variant="pi"
-                fontWeight="medium"
-                style={{ marginBottom: "16px" }}
-              >
+            <Flex direction="column" alignItems="stretch" gap={2}>
+              <Typography variant="pi" fontWeight="medium" style={{ marginBottom: "16px" }}>
                 {testResult.message}
               </Typography>
               {testResult.details && Boolean(testResult.success) ? (
@@ -75,18 +62,17 @@ const TestConnection = ({
                       <Flex direction="column" alignItems="stretch" gap={2}>
                         {testResult.details.mode && (
                           <Typography variant="pi" textColor="neutral600">
-                            <strong>Mode:</strong> {testResult.details.mode}
+                            <strong>{t("testConnection.mode", "Mode")}:</strong> {testResult.details.mode}
                           </Typography>
                         )}
                         {testResult.details.aid && (
                           <Typography variant="pi" textColor="neutral600">
-                            <strong>AID:</strong> {testResult.details.aid}
+                            <strong>{t("testConnection.aid", "AID")}:</strong> {testResult.details.aid}
                           </Typography>
                         )}
                         {testResult.details.portalid && (
                           <Typography variant="pi" textColor="neutral600">
-                            <strong>Portal ID:</strong>{" "}
-                            {testResult.details.portalid}
+                            <strong>{t("testConnection.portalid", "Portal ID")}:</strong> {testResult.details.portalid}
                           </Typography>
                         )}
                       </Flex>
@@ -97,22 +83,19 @@ const TestConnection = ({
                 <Card>
                   <CardBody padding={4}>
                     <Flex direction="column" alignItems="stretch" gap={2}>
-                      {testResult.error && (
+                      {testResult.error?.ErrorCode && (
                         <Typography variant="pi" textColor="neutral600">
-                          <strong>Error Code:</strong>{" "}
-                          {testResult.error.ErrorCode}
+                          <strong>{t("testConnection.errorCode", "Error Code")}:</strong> {testResult.error.ErrorCode}
                         </Typography>
                       )}
-                      {testResult.error.ErrorMessage && (
+                      {testResult.error?.ErrorMessage && (
                         <Typography variant="pi" textColor="neutral600">
-                          <strong>Error Message:</strong>{" "}
-                          {testResult.error.ErrorMessage}
+                          <strong>{t("testConnection.errorMessage", "Error Message")}:</strong> {testResult.error.ErrorMessage}
                         </Typography>
                       )}
-                      {testResult.error.CustomerMessage && (
+                      {testResult.error?.CustomerMessage && (
                         <Typography variant="pi" textColor="neutral600">
-                          <strong>Customer Message:</strong>{" "}
-                          {testResult.error.CustomerMessage}
+                          <strong>{t("testConnection.customerMessage", "Customer Message")}:</strong> {testResult.error.CustomerMessage}
                         </Typography>
                       )}
                     </Flex>

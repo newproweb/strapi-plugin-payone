@@ -2,8 +2,10 @@ import * as React from "react";
 import { Box, Flex, Typography } from "@strapi/design-system";
 import ConfigurationFields from "./ConfigurationFields";
 import TestConnection from "./TestConnection";
+import { usePluginTranslations } from "../../../hooks/usePluginTranslations";
 
 const ConfigurationPanel = ({ settings, onNavigateToConfig }) => {
+  const { t } = usePluginTranslations();
   return (
     <Flex direction="column" alignItems="stretch" gap={8} paddingTop={8}>
       <Box>
@@ -14,7 +16,7 @@ const ConfigurationPanel = ({ settings, onNavigateToConfig }) => {
           className="payment-title"
           style={{ fontSize: "20px", marginBottom: "4px" }}
         >
-          Payone API Configuration
+          {t("config.title", "Payone API Configuration")}
         </Typography>
         <Typography
           variant="pi"
@@ -23,7 +25,7 @@ const ConfigurationPanel = ({ settings, onNavigateToConfig }) => {
           className="payment-subtitle"
           style={{ fontSize: "14px" }}
         >
-          Configure your Payone payment gateway settings
+          {t("config.subtitle", "Configure your Payone payment gateway settings")}
         </Typography>
       </Box>
 
@@ -43,8 +45,7 @@ const ConfigurationPanel = ({ settings, onNavigateToConfig }) => {
 
       <Box paddingTop={4}>
         <Typography variant="sigma" textColor="neutral600">
-          Note: These settings are used for all Payone API requests. Make sure
-          to use the correct credentials for your selected mode.
+          {t("config.note", "Note: These settings are used for all Payone API requests. Make sure to use the correct credentials for your selected mode.")}
         </Typography>
       </Box>
     </Flex>

@@ -1,6 +1,7 @@
 import * as React from "react";
 import { Box, Flex, Typography, Link } from "@strapi/design-system";
 import RenderInput from "../RenderInput";
+import { usePluginTranslations } from "../../../hooks/usePluginTranslations";
 
 const TEST_3DS_CARDS = [
   {
@@ -31,6 +32,7 @@ const CardDetailsInput = ({
   cardcvc2,
   setCardcvc2,
 }) => {
+  const { t } = usePluginTranslations();
   const [selectedTestCard, setSelectedTestCard] = React.useState("");
   const isUpdatingFromTestCard = React.useRef(false);
 
@@ -81,17 +83,17 @@ const CardDetailsInput = ({
         <Flex direction="row" gap={2} alignItems="flex-start">
           <RenderInput
             name="testCard"
-            label="3D Secure Test Cards"
+            label={t("card.testCards", "3D Secure Test Cards")}
             value={selectedTestCard || ""}
             onChange={(e) => {
               const value = e.target?.value || e;
               handleTestCardSelect(value);
             }}
             inputType="select"
-            placeholder="Select a 3DS test card to auto-fill"
-            tooltipContent="These cards will trigger 3DS authentication redirect. Password: 12345"
+            placeholder={t("card.selectTestCard", "Select a 3DS test card to auto-fill")}
+            tooltipContent={t("card.testCardsTooltip", "These cards will trigger 3DS authentication redirect. Password: 12345")}
             options={[
-              { value: "", label: "-- Select a test card --" },
+              { value: "", label: t("card.selectTestCardOption", "-- Select a test card --") },
               ...TEST_3DS_CARDS.map((card, index) => ({
                 value: `${card.cardtype}-${card.cardpan}`,
                 label: `${card.name} - ${card.description}`,
@@ -103,7 +105,7 @@ const CardDetailsInput = ({
         <Flex gap={4} wrap="wrap" alignItems="flex-start">
           <RenderInput
             name="cardtype"
-            label="Card Type *"
+            label={t("card.cardType", "Card Type *")}
             value={cardtype || ""}
             onChange={(e) => {
               const value = e.target?.value || e;
@@ -111,7 +113,7 @@ const CardDetailsInput = ({
             }}
             inputType="select"
             required
-            tooltipContent="Select credit card type"
+            tooltipContent={t("card.cardTypeTooltip", "Select credit card type")}
             options={[
               { value: "V", label: "VISA" },
               { value: "M", label: "Mastercard" },
@@ -125,13 +127,13 @@ const CardDetailsInput = ({
 
           <RenderInput
             name="cardpan"
-            label="Card Number (PAN) *"
+            label={t("card.cardNumber", "Card Number (PAN) *")}
             value={cardpan || ""}
             onChange={(e) => setCardpan(e.target.value)}
             inputType="textInput"
-            placeholder="Enter card number"
+            placeholder={t("card.cardNumberPlaceholder", "Enter card number")}
             required
-            tooltipContent="Credit card number (PAN)"
+            tooltipContent={t("card.cardNumberTooltip", "Credit card number (PAN)")}
             style={{ flex: 2, minWidth: "300px" }}
           />
         </Flex>
@@ -139,13 +141,13 @@ const CardDetailsInput = ({
         <Flex gap={4} wrap="wrap" alignItems="flex-start">
           <RenderInput
             name="cardexpiredate"
-            label="Expiry Date *"
+            label={t("card.expiryDate", "Expiry Date *")}
             value={cardexpiredate || ""}
             onChange={(e) => setCardexpiredate(e.target.value)}
             inputType="textInput"
-            placeholder="YYMM (e.g., 2512)"
+            placeholder={t("card.expiryPlaceholder", "YYMM (e.g., 2512)")}
             required
-            tooltipContent="Format: YYMM (e.g., 2512 = December 2025)"
+            tooltipContent={t("card.expiryTooltip", "Format: YYMM (e.g., 2512 = December 2025)")}
             type="text"
             maxLength={4}
             style={{ flex: 1, minWidth: "150px" }}
@@ -153,16 +155,16 @@ const CardDetailsInput = ({
 
           <RenderInput
             name="cardcvc2"
-            label="CVC/CVV *"
+            label={t("card.cvc", "CVC/CVV *")}
             value={cardcvc2 || ""}
             onChange={(e) => setCardcvc2(e.target.value)}
             inputType="textInput"
-            placeholder="123 or 1234"
+            placeholder={t("card.cvcPlaceholder", "123 or 1234")}
             required
             tooltipContent={
               cardtype === "A"
-                ? "4 digits for AMEX"
-                : "3 digits for other cards"
+                ? t("card.cvcAmex", "4 digits for AMEX")
+                : t("card.cvcOther", "3 digits for other cards")
             }
             type="text"
             maxLength={4}
@@ -176,14 +178,13 @@ const CardDetailsInput = ({
             textColor="neutral600"
             style={{ textAlign: "left" }}
           >
-            For all test card numbers (positive, negative, frictionless 3DS), 3D
-            Secure test data, and detailed documentation, please refer to the{" "}
+            {t("card.3dsDocLink", "For all test card numbers (positive, negative, frictionless 3DS), 3D Secure test data, and detailed documentation, please refer to the")}{" "}
             <Link
               href="https://docs.payone.com/security-risk-management/3d-secure#/"
               target="_blank"
               rel="noopener noreferrer"
             >
-              Payone 3D Secure Documentation
+              {t("card.3dsDocTitle", "Payone 3D Secure Documentation")}
             </Link>
             .
           </Typography>

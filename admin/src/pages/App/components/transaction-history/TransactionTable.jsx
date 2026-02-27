@@ -11,8 +11,10 @@ import TransactionDetails from "./details/TransactionDetails";
 import FiltersPanel from "./FiltersPanel";
 import useTransactionHistory from "../../../hooks/useTransactionHistory";
 import StatusBadge from "../StatusBadge";
+import { usePluginTranslations } from "../../../hooks/usePluginTranslations";
 
 const TransactionTable = () => {
+  const { t } = usePluginTranslations();
   const {
     transactions,
     isLoadingHistory,
@@ -21,25 +23,30 @@ const TransactionTable = () => {
     filters,
     handleFiltersChange,
     pagination,
+    loadTransactionHistory,
   } = useTransactionHistory();
 
-  const headers = [
-    { name: "txid", label: "TxId" },
-    { name: "reference", label: "Reference" },
-    { name: "amount", label: "Amount" },
-    { name: "paymentMethod", label: "Payment Method" },
-    { name: "type", label: "Type" },
-    { name: "status", label: "Status" },
-    { name: "created_at", label: "Created At" },
-    { name: "updated_at", label: "Updated At" },
-    { name: "details", label: "Details" },
-  ];
+  const headers = React.useMemo(
+    () => [
+      { name: "txid", label: t("table.txid", "TxId") },
+      { name: "reference", label: t("table.reference", "Reference") },
+      { name: "amount", label: t("table.amount", "Amount") },
+      { name: "paymentMethod", label: t("table.paymentMethod", "Payment Method") },
+      { name: "type", label: t("table.type", "Type") },
+      { name: "status", label: t("table.status", "Status") },
+      { name: "created_at", label: t("table.createdAt", "Created At") },
+      { name: "updated_at", label: t("table.updatedAt", "Updated At") },
+      { name: "details", label: t("table.details", "Details") },
+    ],
+    [t]
+  );
 
   return (
     <Flex direction="column" alignItems="stretch" gap={4} minHeight={"800px"}>
       <FiltersPanel
         filters={filters}
         handleFiltersChange={handleFiltersChange}
+        loadTransactionHistory={loadTransactionHistory}
       />
 
       <Box>
@@ -69,12 +76,12 @@ const TransactionTable = () => {
                       <Table.Row>
                         <Table.Cell>
                           <Typography variant="pi" textColor="neutral600">
-                            {transaction.txid || "N/A"}
+                            {transaction.txid || t("table.na", "N/A")}
                           </Typography>
                         </Table.Cell>
                         <Table.Cell>
                           <Typography variant="pi" fontWeight="medium">
-                            {transaction.reference || "N/A"}
+                            {transaction.reference || t("table.na", "N/A")}
                           </Typography>
                         </Table.Cell>
                         <Table.Cell>
@@ -95,7 +102,7 @@ const TransactionTable = () => {
                         </Table.Cell>
                         <Table.Cell>
                           <Typography variant="pi" fontWeight="semiBold">
-                            {transaction.request_type || "N/A"}
+                            {transaction.request_type || t("table.na", "N/A")}
                           </Typography>
                         </Table.Cell>
                         <Table.Cell>
@@ -125,7 +132,7 @@ const TransactionTable = () => {
                               )
                             }
                           >
-                            {isSelected ? "Hide" : "Details"}
+                            {isSelected ? t("table.hide", "Hide") : t("table.details", "Details")}
                           </Button>
                         </Table.Cell>
                       </Table.Row>

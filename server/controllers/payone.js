@@ -1,9 +1,21 @@
 "use strict";
 
 const PLUGIN_NAME = "strapi-plugin-payone-provider";
+const { rowsToCsv, csvToRows, TRANSACTION_ATTRS } = require("../utils/csvTransactions");
 
 const getPayoneService = (strapi) => {
   return strapi.plugin(PLUGIN_NAME).service("payone");
+};
+
+const buildFiltersFromQuery = (rawFilters = {}) => {
+  const filters = {};
+  if (rawFilters && typeof rawFilters === "object") {
+    for (const [key, value] of Object.entries(rawFilters)) {
+      const v = value == null ? "" : String(value).trim();
+      if (v !== "" && v.toLowerCase() !== "all") filters[key] = value;
+    }
+  }
+  return filters;
 };
 
 const handleError = (ctx, error) => {
@@ -180,6 +192,64 @@ module.exports = ({ strapi }) => ({
         meta: {
           pagination: result.pagination
         },
+      };
+    } catch (error) {
+      handleError(ctx, error);
+    }
+  },
+
+  async exportTransactions(ctx) {
+    try {
+      const { filters: rawFilters = {}, format = "json", sort_by, sort_order } = ctx.query || {};
+      const filters = buildFiltersFromQuery(rawFilters);
+      const data = await getPayoneService(strapi).getTransactionsForExport({
+        filters,
+        sort_by: sort_by || "createdAt",
+        sort_order: sort_order || "desc",
+      });
+      const rows = Array.isArray(data) ? data : [];
+      const fmt = (format || "json").toLowerCase();
+
+      if (fmt === "csv") {
+        ctx.set("Content-Type", "text/csv; charset=utf-8");
+        ctx.set("Content-Disposition", 'attachment; filename="transactions.csv"');
+        ctx.body = rowsToCsv(rows, TRANSACTION_ATTRS);
+        return;
+      }
+
+      ctx.set("Content-Type", "application/json");
+      ctx.set("Content-Disposition", 'attachment; filename="transactions.json"');
+      ctx.body = rows;
+    } catch (error) {
+      handleError(ctx, error);
+    }
+  },
+
+  async importTransactions(ctx) {
+    try {
+      const body = ctx.request.body;
+      if (!body || typeof body !== "object") ctx.throw(400, "Request body must be JSON");
+
+      let rows = [];
+      if (Array.isArray(body)) {
+        rows = body;
+      } else if (Array.isArray(body.data)) {
+        rows = body.data;
+      } else if (body.format === "csv" && typeof body.data === "string") {
+        rows = csvToRows(body.data);
+      } else {
+        ctx.throw(400, "Body must be an array, { data: array }, or { format: 'csv', data: csvString }");
+      }
+
+      if (rows.length === 0) {
+        ctx.body = { imported: 0, failed: 0, errors: [], message: "No rows to import" };
+        return;
+      }
+
+      const result = await getPayoneService(strapi).importTransactions(rows);
+      ctx.body = {
+        ...result,
+        message: `Imported ${result.imported}, failed ${result.failed}`,
       };
     } catch (error) {
       handleError(ctx, error);

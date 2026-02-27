@@ -9,6 +9,7 @@ import {
 } from "@strapi/design-system";
 import { Check } from "@strapi/icons";
 import GooglePayConfig from "./GooglePayConfig";
+import { usePluginTranslations } from "../../hooks/usePluginTranslations";
 
 const GooglePayConfigPanel = ({
   settings,
@@ -17,6 +18,7 @@ const GooglePayConfigPanel = ({
   onSave,
   onBack,
 }) => {
+  const { t } = usePluginTranslations();
   const [googlePayConfig, setGooglePayConfig] = React.useState(
     settings?.googlePayConfig || {}
   );
@@ -42,9 +44,7 @@ const GooglePayConfigPanel = ({
 
       <Flex direction="column" gap={4} alignItems="stretch" paddingTop={4}>
         <Typography variant="sigma" textColor="neutral600">
-          Note: Google Pay configuration is used for Google Pay payment
-          requests. Make sure to configure the correct card networks,
-          authentication methods, and merchant information for your region.
+          {t("googlePayConfigPanel.note", "Note: Google Pay configuration is used for Google Pay payment requests. Make sure to configure the correct card networks, authentication methods, and merchant information for your region.")}
         </Typography>
         <Button
           loading={isSaving}
@@ -54,7 +54,7 @@ const GooglePayConfigPanel = ({
           variant="default"
           maxWidth={"220px"}
         >
-          Save Configuration
+          {t("googlePayConfigPanel.save", "Save Configuration")}
         </Button>
       </Flex>
     </Flex>

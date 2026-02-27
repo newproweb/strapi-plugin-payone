@@ -7,6 +7,7 @@ import {
   Divider,
 } from "@strapi/design-system";
 import RenderInput from "./RenderInput";
+import { usePluginTranslations } from "../../hooks/usePluginTranslations";
 import {
   APPLE_PAY_SUPPORTED_COUNTRIES,
   APPLE_PAY_SUPPORTED_NETWORKS,
@@ -19,6 +20,7 @@ import {
 } from "../../utils/applePayConstants";
 
 const ApplePayConfig = ({ config, onConfigChange, settings }) => {
+  const { t } = usePluginTranslations();
   const {
     countryCode = DEFAULT_APPLE_PAY_CONFIG.countryCode,
     currencyCode = DEFAULT_APPLE_PAY_CONFIG.currencyCode,
@@ -94,7 +96,7 @@ const ApplePayConfig = ({ config, onConfigChange, settings }) => {
           <Box>
             <RenderInput
               name="countryCode"
-              label="Country Code"
+              label={t("applePayConfig.countryCode", "Country Code")}
               value={countryCode || ""}
               onChange={(e) => {
                 const value = e.target?.value || e;
@@ -102,7 +104,7 @@ const ApplePayConfig = ({ config, onConfigChange, settings }) => {
               }}
               inputType="select"
               required
-              tooltipContent="Select the country where your business operates"
+              tooltipContent={t("applePayConfig.countryTooltip", "Select the country where your business operates")}
               options={APPLE_PAY_SUPPORTED_COUNTRIES.map((country) => ({
                 value: country.code,
                 label: `${country.name} (${country.code})`,
@@ -113,7 +115,7 @@ const ApplePayConfig = ({ config, onConfigChange, settings }) => {
           <Box>
             <RenderInput
               name="currencyCode"
-              label="Currency Code"
+              label={t("applePayConfig.currencyCode", "Currency Code")}
               value={currencyCode || ""}
               onChange={(e) => {
                 const value = e.target?.value || e;
@@ -121,7 +123,7 @@ const ApplePayConfig = ({ config, onConfigChange, settings }) => {
               }}
               inputType="select"
               required
-              tooltipContent={`Supported currencies for ${countryCode}`}
+              tooltipContent={t("applePayConfig.currencyTooltip", "Supported currencies for {{country}}", { country: countryCode })}
               options={supportedCurrencies.map((currency) => ({
                 value: currency.code,
                 label: `${currency.name} (${currency.code}) ${currency.symbol}`,
@@ -133,22 +135,21 @@ const ApplePayConfig = ({ config, onConfigChange, settings }) => {
                 textColor="danger600"
                 style={{ marginTop: "4px" }}
               >
-                No supported currencies for this country. Please select a
-                different country.
+                {t("applePayConfig.noCurrencies", "No supported currencies for this country. Please select a different country.")}
               </Typography>
             )}
           </Box>
           <Box>
             <RenderInput
               name="buttonStyle"
-              label="Button Style"
+              label={t("applePayConfig.buttonStyle", "Button Style")}
               value={buttonStyle || ""}
               onChange={(e) => {
                 const value = e.target?.value || e;
                 onConfigChange({ ...config, buttonStyle: value });
               }}
               inputType="select"
-              tooltipContent="Visual style of the Apple Pay button"
+              tooltipContent={t("applePayConfig.buttonStyleTooltip", "Visual style of the Apple Pay button")}
               options={APPLE_PAY_BUTTON_STYLES.map((style) => ({
                 value: style.code,
                 label: style.name,
@@ -159,14 +160,14 @@ const ApplePayConfig = ({ config, onConfigChange, settings }) => {
           <Box>
             <RenderInput
               name="buttonType"
-              label="Button Type"
+              label={t("applePayConfig.buttonType", "Button Type")}
               value={buttonType || ""}
               onChange={(e) => {
                 const value = e.target?.value || e;
                 onConfigChange({ ...config, buttonType: value });
               }}
               inputType="select"
-              tooltipContent="Type of action the button represents"
+              tooltipContent={t("applePayConfig.buttonTypeTooltip", "Type of action the button represents")}
               options={APPLE_PAY_BUTTON_TYPES.map((type) => ({
                 value: type.code,
                 label: type.name,
@@ -180,10 +181,10 @@ const ApplePayConfig = ({ config, onConfigChange, settings }) => {
         <Box>
           <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
             <Typography variant="pi" fontWeight="semiBold">
-              Supported Networks
+              {t("applePayConfig.supportedNetworks", "Supported Networks")}
             </Typography>
             <Typography variant="pi" textColor="neutral600">
-              Select payment networks supported in {countryCode}
+              {t("applePayConfig.supportedNetworksHint", "Select payment networks supported in {{country}}", { country: countryCode })}
             </Typography>
           </div>
           <Flex wrap="wrap" gap={4} style={{ marginTop: "12px" }}>
@@ -211,7 +212,7 @@ const ApplePayConfig = ({ config, onConfigChange, settings }) => {
                         textColor="neutral500"
                         style={{ marginLeft: "8px" }}
                       >
-                        (Not available)
+                        {t("applePayConfig.notAvailable", "(Not available)")}
                       </Typography>
                     )}
                   </Checkbox>
@@ -225,7 +226,7 @@ const ApplePayConfig = ({ config, onConfigChange, settings }) => {
               textColor="danger600"
               style={{ marginTop: "8px" }}
             >
-              At least one network must be selected
+              {t("applePayConfig.atLeastOneNetwork", "At least one network must be selected")}
             </Typography>
           )}
         </Box>
@@ -240,15 +241,14 @@ const ApplePayConfig = ({ config, onConfigChange, settings }) => {
               fontWeight="semiBold"
               style={{ marginLeft: "2px" }}
             >
-              Merchant Capabilities
+              {t("applePayConfig.merchantCapabilities", "Merchant Capabilities")}
             </Typography>
             <Typography
               variant="pi"
               textColor="neutral600"
               style={{ marginLeft: "2px" }}
             >
-              Select payment capabilities. "3D Secure" is required for most
-              payment methods.
+              {t("applePayConfig.merchantCapabilitiesHint", "Select payment capabilities. \"3D Secure\" is required for most payment methods.")}
             </Typography>
           </div>
           <Flex wrap="wrap" gap={4} style={{ marginTop: "12px" }}>
@@ -281,8 +281,7 @@ const ApplePayConfig = ({ config, onConfigChange, settings }) => {
               textColor="danger600"
               style={{ marginTop: "8px" }}
             >
-              At least one capability must be selected. "supports3DS" is
-              recommended.
+              {t("applePayConfig.atLeastOneCapability", "At least one capability must be selected. \"supports3DS\" is recommended.")}
             </Typography>
           )}
         </Box>
@@ -302,15 +301,15 @@ const ApplePayConfig = ({ config, onConfigChange, settings }) => {
           gap={4}
         >
           <Typography variant="pi" fontWeight="bold" textColor="warning700">
-            ⚠️ Domain Verification File Required
+            ⚠️ {t("applePayConfig.domainVerificationTitle", "Domain Verification File Required")}
           </Typography>
           <Typography variant="pi" textColor="neutral700">
-            <strong>Download the Apple Pay domain verification file</strong>{" "}
-            from your Payone documentation:
+            <strong>{t("applePayConfig.domainVerificationDesc", "Download the Apple Pay domain verification file")}</strong>{" "}
+            {t("applePayConfig.domainVerificationDescSuffix", "from your Payone documentation:")}
           </Typography>
           <Box padding={2} background="neutral0" borderRadius="4px">
             <Typography variant="pi" style={{ fontSize: "12px" }}>
-              <strong>Download URL:</strong>{" "}
+              <strong>{t("applePayConfig.downloadUrl", "Download URL:")}</strong>{" "}
               <a
                 href="https://docs.payone.com/payment-methods/apple-pay/apple-pay-without-dev"
                 target="_blank"
@@ -322,7 +321,7 @@ const ApplePayConfig = ({ config, onConfigChange, settings }) => {
             </Typography>
           </Box>
           <Typography variant="pi" textColor="neutral700">
-            <strong>Place the file at:</strong>
+            <strong>{t("applePayConfig.placeFileAt", "Place the file at:")}</strong>
           </Typography>
           <Box padding={2} background="neutral0" borderRadius="4px">
             <Typography
@@ -341,13 +340,13 @@ const ApplePayConfig = ({ config, onConfigChange, settings }) => {
             </Typography>
           </Box>
           <Typography variant="pi" textColor="neutral700" marginTop={2}>
-            The file must be accessible at:{" "}
+            {t("applePayConfig.fileMustBeAccessible", "The file must be accessible at:")}{" "}
             <code>
               https://yourdomain.com/.well-known/apple-developer-merchantid-domain-association
             </code>
           </Typography>
           <Typography variant="pi" fontWeight="bold" textColor="danger600">
-            Without this file, Apple Pay will NOT work on your domain!
+            {t("applePayConfig.withoutFileWarning", "Without this file, Apple Pay will NOT work on your domain!")}
           </Typography>
         </Flex>
       </Flex>

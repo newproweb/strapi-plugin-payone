@@ -1,19 +1,19 @@
-import * as React from "@strapi/strapi/admin";
+import * as React from "react";
 import { Card, CardBody, Flex, Typography, Alert } from "@strapi/design-system";
 import StatusBadge from "../StatusBadge";
 import { formatTransactionData } from "../../../utils/formatTransactionData";
+import { usePluginTranslations } from "../../../hooks/usePluginTranslations";
 
 const PaymentResult = ({ paymentError, paymentResult }) => {
+  const { t } = usePluginTranslations();
   if (!paymentError && !paymentResult) {
     return null;
   }
-  console.log(paymentResult);
-  console.log(paymentError);
 
   return (
     <>
       {paymentError && (
-        <Alert variant="danger" title="Error" className="payment-alert">
+        <Alert variant="danger" title={t("paymentResult.errorTitle", "Error")} className="payment-alert">
           {paymentError}
         </Alert>
       )}
@@ -23,12 +23,8 @@ const PaymentResult = ({ paymentError, paymentResult }) => {
           <CardBody>
             <Flex direction="column" gap={4} alignItems={"stretch"}>
               <Flex direction={"row"} alignItems={"center"} gap={2}>
-                <Typography
-                  variant="delta"
-                  as="h3"
-                  className="payment-section-title"
-                >
-                  Payment Result
+                <Typography variant="delta" as="h3" className="payment-section-title">
+                  {t("paymentResult.title", "Payment Result")}
                 </Typography>
                 {paymentResult?.Status && (
                   <StatusBadge status={paymentResult.Status} />

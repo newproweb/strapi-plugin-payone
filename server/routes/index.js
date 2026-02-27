@@ -29,6 +29,22 @@ module.exports = {
         }
       },
       {
+        method: "GET",
+        path: "/transactions/export",
+        handler: "payone.exportTransactions",
+        config: {
+          policies: ["admin::isAuthenticatedAdmin"]
+        }
+      },
+      {
+        method: "POST",
+        path: "/transactions/import",
+        handler: "payone.importTransactions",
+        config: {
+          policies: ["admin::isAuthenticatedAdmin"]
+        }
+      },
+      {
         method: "POST",
         path: "/test-connection",
         handler: "payone.testConnection",

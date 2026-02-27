@@ -1,11 +1,11 @@
 
 import pluginPkg from '../../package.json';
 import pluginId from './pluginId';
-import Initializer from "./components/Initializer/index.jsx";
-import PluginIcon from "./components/PluginIcon/index.jsx";
-import { injectGooglePayScript } from "./pages/utils/injectGooglePayScript";
-import { injectApplePayScript } from "./pages/utils/injectApplePayScript";
-
+import Initializer from './components/Initializer';
+import PluginIcon from './components/PluginIcon';
+import { injectGooglePayScript } from './pages/utils/injectGooglePayScript';
+import { injectApplePayScript } from './pages/utils/injectApplePayScript';
+import { prefixPluginTranslations } from './utils/prefixPluginTranslations';
 
 const name = pluginPkg.strapi.name;
 
@@ -33,30 +33,24 @@ export default {
     });
   },
 
-  bootstrap(app) {
+  bootstrap() {
     injectGooglePayScript();
     injectApplePayScript();
   },
 
   async registerTrads({ locales }) {
     const importedTrads = await Promise.all(
-      locales.map(async (locale) => {
-        try {
-          const { default: data } = await import(
-            /* webpackChunkName: "[pluginId]-[request]" */ `./translations/${locale}.json`
-          );
-
-          return {
-            data,
+      locales.map((locale) =>
+        import(`./translations/${locale}.json`)
+          .then(({ default: data }) => ({
+            data: prefixPluginTranslations(data, pluginId),
             locale,
-          };
-        } catch (error) {
-          return {
+          }))
+          .catch(() => ({
             data: {},
             locale,
-          };
-        }
-      })
+          }))
+      )
     );
 
     return Promise.resolve(importedTrads);

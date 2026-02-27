@@ -11,8 +11,10 @@ import {
   getCurrencyOptions,
   getCountryOptions,
 } from "../../../utils/countryLanguageUtils";
+import { usePluginTranslations } from "../../../hooks/usePluginTranslations";
 
 const AuthorizationForm = ({ paymentActions, settings }) => {
+  const { t } = usePluginTranslations();
   const handleGooglePayToken = (token) => {
     if (!token) {
       return;
@@ -35,7 +37,7 @@ const AuthorizationForm = ({ paymentActions, settings }) => {
     return Promise.resolve({
       success: true,
       message:
-        "Token received successfully. Please click 'Process Authorization' to complete the payment.",
+        `Token received successfully. Please click '${t("auth.submit", "Authorize")}' to complete the payment.`,
     });
   };
 
@@ -59,20 +61,11 @@ const AuthorizationForm = ({ paymentActions, settings }) => {
   return (
     <Flex direction="column" alignItems="stretch" gap={4}>
       <Flex direction="row" gap={2}>
-        <Typography
-          variant="omega"
-          fontWeight="semiBold"
-          textColor="neutral800"
-          className="payment-form-title"
-        >
-          Authorization
+        <Typography variant="omega" fontWeight="semiBold" textColor="neutral800" className="payment-form-title">
+          {t("auth.title", "Authorization")}
         </Typography>
-        <Typography
-          variant="pi"
-          textColor="neutral600"
-          className="payment-form-description"
-        >
-          Authorize and capture an amount immediately.
+        <Typography variant="pi" textColor="neutral600" className="payment-form-description">
+          {t("auth.description", "Authorize a payment with an existing preauthorization.")}
         </Typography>
       </Flex>
 
@@ -85,15 +78,15 @@ const AuthorizationForm = ({ paymentActions, settings }) => {
       >
         <RenderInput
           name="authAmount"
-          label="Amount *"
+          label={t("common.amount", "Amount *")}
           value={paymentActions.paymentState.paymentAmount || ""}
           onChange={(e) =>
             paymentActions.handleFieldChange("paymentAmount", e.target.value)
           }
           inputType="textInput"
-          placeholder="Enter amount (e.g., 1000 for €10.00)"
+          placeholder={t("preauth.amountPlaceholder", "Enter amount (e.g., 1000 for €10.00)")}
           required
-          tooltipContent="Amount in cents (e.g., 1000 = €10.00)"
+          tooltipContent={t("preauth.amountTooltip", "Amount in cents (e.g., 1000 = €10.00)")}
         />
 
         <RenderInput
@@ -307,7 +300,7 @@ const AuthorizationForm = ({ paymentActions, settings }) => {
                   !paymentActions.paymentState.authReference.trim()
                 }
               >
-                Process Authorization
+                {t("auth.submit", "Authorize")}
               </Button>
             </Box>
           )}
@@ -331,7 +324,7 @@ const AuthorizationForm = ({ paymentActions, settings }) => {
               !paymentActions.paymentState.applePayToken)
           }
         >
-          Process Authorization
+          {t("auth.submit", "Authorize")}
         </Button>
       )}
     </Flex>
