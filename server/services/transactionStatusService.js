@@ -72,7 +72,7 @@ const processTransactionStatus = async (strapi, notificationData) => {
 
     console.log(`[Payone TransactionStatus] Successfully updated transaction txid: ${txid}`);
   } catch (error) {
-    console.log(`[Payone TransactionStatus] Error processing notification: ${error}`);
+    console.error(`[Payone TransactionStatus] Error processing notification: ${error}`);
   }
 };
 

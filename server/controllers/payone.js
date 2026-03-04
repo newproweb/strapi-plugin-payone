@@ -379,15 +379,16 @@ module.exports = ({ strapi }) => ({
 
   async handleTransactionStatus(ctx) {
     try {
-      if (!ctx.state.payoneAllowed) {
-        console.log("[Payone] Notification ignored (policy failed)");
-      } else {
+      if (ctx.state.payoneAllowed) {
         const notificationData = ctx.request.body || {};
-        console.log(notificationData);
         await getPayoneService(strapi).processTransactionStatus(notificationData);
+      } else {
+        console.warn("[Payone] Notification blocked by policy", {
+          ip: ctx.request.ip,
+        });
       }
     } catch (error) {
-      console.log("[Payone TransactionStatus] Error:", error);
+      strapi.log.error("[Payone TransactionStatus] Error:", error);
     }
 
     ctx.status = 200;
