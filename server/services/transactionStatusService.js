@@ -51,17 +51,16 @@ const validateData = (notificationData, settings) => {
 const processTransactionStatus = async (strapi, notificationData) => {
   try {
     const settings = await getSettings(strapi);
-    // if (!validateData(notificationData, settings)) {
-    //   return;
-    // }
+    if (!validateData(notificationData, settings)) {
+      console.log("[Payone TransactionStatus] Validation failed for incoming notification. Notification ignored.");
+    }
 
     const txid = notificationData.txid;
     const existing = await strapi.db.query(TRANSACTION_UID).findOne({ where: { txid } });
 
-    // if (!existing) {
-    //   console.log(`[Payone TransactionStatus] Transaction ${txid} not found. Notification ignored.`);
-    //   return;
-    // }
+    if (!existing) {
+      console.log(`[Payone TransactionStatus] Transaction ${txid} not found. Notification ignored.`);
+    }
 
     const safeNotification = sanitizeSensitive({ ...notificationData });
     const data = genreateUpdateData(notificationData, existing, safeNotification);
