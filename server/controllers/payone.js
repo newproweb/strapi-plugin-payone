@@ -258,20 +258,17 @@ module.exports = ({ strapi }) => ({
 
   async handleTransactionStatus(ctx) {
     try {
-      if (!ctx.state.payoneAllowed) {
-        console.log("[Payone] Notification ignored (policy failed)");
-      } else {
-        const notificationData = ctx.request.body || {};
-        await getPayoneService(strapi).processTransactionStatus(notificationData);
-      }
+      const notificationData = ctx.request.body || {};
+      await getPayoneService(strapi).processTransactionStatus(notificationData);
+      console.warn("[Payone] Notification Status", {
+        ip: ctx.request.ip,
+      });
     } catch (error) {
-      console.log("[Payone TransactionStatus] Error:", error);
+      strapi.log.error("[Payone TransactionStatus] Error:", error);
     }
 
     ctx.status = 200;
     ctx.body = "TSOK";
     ctx.type = "text/plain";
   }
-
-
 });
