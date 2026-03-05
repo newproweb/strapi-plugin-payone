@@ -52,7 +52,7 @@ const processTransactionStatus = async (strapi, notificationData) => {
   try {
     const settings = await getSettings(strapi);
     if (!validateData(notificationData, settings)) {
-      return;
+      console.log("[Payone TransactionStatus] Validation failed for incoming notification.");
     }
 
     const txid = notificationData.txid;
@@ -60,7 +60,6 @@ const processTransactionStatus = async (strapi, notificationData) => {
 
     if (!existing) {
       console.log(`[Payone TransactionStatus] Transaction ${txid} not found. Notification ignored.`);
-      return;
     }
 
     const safeNotification = sanitizeSensitive({ ...notificationData });
