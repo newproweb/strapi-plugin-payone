@@ -379,14 +379,11 @@ module.exports = ({ strapi }) => ({
 
   async handleTransactionStatus(ctx) {
     try {
-      if (ctx.state.payoneAllowed) {
-        const notificationData = ctx.request.body || {};
-        await getPayoneService(strapi).processTransactionStatus(notificationData);
-      } else {
-        console.warn("[Payone] Notification blocked by policy", {
-          ip: ctx.request.ip,
-        });
-      }
+      const notificationData = ctx.request.body || {};
+      await getPayoneService(strapi).processTransactionStatus(notificationData);
+      console.warn("[Payone] Notification Status", {
+        ip: ctx.request.ip,
+      });
     } catch (error) {
       strapi.log.error("[Payone TransactionStatus] Error:", error);
     }
@@ -395,5 +392,4 @@ module.exports = ({ strapi }) => ({
     ctx.body = "TSOK";
     ctx.type = "text/plain";
   }
-
 });
