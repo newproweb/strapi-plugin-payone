@@ -6,7 +6,7 @@ const { sanitizeSensitive } = require("../utils/sanitize");
 const TRANSACTION_UID = "plugin::strapi-plugin-payone-provider.transaction";
 
 const genreateUpdateData = (notificationData, existing, safeNotification) => {
-  const amount = String(notificationData.clearing_amount) || String(Math.round(parseFloat(notificationData.price) * 100)) || existing.amount;
+  const amount = existing.amount;
   const raw_request = {
     ...existing.raw_request,
     ...notificationData,
@@ -16,13 +16,13 @@ const genreateUpdateData = (notificationData, existing, safeNotification) => {
   }
 
   return {
-    status: notificationData.transaction_status || existing.status,
+    status: notificationData.transaction_status || existing.status || notificationData.txaction,
     currency: notificationData.currency || existing.currency,
     reference: notificationData.reference || existing.reference,
     amount,
     body: {
       ...existing.body,
-      status: notificationData.transaction_status,
+      status: notificationData.transaction_status || notificationData.txaction,
       amount,
       raw_request: sanitizeSensitive(raw_request),
       payone_notification_data: safeNotification,
@@ -32,7 +32,7 @@ const genreateUpdateData = (notificationData, existing, safeNotification) => {
 
 const validateData = (notificationData, settings) => {
   const isExist = (settings.portalid && settings.aid && settings.key) && (notificationData.portalid && notificationData.aid && notificationData.key);
-  const isMatch = notificationData.portalid === settings.portalid && notificationData.aid === settings.aid && notificationData.key === settings.key;
+  const isMatch = String(notificationData.portalid) == String(settings.portalid) && String(notificationData.aid) == String(settings.aid) && String(notificationData.key) == String(settings.key);
 
   if (!isExist) {
     console.log("[Payone TransactionStatus] Settings not found or payone data missing");
@@ -60,6 +60,7 @@ const processTransactionStatus = async (strapi, notificationData) => {
 
     if (!existing) {
       console.log(`[Payone TransactionStatus] Transaction ${txid} not found. Notification ignored.`);
+      return;
     }
 
     const safeNotification = sanitizeSensitive({ ...notificationData });
