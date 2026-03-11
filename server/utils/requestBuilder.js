@@ -9,7 +9,7 @@ const buildClientRequestParams = (settings, params, logger = null) => {
     aid: settings.aid,
     mid: settings.mid,
     portalid: settings.portalid,
-    mode: settings.mode || "test",
+    mode: params.testOrder ? "test" : settings.mode || "test",
     encoding: "UTF-8",
     ...params
   };
