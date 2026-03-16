@@ -20,7 +20,7 @@ module.exports = {
       enableGooglePay: false,
       enableApplePay: false,
       enableSofort: false,
-      enableSepaDirectDebit: false
+      enableSepaDirectDebit: false,
     }
   },
   validator(config) {
@@ -49,7 +49,7 @@ module.exports = {
           enableGooglePay: yup.boolean().optional(),
           enableApplePay: yup.boolean().optional(),
           enableSofort: yup.boolean().optional(),
-          enableSepaDirectDebit: yup.boolean().optional()
+          enableSepaDirectDebit: yup.boolean().optional(),
         })
         .defined()
     });

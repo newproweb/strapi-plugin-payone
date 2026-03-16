@@ -99,6 +99,14 @@ module.exports = {
         config: {
           policies: ["admin::isAuthenticatedAdmin"]
         }
+      },
+      {
+        method: "POST",
+        path: "/hash384",
+        handler: "payone.hash384",
+        config: {
+          policies: ["admin::isAuthenticatedAdmin"]
+        }
       }
     ]
   },
@@ -178,7 +186,15 @@ module.exports = {
           auth: false
         }
       },
-
+      {
+        method: "POST",
+        path: "/hash384",
+        handler: "payone.hash384",
+        config: {
+          policies: ["plugin::strapi-plugin-payone-provider.is-auth"],
+          auth: false
+        }
+      },
       {
         method: "POST",
         path: "/transaction-status",
@@ -187,8 +203,7 @@ module.exports = {
           // policies: ["plugin::strapi-plugin-payone-provider.is-payone-notification"],
           auth: false
         }
-      },
-
+      }
     ]
   }
 };
