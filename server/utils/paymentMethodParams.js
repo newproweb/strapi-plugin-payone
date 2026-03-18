@@ -45,7 +45,7 @@ const addPaymentMethodParams = (params, logger) => {
 
   const customParams = {};
   const knownParams = new Set([
-    'cardpan', 'cardexpiredate', 'cardcvc2', 'cardtype', 'wallettype',
+    'cardexpiredate', 'cardtype', 'wallettype',
     'bankcountry', 'iban', 'bic', 'bankaccountholder', 'onlinebanktransfertype',
     'recurrence', 'financingtype', 'invoicetype',
     // Common defaults
@@ -64,9 +64,7 @@ const addPaymentMethodParams = (params, logger) => {
 
   const methodDefaults = {
     cc: {
-      cardpan: "4111111111111111",
       cardexpiredate: getValidCardExpiryDate(null),
-      cardcvc2: "123",
       cardtype: "V"
     },
     wlt: {
