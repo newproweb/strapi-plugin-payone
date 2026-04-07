@@ -1,11 +1,14 @@
 "use strict";
 
-const crypto = require("crypto");
 const PLUGIN_NAME = "strapi-plugin-payone-provider";
 const { rowsToCsv, csvToRows, TRANSACTION_ATTRS } = require("../utils/csvTransactions");
 
 const getPayoneService = (strapi) => {
   return strapi.plugin(PLUGIN_NAME).service("payone");
+};
+
+const getNewHostedTokenizationService = (strapi) => {
+  return strapi.plugin(PLUGIN_NAME).service("newHostedTokenizationService");
 };
 
 const buildFiltersFromQuery = (rawFilters = {}) => {
@@ -45,6 +48,9 @@ const hideKey = (settings) => {
   if (settings && settings.key) {
     settings.key = "***HIDDEN***";
   }
+  if (settings && settings.serverApiSecret) {
+    settings.serverApiSecret = "***HIDDEN***";
+  }
   return settings;
 };
 
@@ -71,7 +77,6 @@ module.exports = ({ strapi }) => ({
           displayName: settings?.displayName || null,
           portalid: settings?.portalid || null,
           accountId: settings?.aid || null,
-          portalKey: settings?.key || null,
           paymentMethods: {
             creditCard: settings?.enableCreditCard,
             paypal: settings?.enablePayPal,
@@ -99,6 +104,9 @@ module.exports = ({ strapi }) => ({
 
       if (bodyData.key === "***HIDDEN***" || !bodyData.key) {
         bodyData.key = currentSettings?.key;
+      }
+      if (bodyData.serverApiSecret === "***HIDDEN***" || !bodyData.serverApiSecret) {
+        bodyData.serverApiSecret = currentSettings?.serverApiSecret;
       }
 
       const settings = await getPayoneService(strapi).updateSettings(bodyData);
@@ -394,36 +402,17 @@ module.exports = ({ strapi }) => ({
     ctx.type = "text/plain";
   },
 
-  async hash384(ctx) {
+  async hostedTokenizationJwt(ctx) {
     try {
-      // Get settings
-      const settings = await getPayoneService(strapi).getSettings();
-      const hmacKey = settings?.key || "";
-
-      if (!hmacKey) {
-        ctx.throw(400, "Payone key is not configured in plugin settings");
-      }
-
-      // Validate required settings
-      if (!settings?.aid || !settings?.mid || !settings?.portalid || !settings?.mode) {
-        ctx.throw(400, "Required settings (aid, mid, portalid, mode) are not configured");
-      }
-
-      // Construct the string from settings values
-      // Format: ${aid}UTF-8${mid}${mode}${portalid}creditcardcheckJSONyes
-      const textToHash = `${settings.aid}UTF-8${settings.mid}${settings.mode}${settings.portalid}creditcardcheckJSONyes`;
-
-      // Create HMAC SHA-384 hash
-      const hmac = crypto.createHmac("sha384", hmacKey);
-      hmac.update(textToHash);
-      const hash = hmac.digest("hex");
-
+      const result = await getNewHostedTokenizationService(strapi).createHostedTokenizationJwt();
       ctx.body = {
-        hash,
-        text: textToHash
+        data: {
+          token: result?.token || null,
+          expirationDate: result?.expirationDate || null,
+        },
       };
     } catch (error) {
       handleError(ctx, error);
     }
-  }
+  },
 });

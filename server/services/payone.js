@@ -73,6 +73,6 @@ module.exports = ({ strapi }) => ({
   // TransactionStatus Notification
   async processTransactionStatus(notificationData) {
     return await transactionStatusService.processTransactionStatus(strapi, notificationData);
-  }
+  },
 
 });

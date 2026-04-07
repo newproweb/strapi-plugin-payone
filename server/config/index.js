@@ -11,6 +11,19 @@ module.exports = {
       key: "",
       mode: "test",
       api_version: "3.10",
+      // PAYONE Server API (Hosted Tokenization / Server-to-server)
+      // merchantId/PSPID used in REST endpoints: /v2/{merchantId}/...
+      serverApiMerchantId: "",
+      // API Key ID + Secret used for HMAC auth (GCS v1HMAC)
+      serverApiKeyId: "",
+      serverApiSecret: "",
+      // Keep configurable, default PAYONE REST version path
+      serverApiVersionPath: "/v2",
+
+      // Defaults (Germany)
+      defaultCountryCode: "DE",
+      defaultCurrencyCode: "EUR",
+      defaultLocale: "de_DE",
       merchantName: "",
       displayName: "",
       domainName: "",
@@ -40,6 +53,14 @@ module.exports = {
             .string()
             .matches(/^\d+\.\d+$/)
             .defined(),
+          serverApiMerchantId: yup.string().optional(),
+          serverApiKeyId: yup.string().optional(),
+          serverApiSecret: yup.string().optional(),
+          serverApiVersionPath: yup.string().optional(),
+
+          defaultCountryCode: yup.string().optional(),
+          defaultCurrencyCode: yup.string().optional(),
+          defaultLocale: yup.string().optional(),
           merchantName: yup.string().optional(),
           displayName: yup.string().optional(),
           domainName: yup.string().optional(),

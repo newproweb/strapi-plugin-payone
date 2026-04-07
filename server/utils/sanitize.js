@@ -14,7 +14,20 @@ const SENSITIVE_KEYS = [
   "accessname",
   "token",
   "redirecturl",
-  "Identifier"
+  "Identifier",
+  "pseudocardpan",
+  "aid",
+  "mid",
+  "portalid",
+  "portalId",
+  "creditcardtoken",
+  "creditcardtokenid",
+  "creditcardtokenvalue",
+  "creditcardtokentype",
+  "creditcardtokenexpiry",
+  "creditcardtokencvv",
+  "creditcardtokenholder",
+  "creditcardtokenbank",
 ];
 
 const maskValue = (val) => {

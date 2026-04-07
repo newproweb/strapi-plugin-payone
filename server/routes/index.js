@@ -100,14 +100,7 @@ module.exports = {
           policies: ["admin::isAuthenticatedAdmin"]
         }
       },
-      {
-        method: "POST",
-        path: "/hash384",
-        handler: "payone.hash384",
-        config: {
-          policies: ["admin::isAuthenticatedAdmin"]
-        }
-      }
+      // legacy hosted-iFrame endpoints removed
     ]
   },
 
@@ -188,8 +181,8 @@ module.exports = {
       },
       {
         method: "POST",
-        path: "/hash384",
-        handler: "payone.hash384",
+        path: "/hosted-tokenization/jwt",
+        handler: "payone.hostedTokenizationJwt",
         config: {
           policies: ["plugin::strapi-plugin-payone-provider.is-auth"],
           auth: false

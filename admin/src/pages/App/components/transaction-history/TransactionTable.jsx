@@ -7,6 +7,7 @@ import {
   Checkbox,
   SimpleMenu,
   MenuItem,
+  Accordion,
 } from "@strapi/design-system";
 import { Table, Pagination } from "@strapi/strapi/admin";
 import { ChevronDownIcon, ChevronUpIcon } from "../icons";
@@ -189,12 +190,21 @@ const TransactionTable = () => {
 
   return (
     <Flex direction="column" alignItems="stretch" gap={4} minHeight={"800px"}>
-      <FiltersPanel
-        filters={filters}
-        handleFiltersChange={handleFiltersChange}
-        loadTransactionHistory={loadTransactionHistory}
-      />
-
+   
+    <Accordion.Root type="multiple">
+      <Accordion.Item value="filters">
+        <Accordion.Header>
+          <Accordion.Trigger>Filters</Accordion.Trigger>
+        </Accordion.Header>
+        <Accordion.Content style={{padding:"16px"}}>
+          <FiltersPanel
+            filters={filters}
+            handleFiltersChange={handleFiltersChange}
+            loadTransactionHistory={loadTransactionHistory}
+          />
+        </Accordion.Content>
+      </Accordion.Item>
+    </Accordion.Root>
       <Flex
         justifyContent="flex-end"
         gap={3}
@@ -211,24 +221,32 @@ const TransactionTable = () => {
           {toggleableHeaders.map((header) => (
             <MenuItem
               key={header.name}
-              to={undefined}
-              href={undefined}
-              onClick={() => toggleColumn(header.name)}
+              onClick={(e) => {
+                e?.preventDefault?.();
+                toggleColumn(header.name);
+              }}
             >
               <Flex alignItems="center" gap={2}>
-                <Checkbox
-                  name={`column-${header.name}`}
-                  checked={visibleColumns[header.name]}
-                  onCheckedChange={() => toggleColumn(header.name)}
-                />
+                <span
+                  onClick={(e) => {
+                    e?.stopPropagation?.();
+                  }}
+                >
+                  <Checkbox
+                    name={`column-${header.name}`}
+                    checked={visibleColumns[header.name]}
+                    onCheckedChange={() => toggleColumn(header.name)}
+                  />
+                </span>
                 <span>{header.label}</span>
               </Flex>
             </MenuItem>
           ))}
           <MenuItem
-            to={undefined}
-            href={undefined}
-            onClick={showAllColumns}
+            onClick={(e) => {
+              e?.preventDefault?.();
+              showAllColumns();
+            }}
           >
             {t("table.showAllColumns", "Show all columns")}
           </MenuItem>

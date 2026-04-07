@@ -35,7 +35,18 @@ const updateSettings = async (strapi, settings) => {
 };
 
 const validateSettings = (settings) => {
-  return !!(settings && settings.aid && settings.portalid && settings.key);
+  // Legacy post-gateway (PAY1): requires aid/portalid/key
+  const hasPostGateway = !!(settings && settings.aid && settings.portalid && settings.key);
+
+  // PAYONE Server API (Hosted Tokenization / REST): requires merchantId + apiKeyId + apiSecret
+  const hasServerApi = !!(
+    settings &&
+    (settings.serverApiMerchantId || settings.mid) &&
+    settings.serverApiKeyId &&
+    settings.serverApiSecret
+  );
+
+  return hasPostGateway || hasServerApi;
 };
 
 module.exports = {
