@@ -9,6 +9,7 @@ import {
   Button,
 } from "@strapi/design-system";
 import { ChevronDownIcon, ChevronUpIcon } from "../icons";
+import { isCreditCard, getCardTypeName } from "../../../../utils/transactionTableUtils";
 
 const TransactionHistoryItem = ({ transaction }) => {
   const [isExpanded, setIsExpanded] = React.useState(false);
@@ -302,7 +303,7 @@ const TransactionHistoryItem = ({ transaction }) => {
                       </Typography>
                     </Flex>
 
-                    {transaction.raw_request?.clearingtype === "cc" && (
+                    {isCreditCard(transaction) && (
                       <>
                         <Flex justifyContent="space-between" gap={3}>
                           <Typography
@@ -341,6 +342,21 @@ const TransactionHistoryItem = ({ transaction }) => {
                             {transaction.raw_request?.cardexpiredate}
                           </Typography>
                         </Flex>
+                        {transaction.raw_request?.cardFirstname && (
+                          <Flex justifyContent="space-between" gap={3}>
+                            <Typography
+                              variant="pi"
+                              textColor="neutral600"
+                              fontWeight="medium"
+                            >
+                              Name on Card:
+                            </Typography>
+                            <Typography variant="pi" textColor="neutral800">
+                              {transaction.raw_request?.cardFirstname}{" "}
+                              {transaction.raw_request?.cardLastname}
+                            </Typography>
+                          </Flex>
+                        )}
                       </>
                     )}
 

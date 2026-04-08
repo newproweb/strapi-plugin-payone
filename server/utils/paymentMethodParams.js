@@ -48,6 +48,8 @@ const addPaymentMethodParams = (params, logger) => {
     'cardexpiredate', 'cardtype', 'wallettype',
     'bankcountry', 'iban', 'bic', 'bankaccountholder', 'onlinebanktransfertype',
     'recurrence', 'financingtype', 'invoicetype',
+    // Cardholder name fields (credit card)
+    'cardFirstname', 'cardLastname',
     // Common defaults
     'salutation', 'gender', 'telephonenumber', 'ip', 'language', 'customer_is_present',
     // Payment method tokens

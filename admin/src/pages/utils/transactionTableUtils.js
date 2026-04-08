@@ -1,4 +1,3 @@
-
 export const getStatusColor = (status) => {
   switch (status) {
     case "APPROVED":
@@ -26,12 +25,11 @@ export const formatDate = (dateString) => {
     month: "2-digit",
     day: "2-digit",
     hour: "2-digit",
-    minute: "2-digit",
+    minute: "2-digit"
   });
 };
 
 export const getPaymentMethodName = (clearingtype, wallettype) => {
-
   switch (clearingtype) {
     case "cc" || "card" | "c":
       return "Credit Card";
@@ -46,7 +44,20 @@ export const getPaymentMethodName = (clearingtype, wallettype) => {
   }
 };
 
-export const getCardTypeName = (cardtype) => {
+export const isCreditCard = (transaction) => {
+  const clearingtype =
+    transaction.raw_request?.clearingtype ||
+    transaction.body?.raw_request?.clearingtype;
+  return clearingtype === "cc";
+};
+
+export const getCardTypeName = (transaction) => {
+  if (!isCreditCard(transaction)) return null;
+
+  const cardtype =
+    transaction.raw_request?.cardtype ||
+    transaction.body?.raw_request?.cardtype;
+
   switch (cardtype) {
     case "V":
       return "Visa";
@@ -58,4 +69,3 @@ export const getCardTypeName = (cardtype) => {
       return cardtype || "Unknown";
   }
 };
-
