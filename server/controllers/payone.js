@@ -415,4 +415,37 @@ module.exports = ({ strapi }) => ({
       handleError(ctx, error);
     }
   },
+
+  async hash384(ctx) {
+    try {
+      // Get settings
+      const settings = await getPayoneService(strapi).getSettings();
+      const hmacKey = settings?.key || "";
+
+      if (!hmacKey) {
+        ctx.throw(400, "Payone key is not configured in plugin settings");
+      }
+
+      // Validate required settings
+      if (!settings?.aid || !settings?.mid || !settings?.portalid || !settings?.mode) {
+        ctx.throw(400, "Required settings (aid, mid, portalid, mode) are not configured");
+      }
+
+      // Construct the string from settings values
+      // Format: ${aid}UTF-8${mid}${mode}${portalid}creditcardcheckJSONyes
+      const textToHash = `${settings.aid}UTF-8${settings.mid}${settings.mode}${settings.portalid}creditcardcheckJSONyes`;
+
+      // Create HMAC SHA-384 hash
+      const hmac = crypto.createHmac("sha384", hmacKey);
+      hmac.update(textToHash);
+      const hash = hmac.digest("hex");
+
+      ctx.body = {
+        hash,
+        text: textToHash
+      };
+    } catch (error) {
+      handleError(ctx, error);
+    }
+  }
 });

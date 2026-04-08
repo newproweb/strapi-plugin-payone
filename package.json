@@ -1,6 +1,6 @@
 {
   "name": "strapi-plugin-payone-provider",
-  "version": "5.7.23",
+  "version": "5.7.24",
   "description": "Strapi plugin for Payone payment gateway integration",
   "license": "MIT",
   "maintainers": [
