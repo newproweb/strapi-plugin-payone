@@ -1,7 +1,12 @@
 "use strict";
 
+const crypto = require("crypto");
 const PLUGIN_NAME = "strapi-plugin-payone-provider";
-const { rowsToCsv, csvToRows, TRANSACTION_ATTRS } = require("../utils/csvTransactions");
+const {
+  rowsToCsv,
+  csvToRows,
+  TRANSACTION_ATTRS
+} = require("../utils/csvTransactions");
 
 const getPayoneService = (strapi) => {
   return strapi.plugin(PLUGIN_NAME).service("payone");
@@ -83,8 +88,8 @@ module.exports = ({ strapi }) => ({
             googlePay: settings?.enableGooglePay,
             applePay: settings?.enableApplePay,
             sofort: settings?.enableSofort,
-            sepa: settings?.enableSepaDirectDebit,
-          },
+            sepa: settings?.enableSepaDirectDebit
+          }
         }
       };
     } catch (error) {
@@ -96,7 +101,7 @@ module.exports = ({ strapi }) => ({
     try {
       const bodyData = ctx.request.body?.data || ctx.request.body;
 
-      if (!bodyData || typeof bodyData !== 'object') {
+      if (!bodyData || typeof bodyData !== "object") {
         ctx.throw(400, "Invalid request body");
       }
 
@@ -105,7 +110,10 @@ module.exports = ({ strapi }) => ({
       if (bodyData.key === "***HIDDEN***" || !bodyData.key) {
         bodyData.key = currentSettings?.key;
       }
-      if (bodyData.serverApiSecret === "***HIDDEN***" || !bodyData.serverApiSecret) {
+      if (
+        bodyData.serverApiSecret === "***HIDDEN***" ||
+        !bodyData.serverApiSecret
+      ) {
         bodyData.serverApiSecret = currentSettings?.serverApiSecret;
       }
 
@@ -119,7 +127,7 @@ module.exports = ({ strapi }) => ({
   async preauthorization(ctx) {
     try {
       const params = ctx.request.body?.data || ctx.request.body;
-      if (!params || typeof params !== 'object') {
+      if (!params || typeof params !== "object") {
         ctx.throw(400, "Invalid request body");
       }
 
@@ -134,7 +142,7 @@ module.exports = ({ strapi }) => ({
     try {
       const params = ctx.request.body?.data || ctx.request.body;
 
-      if (!params || typeof params !== 'object') {
+      if (!params || typeof params !== "object") {
         ctx.throw(400, "Invalid request body");
       }
 
@@ -149,7 +157,7 @@ module.exports = ({ strapi }) => ({
     try {
       const params = ctx.request.body?.data || ctx.request.body;
 
-      if (!params || typeof params !== 'object') {
+      if (!params || typeof params !== "object") {
         ctx.throw(400, "Invalid request body");
       }
 
@@ -164,7 +172,7 @@ module.exports = ({ strapi }) => ({
     try {
       const params = ctx.request.body?.data || ctx.request.body;
 
-      if (!params || typeof params !== 'object') {
+      if (!params || typeof params !== "object") {
         ctx.throw(400, "Invalid request body");
       }
 
@@ -200,7 +208,7 @@ module.exports = ({ strapi }) => ({
         data: result.data || [],
         meta: {
           pagination: result.pagination
-        },
+        }
       };
     } catch (error) {
       handleError(ctx, error);
@@ -209,25 +217,36 @@ module.exports = ({ strapi }) => ({
 
   async exportTransactions(ctx) {
     try {
-      const { filters: rawFilters = {}, format = "json", sort_by, sort_order } = ctx.query || {};
+      const {
+        filters: rawFilters = {},
+        format = "json",
+        sort_by,
+        sort_order
+      } = ctx.query || {};
       const filters = buildFiltersFromQuery(rawFilters);
       const data = await getPayoneService(strapi).getTransactionsForExport({
         filters,
         sort_by: sort_by || "createdAt",
-        sort_order: sort_order || "desc",
+        sort_order: sort_order || "desc"
       });
       const rows = Array.isArray(data) ? data : [];
       const fmt = (format || "json").toLowerCase();
 
       if (fmt === "csv") {
         ctx.set("Content-Type", "text/csv; charset=utf-8");
-        ctx.set("Content-Disposition", 'attachment; filename="transactions.csv"');
+        ctx.set(
+          "Content-Disposition",
+          'attachment; filename="transactions.csv"'
+        );
         ctx.body = rowsToCsv(rows, TRANSACTION_ATTRS);
         return;
       }
 
       ctx.set("Content-Type", "application/json");
-      ctx.set("Content-Disposition", 'attachment; filename="transactions.json"');
+      ctx.set(
+        "Content-Disposition",
+        'attachment; filename="transactions.json"'
+      );
       ctx.body = rows;
     } catch (error) {
       handleError(ctx, error);
@@ -237,7 +256,8 @@ module.exports = ({ strapi }) => ({
   async importTransactions(ctx) {
     try {
       const body = ctx.request.body;
-      if (!body || typeof body !== "object") ctx.throw(400, "Request body must be JSON");
+      if (!body || typeof body !== "object")
+        ctx.throw(400, "Request body must be JSON");
 
       let rows = [];
       if (Array.isArray(body)) {
@@ -247,18 +267,26 @@ module.exports = ({ strapi }) => ({
       } else if (body.format === "csv" && typeof body.data === "string") {
         rows = csvToRows(body.data);
       } else {
-        ctx.throw(400, "Body must be an array, { data: array }, or { format: 'csv', data: csvString }");
+        ctx.throw(
+          400,
+          "Body must be an array, { data: array }, or { format: 'csv', data: csvString }"
+        );
       }
 
       if (rows.length === 0) {
-        ctx.body = { imported: 0, failed: 0, errors: [], message: "No rows to import" };
+        ctx.body = {
+          imported: 0,
+          failed: 0,
+          errors: [],
+          message: "No rows to import"
+        };
         return;
       }
 
       const result = await getPayoneService(strapi).importTransactions(rows);
       ctx.body = {
         ...result,
-        message: `Imported ${result.imported}, failed ${result.failed}`,
+        message: `Imported ${result.imported}, failed ${result.failed}`
       };
     } catch (error) {
       handleError(ctx, error);
@@ -290,19 +318,22 @@ module.exports = ({ strapi }) => ({
 
       const callbackData = isGetRequest
         ? ctx.query
-        : (ctx.request.body || ctx.request.body?.data || ctx.request?.data);
+        : ctx.request.body || ctx.request.body?.data || ctx.request?.data;
 
-      const result = await getPayoneService(strapi).handle3DSCallback(callbackData, resultType);
+      const result = await getPayoneService(strapi).handle3DSCallback(
+        callbackData,
+        resultType
+      );
 
       if (isGetRequest) {
-        const isContentUI = currentPath.includes('/content-ui');
-        const basePath = isContentUI ? '/content-ui' : '/admin';
-        const pluginPath = '/plugins/strapi-plugin-payone-provider';
+        const isContentUI = currentPath.includes("/content-ui");
+        const basePath = isContentUI ? "/content-ui" : "/admin";
+        const pluginPath = "/plugins/strapi-plugin-payone-provider";
 
         const queryParams = new URLSearchParams();
-        queryParams.set('3ds', resultType);
-        if (result.txid) queryParams.set('txid', result.txid);
-        if (result.status) queryParams.set('status', result.status);
+        queryParams.set("3ds", resultType);
+        if (result.txid) queryParams.set("txid", result.txid);
+        if (result.status) queryParams.set("status", result.status);
 
         const redirectUrl = `${basePath}${pluginPath}?${queryParams.toString()}`;
         return ctx.redirect(redirectUrl);
@@ -319,14 +350,15 @@ module.exports = ({ strapi }) => ({
       const settings = await getPayoneService(strapi).getSettings();
       const applePayConfig = settings?.applePayConfig || {};
 
-      const params = ctx.request.body || ctx.request.body?.data || ctx.request?.data;
+      const params =
+        ctx.request.body || ctx.request.body?.data || ctx.request?.data;
 
       if (!params) {
         throw new Error("Request body is missing");
       }
 
       if (!params.domain && !params.domainName) {
-        params.domain = ctx.request.hostname || ctx.request.host || 'localhost';
+        params.domain = ctx.request.hostname || ctx.request.host || "localhost";
         params.domainName = params.domain;
       } else if (params.domain && !params.domainName) {
         params.domainName = params.domain;
@@ -345,28 +377,40 @@ module.exports = ({ strapi }) => ({
         params.countryCode = applePayConfig.countryCode || "DE";
       }
 
-      let result = await getPayoneService(strapi).validateApplePayMerchant(params);
+      let result =
+        await getPayoneService(strapi).validateApplePayMerchant(params);
 
       if (!result) {
-        throw new Error("Merchant validation returned null. Please check your Payone Apple Pay configuration.");
+        throw new Error(
+          "Merchant validation returned null. Please check your Payone Apple Pay configuration."
+        );
       }
 
       ctx.body = result;
     } catch (error) {
-      const errorStatus = error.status || (error.message?.includes('403') ? 403 : 500);
+      const errorStatus =
+        error.status || (error.message?.includes("403") ? 403 : 500);
 
-      if (error.response || errorStatus === 403 || errorStatus === 401 || errorStatus >= 500) {
+      if (
+        error.response ||
+        errorStatus === 403 ||
+        errorStatus === 401 ||
+        errorStatus >= 500
+      ) {
         strapi.log.error("[Apple Pay] Controller error:", {
           status: errorStatus,
           message: error.message
         });
       }
 
-      let errorMessage = error.message || "Apple Pay merchant validation failed";
-      let errorDetails = "Please check your Payone Apple Pay configuration in PMI (CONFIGURATION → PAYMENT PORTALS → [Your Portal] → Apple Pay). Ensure that Merchant ID (mid) is correctly configured and Apple Pay is enabled for your portal.";
+      let errorMessage =
+        error.message || "Apple Pay merchant validation failed";
+      let errorDetails =
+        "Please check your Payone Apple Pay configuration in PMI (CONFIGURATION → PAYMENT PORTALS → [Your Portal] → Apple Pay). Ensure that Merchant ID (mid) is correctly configured and Apple Pay is enabled for your portal.";
 
-      if (errorStatus === 403 || error.message?.includes('403')) {
-        errorDetails = "403 Forbidden: Authentication failed with Payone. " +
+      if (errorStatus === 403 || error.message?.includes("403")) {
+        errorDetails =
+          "403 Forbidden: Authentication failed with Payone. " +
           "Please check: 1) Your Payone credentials (aid, portalid, mid, key) in plugin settings, " +
           "2) Mode is set to 'live' (Apple Pay only works in live mode), " +
           "3) Your domain is registered with Payone Merchant Services, " +
@@ -391,7 +435,7 @@ module.exports = ({ strapi }) => ({
       const notificationData = ctx.request.body || {};
       await getPayoneService(strapi).processTransactionStatus(notificationData);
       console.warn("[Payone] Notification Status", {
-        ip: ctx.request.ip,
+        ip: ctx.request.ip
       });
     } catch (error) {
       strapi.log.error("[Payone TransactionStatus] Error:", error);
@@ -404,12 +448,15 @@ module.exports = ({ strapi }) => ({
 
   async hostedTokenizationJwt(ctx) {
     try {
-      const result = await getNewHostedTokenizationService(strapi).createHostedTokenizationJwt();
+      const result =
+        await getNewHostedTokenizationService(
+          strapi
+        ).createHostedTokenizationJwt();
       ctx.body = {
         data: {
           token: result?.token || null,
-          expirationDate: result?.expirationDate || null,
-        },
+          expirationDate: result?.expirationDate || null
+        }
       };
     } catch (error) {
       handleError(ctx, error);
@@ -427,8 +474,16 @@ module.exports = ({ strapi }) => ({
       }
 
       // Validate required settings
-      if (!settings?.aid || !settings?.mid || !settings?.portalid || !settings?.mode) {
-        ctx.throw(400, "Required settings (aid, mid, portalid, mode) are not configured");
+      if (
+        !settings?.aid ||
+        !settings?.mid ||
+        !settings?.portalid ||
+        !settings?.mode
+      ) {
+        ctx.throw(
+          400,
+          "Required settings (aid, mid, portalid, mode) are not configured"
+        );
       }
 
       // Construct the string from settings values
