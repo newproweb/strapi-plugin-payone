@@ -141,10 +141,7 @@ module.exports = ({ strapi }) => ({
   async authorization(ctx) {
     try {
       const params = ctx.request.body?.data || ctx.request.body;
-
-      if (!params || typeof params !== "object") {
-        ctx.throw(400, "Invalid request body");
-      }
+      if (!params || typeof params !== "object") ctx.throw(400, "Invalid request body");
 
       const result = await getPayoneService(strapi).authorization(params);
       ctx.body = result;

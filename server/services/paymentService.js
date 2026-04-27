@@ -1,7 +1,7 @@
 "use strict";
 
 const axios = require("axios");
-const { buildClientRequestParams, toFormData } = require("../utils/requestBuilder");
+const { buildClientRequestParams, toFormData, is3dsViable } = require("../utils/requestBuilder");
 const { addPaymentMethodParams } = require("../utils/paymentMethodParams");
 const { parseResponse, extractTxId, requires3DSRedirect, get3DSRedirectUrl } = require("../utils/responseParser");
 const { getSettings, validateSettings } = require("./settingsService");
@@ -37,14 +37,11 @@ const getInvoiceIdObject = (invoiceid) => {
 const sendRequest = async (strapi, params) => {
   try {
     const settings = await getSettings(strapi);
-
-    if (!validateSettings(settings)) {
-      throw new Error("Payone settings not configured");
-    }
+    if (!validateSettings(settings)) throw new Error("Payone settings not configured");
 
     const requestParams = buildClientRequestParams(settings, params, strapi.log);
-    const formData = toFormData(requestParams);
 
+    const formData = toFormData(requestParams);
     const response = await axios.post(POST_GATEWAY_URL, formData, {
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
       timeout: 30000
@@ -60,7 +57,6 @@ const sendRequest = async (strapi, params) => {
       responseData.requires3DSRedirect = true;
       responseData.redirectUrl = redirectUrl;
       responseData.is3DSRequired = is3DSRequiredError;
-
     }
 
     const errorMessage = responseData?.Error?.ErrorMessage || null;
@@ -96,8 +92,7 @@ const sendRequest = async (strapi, params) => {
 };
 
 const preauthorization = async (strapi, params) => {
-
-  const requiredParams = {
+  const requestParams = {
     request: "preauthorization",
     clearingtype: params.clearingtype,
     amount: params.amount,
@@ -115,14 +110,20 @@ const preauthorization = async (strapi, params) => {
     ...params
   };
 
+  const settings = await getSettings(strapi);
 
-  const updatedParams = addPaymentMethodParams(requiredParams, strapi.log);
-  return await sendRequest(strapi, updatedParams);
+  // Happnes only when CC-payment and 3DS is enabled and is Pre/Authorization request
+  if (is3dsViable(params, settings)) {
+    requestParams = await perform3DSCheck(strapi, requestParams);
+    if (!requestParams) throw new Error('3DS check failed');
+  }
+
+  requestParams = addPaymentMethodParams(requestParams, strapi.log);
+  return await sendRequest(strapi, requestParams);
 };
 
 const authorization = async (strapi, params) => {
-
-  const requiredParams = {
+  let requestParams = {
     request: "authorization",
     clearingtype: params.clearingtype,
     reference: params.reference,
@@ -138,15 +139,22 @@ const authorization = async (strapi, params) => {
     ...params
   };
 
-  const updatedParams = addPaymentMethodParams(requiredParams, strapi.log);
-  return await sendRequest(strapi, updatedParams);
+  const settings = await getSettings(strapi);
+
+  // Happnes only when CC-payment and 3DS is enabled and is Pre/Authorization request
+  if (is3dsViable(params, settings)) {
+    requestParams = await perform3DSCheck(strapi, requestParams);
+    if (!requestParams) throw new Error('3DS check failed');
+  }
+
+  requestParams = addPaymentMethodParams(requestParams, strapi.log);
+  return await sendRequest(strapi, requestParams);
 };
 
 const capture = async (strapi, params) => {
   if (!params.txid) {
     throw new Error("Transaction ID (txid) is required for capture");
   }
-
 
   const requiredParams = {
     request: "capture",
@@ -165,7 +173,6 @@ const refund = async (strapi, params) => {
     throw new Error("Transaction ID (txid) is required for refund");
   }
 
-
   const requiredParams = {
     request: "refund",
     txid: params.txid,
@@ -177,6 +184,39 @@ const refund = async (strapi, params) => {
   };
 
   return await sendRequest(strapi, requiredParams);
+};
+
+/**
+ * Performs a 3DS check and returns the modified params
+ * The modified params include the pseudocardpan if the 3DS check is valid
+ * 
+ * @param strapi - Strapi instance
+ * @param params - Request params
+ * @returns The modified params
+ */
+const perform3DSCheck = async (strapi, params) => {
+  try {
+    const result = await sendRequest(strapi, {
+      ...params,
+      request: "3dscheck",
+      exiturl: params.successurl ?? '',
+    });
+
+    if (result?.errorCode || result?.errorMessage || result?.Status === 'Failed' || result?.Status === 'Invalid')
+      throw new Error('3DS check failed');
+
+    const modifiedParams = {
+      ...params,
+      pseudocardpan: result?.CreditCard?.PseudoCardPan,
+    };
+
+    if (result?.Status === 'Valid') modifiedParams.xid = result?.CreditCard?.ThreeDS?.Xid;
+
+    return modifiedParams;
+  } catch (error) {
+    strapi.log.error("3DS check error:", error);
+    return null;
+  }
 };
 
 const handle3DSCallback = async (strapi, callbackData, resultType = 'callback') => {
@@ -218,6 +258,7 @@ module.exports = {
   authorization,
   capture,
   refund,
-  handle3DSCallback
+  handle3DSCallback,
+  perform3DSCheck
 };
 

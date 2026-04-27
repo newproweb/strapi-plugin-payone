@@ -28,7 +28,7 @@ const buildClientRequestParams = (settings, params, logger = null) => {
   const isCreditCard = requestParams.clearingtype === "cc";
   const enable3DSecure = settings.enable3DSecure !== false;
 
-  if (isCreditCard && enable3DSecure && (params.request === "preauthorization" || params.request === "authorization")) {
+  if (is3dsViable(requestParams, settings)) {
     requestParams["3dsecure"] = "yes";
     requestParams.ecommercemode = params.ecommercemode || "internet";
 
@@ -93,8 +93,23 @@ const toFormData = (requestParams) => {
   return formData;
 };
 
+/**
+ * Checks if the request is viable for 3DS according to the settings
+ * 
+ * @param params - Request params
+ * @param settings - Set up in admin
+ * @returns 
+ */
+const is3dsViable = (params, settings) => {
+  const isCreditCard = params.clearingtype === "cc";
+  const enable3DSecure = settings.enable3DSecure !== false;
+
+  return isCreditCard && enable3DSecure && (params.request === "preauthorization" || params.request === "authorization")
+};
+
 module.exports = {
   buildClientRequestParams,
-  toFormData
+  toFormData,
+  is3dsViable
 };
 
