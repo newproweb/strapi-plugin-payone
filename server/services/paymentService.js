@@ -113,7 +113,7 @@ const preauthorization = async (strapi, params) => {
   const settings = await getSettings(strapi);
 
   // Happnes only when CC-payment and 3DS is enabled and is Pre/Authorization request
-  if (is3dsViable(params, settings)) {
+  if (is3dsViable(requestParams, settings)) {
     requestParams = await perform3DSCheck(strapi, requestParams);
     if (!requestParams) throw new Error('3DS check failed');
   }
@@ -142,7 +142,7 @@ const authorization = async (strapi, params) => {
   const settings = await getSettings(strapi);
 
   // Happnes only when CC-payment and 3DS is enabled and is Pre/Authorization request
-  if (is3dsViable(params, settings)) {
+  if (is3dsViable(requestParams, settings)) {
     requestParams = await perform3DSCheck(strapi, requestParams);
     if (!requestParams) throw new Error('3DS check failed');
   }
@@ -201,6 +201,8 @@ const perform3DSCheck = async (strapi, params) => {
       request: "3dscheck",
       exiturl: params.successurl ?? '',
     });
+
+    console.log("3DS check result:", result);
 
     if (result?.errorCode || result?.errorMessage || result?.Status === 'Failed' || result?.Status === 'Invalid')
       throw new Error('3DS check failed');
