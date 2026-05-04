@@ -92,7 +92,7 @@ const sendRequest = async (strapi, params) => {
 };
 
 const preauthorization = async (strapi, params) => {
-  const requestParams = {
+  let requestParams = {
     request: "preauthorization",
     clearingtype: params.clearingtype,
     amount: params.amount,
@@ -109,14 +109,6 @@ const preauthorization = async (strapi, params) => {
     ...getInvoiceIdObject(params.invoiceid),
     ...params
   };
-
-  const settings = await getSettings(strapi);
-
-  // Happnes only when CC-payment and 3DS is enabled and is Pre/Authorization request
-  if (is3dsViable(requestParams, settings)) {
-    requestParams = await perform3DSCheck(strapi, requestParams);
-    if (!requestParams) throw new Error('3DS check failed');
-  }
 
   requestParams = addPaymentMethodParams(requestParams, strapi.log);
   return await sendRequest(strapi, requestParams);
@@ -138,14 +130,6 @@ const authorization = async (strapi, params) => {
     ...getInvoiceIdObject(params.invoiceid),
     ...params
   };
-
-  const settings = await getSettings(strapi);
-
-  // Happnes only when CC-payment and 3DS is enabled and is Pre/Authorization request
-  if (is3dsViable(requestParams, settings)) {
-    requestParams = await perform3DSCheck(strapi, requestParams);
-    if (!requestParams) throw new Error('3DS check failed');
-  }
 
   requestParams = addPaymentMethodParams(requestParams, strapi.log);
   return await sendRequest(strapi, requestParams);

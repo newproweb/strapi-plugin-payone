@@ -32,14 +32,15 @@ const buildClientRequestParams = (settings, params, logger = null) => {
     requestParams["3dsecure"] = "yes";
     requestParams.ecommercemode = params.ecommercemode || "internet";
 
-    if (!requestParams.successurl) {
-      requestParams.successurl = params.successurl || "https://www.example.com/success";
-    }
-    if (!requestParams.errorurl) {
-      requestParams.errorurl = params.errorurl || "https://www.example.com/error";
-    }
-    if (!requestParams.backurl) {
-      requestParams.backurl = params.backurl || "https://www.example.com/back";
+    const missingUrls = [];
+    if (!requestParams.successurl) missingUrls.push("successurl");
+    if (!requestParams.errorurl) missingUrls.push("errorurl");
+    if (!requestParams.backurl) missingUrls.push("backurl");
+    if (missingUrls.length > 0) {
+      throw new Error(
+        `3DS-eligible credit card request is missing required redirect URLs: ${missingUrls.join(", ")}. ` +
+        `These must be supplied by the caller so Payone can redirect the customer back after the issuer challenge.`
+      );
     }
 
     if (logger) {
