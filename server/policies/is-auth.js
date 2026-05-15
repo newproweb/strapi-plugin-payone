@@ -1,29 +1,26 @@
 "use strict";
 
 module.exports = async (policyContext, config, { strapi }) => {
-  const { authorization } = policyContext.request.header || {};
+  const auth = policyContext.request.header?.authorization;
+  if (!auth?.startsWith("Bearer ")) return false;
 
-  if (authorization && authorization.startsWith("Bearer ")) {
-    const token = authorization.split(" ")[1];
+  const token = auth.slice(7).trim();
+  if (!token) return false;
 
-    try {
-      const apiTokenService = strapi.service("admin::api-token");
+  const tokenService =
+    strapi.service?.("admin::api-token-content-api") ||
+    strapi.service?.("admin::api-token");
 
-      if (!apiTokenService) {
-        strapi.log.warn("strapi-plugin-payone-provider: api-token service not found");
-        return false;
-      }
+  if (!tokenService?.hash) return false;
 
-      const accessKey = await apiTokenService.hash(token);
-      const storedToken = await apiTokenService.getBy({ accessKey });
+  const accessKey = tokenService.hash(token);
+  const stored = await (tokenService.getByAccessKey
+    ? tokenService.getByAccessKey(accessKey)
+    : tokenService.getBy?.({ accessKey })
+  ).catch(() => null);
 
-      if (storedToken) {
-        return true;
-      }
-    } catch (e) {
-      strapi.log.warn("strapi-plugin-payone-provider isAuth policy error:", e.message);
-    }
-  }
+  if (!stored) return false;
+  if (stored.expiresAt && new Date(stored.expiresAt) < new Date()) return false;
 
-  return false;
+  return true;
 };
