@@ -14,7 +14,7 @@ import { ChevronDownIcon, ChevronUpIcon } from "../icons";
 import {
   formatAmount,
   formatDate,
-  getPaymentMethodName,
+  getPaymentMethodDisplay,
 } from "../../../utils/transactionTableUtils";
 import TransactionDetails from "./details/TransactionDetails";
 import FiltersPanel from "./FiltersPanel";
@@ -131,19 +131,28 @@ const TransactionTable = () => {
             {formatAmount(transaction.amount, transaction.currency)}
           </Typography>
         );
-      case "paymentMethod":
+      case "paymentMethod": {
+        const clearingtype =
+          transaction.raw_request?.clearingtype ||
+          transaction.body?.raw_request?.clearingtype;
+        const wallettype =
+          transaction.raw_request?.wallettype ||
+          transaction.body?.raw_request?.wallettype;
+        const cardtype =
+          transaction.raw_request?.cardtype ||
+          transaction.body?.raw_request?.cardtype;
+        const { category, subtype } = getPaymentMethodDisplay(
+          clearingtype,
+          wallettype,
+          cardtype
+        );
         return (
           <Typography variant="pi">
-            {getPaymentMethodName(
-              transaction.raw_request?.clearingtype ||
-                transaction.body?.raw_request?.clearingtype,
-              transaction.raw_request?.wallettype ||
-                transaction.body?.raw_request?.wallettype,
-              transaction.raw_request?.cardtype ||
-                transaction.body?.raw_request?.cardtype
-            )}
+            {category}
+            {subtype ? ` / ${subtype}` : ""}
           </Typography>
         );
+      }
       case "type":
         return (
           <Typography variant="pi" fontWeight="semiBold">

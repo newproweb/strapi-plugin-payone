@@ -69,3 +69,49 @@ export const getCardTypeName = (transaction) => {
       return cardtype || "Unknown";
   }
 };
+
+const CARD_TYPE_LABELS = {
+  V: "Visa",
+  M: "Mastercard",
+  A: "American Express",
+  J: "JCB",
+  D: "Diners",
+  O: "Maestro",
+};
+
+export const getCardTypeLabel = (cardtype) =>
+  CARD_TYPE_LABELS[cardtype] || cardtype || null;
+
+export const getWalletLabel = (wallettype) => {
+  switch (String(wallettype || "").toUpperCase()) {
+    case "PPE":
+      return "PayPal";
+    case "GPY":
+    case "GOOGLEPAY":
+      return "Google Pay";
+    case "APL":
+    case "APPLEPAY":
+      return "Apple Pay";
+    default:
+      return wallettype || null;
+  }
+};
+
+/**
+ * Resolves a transaction's payment method into a category and subtype label.
+ * @returns {{ category: string, subtype: string|null }}
+ */
+export const getPaymentMethodDisplay = (clearingtype, wallettype, cardtype) => {
+  switch (clearingtype) {
+    case "cc":
+      return { category: "Credit Card", subtype: getCardTypeLabel(cardtype) };
+    case "wlt":
+      return { category: "Wallet", subtype: getWalletLabel(wallettype) };
+    case "sb":
+      return { category: "Online Banking", subtype: null };
+    case "elv":
+      return { category: "Direct Debit", subtype: "SEPA" };
+    default:
+      return { category: clearingtype || "Unknown", subtype: null };
+  }
+};

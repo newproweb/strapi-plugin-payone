@@ -72,55 +72,10 @@ const buildWhereFromFilters = (filters = {}) => {
     conditions.push({ createdAt: { $lte: dateTo.toISOString() } });
   }
 
-  if (hasFilterValue(filters.payment_method)) {
-    switch (filters.payment_method) {
-      case "credit_card":
-        conditions.push({ raw_request: { $containsi: '"clearingtype":"cc"' } });
-        break;
-      case "paypal":
-        conditions.push({
-          $and: [
-            { raw_request: { $containsi: '"clearingtype":"wlt"' } },
-            { raw_request: { $containsi: '"wallettype":"PPE"' } },
-          ],
-        });
-        break;
-      case "google_pay":
-        conditions.push({
-          $and: [
-            { raw_request: { $containsi: '"clearingtype":"wlt"' } },
-            {
-              $or: [
-                { raw_request: { $containsi: '"wallettype":"GPY"' } },
-                { raw_request: { $containsi: '"wallettype":"GOOGLEPAY"' } },
-              ],
-            },
-          ],
-        });
-        break;
-      case "apple_pay":
-        conditions.push({
-          $and: [
-            { raw_request: { $containsi: '"clearingtype":"wlt"' } },
-            {
-              $or: [
-                { raw_request: { $containsi: '"wallettype":"APL"' } },
-                { raw_request: { $containsi: '"wallettype":"APPLEPAY"' } },
-              ],
-            },
-          ],
-        });
-        break;
-      case "sofort":
-        conditions.push({ raw_request: { $containsi: '"clearingtype":"sb"' } });
-        break;
-      case "sepa":
-        conditions.push({ raw_request: { $containsi: '"clearingtype":"elv"' } });
-        break;
-      default:
-        break;
-    }
-  }
+  // `payment_method` is NOT filtered here: the payment method lives inside the
+  // `raw_request` JSON column, and the query engine cannot reliably filter JSON
+  // columns ($containsi returns empty). It is applied in JS — see
+  // `matchesPaymentMethod` used by getTransactionHistory / getTransactionsForExport.
 
   if (conditions.length === 0) return undefined;
   if (conditions.length === 1) return conditions[0];
@@ -137,24 +92,66 @@ const ALLOWED_SORT_FIELDS = [
   "updatedAt",
 ];
 
+const PAYMENT_METHOD_MATCHERS = {
+  credit_card: (rr) => rr.clearingtype === "cc",
+  paypal: (rr) => rr.clearingtype === "wlt" && rr.wallettype === "PPE",
+  google_pay: (rr) => rr.clearingtype === "wlt" && ["GPY", "GOOGLEPAY"].includes(rr.wallettype),
+  apple_pay: (rr) => rr.clearingtype === "wlt" && ["APL", "APPLEPAY"].includes(rr.wallettype),
+  sofort: (rr) => rr.clearingtype === "sb",
+  sepa: (rr) => rr.clearingtype === "elv",
+};
+
+/** Matches a transaction row against a payment_method filter value using its raw_request JSON. */
+const matchesPaymentMethod = (row, method) => {
+  const matcher = PAYMENT_METHOD_MATCHERS[method];
+  if (!matcher) return true;
+  const rr = parseJsonField(row.raw_request);
+  return matcher({
+    clearingtype: String(rr.clearingtype || "").toLowerCase(),
+    wallettype: String(rr.wallettype || "").toUpperCase(),
+  });
+};
+
 const getTransactionHistory = async (
   strapi,
   { filters = {}, pagination = {}, sort_by, sort_order }
 ) => {
   const page = Math.max(1, Number(pagination.page) || 1);
   const pageSize = Math.min(100, Math.max(1, Number(pagination.pageSize) || 10));
-  const offset = (page - 1) * pageSize;
 
   const where = buildWhereFromFilters(filters);
-
   const sortField =
     sort_by && ALLOWED_SORT_FIELDS.includes(sort_by) ? sort_by : "createdAt";
   const order = sort_order === "asc" ? "asc" : "desc";
 
+  const paymentMethod = hasFilterValue(filters.payment_method)
+    ? String(filters.payment_method).trim()
+    : "";
+
+  // payment_method can only be filtered in JS — fetch SQL-filtered rows, then
+  // filter and paginate by payment method here.
+  if (paymentMethod) {
+    const listOptions = { orderBy: { [sortField]: order }, limit: 10000 };
+    if (where !== undefined) listOptions.where = where;
+
+    const allRows = await strapi.db.query(TRANSACTION_UID).findMany(listOptions);
+    const filtered = allRows.filter((row) => matchesPaymentMethod(row, paymentMethod));
+
+    const total = filtered.length;
+    const pageCount = Math.max(1, Math.ceil(total / pageSize));
+    const validPage = Math.min(page, pageCount);
+    const start = (validPage - 1) * pageSize;
+
+    return {
+      data: filtered.slice(start, start + pageSize),
+      pagination: { page: validPage, pageSize, pageCount, total },
+    };
+  }
+
   const queryOptions = {
     orderBy: { [sortField]: order },
     limit: pageSize,
-    offset,
+    offset: (page - 1) * pageSize,
   };
   if (where !== undefined) queryOptions.where = where;
 
@@ -167,12 +164,7 @@ const getTransactionHistory = async (
 
   return {
     data,
-    pagination: {
-      page: validPage,
-      pageSize,
-      pageCount,
-      total,
-    },
+    pagination: { page: validPage, pageSize, pageCount, total },
   };
 };
 
@@ -194,7 +186,12 @@ const getTransactionsForExport = async (
   if (where !== undefined) queryOptions.where = where;
 
   const data = await strapi.db.query(TRANSACTION_UID).findMany(queryOptions);
-  return data;
+  const paymentMethod = hasFilterValue(filters.payment_method)
+    ? String(filters.payment_method).trim()
+    : "";
+  return paymentMethod
+    ? data.filter((row) => matchesPaymentMethod(row, paymentMethod))
+    : data;
 };
 
 const TRANSACTION_ATTRS = [
