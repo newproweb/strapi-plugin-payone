@@ -138,6 +138,8 @@ const getTransactionHistory = async (
     ? String(filters.payment_method).trim()
     : "";
 
+  // payment_method can only be filtered in JS — fetch SQL-filtered rows, then
+  // filter and paginate by payment method here.
   if (paymentMethod) {
     const listOptions = { orderBy: { [sortField]: order }, limit: 10000 };
     if (where !== undefined) listOptions.where = where;
