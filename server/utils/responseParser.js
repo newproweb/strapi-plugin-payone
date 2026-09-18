@@ -20,17 +20,12 @@ const parseResponse = (responseText, logger) => {
     }
   }
 
-  // Parse URL-encoded response
   const params = new URLSearchParams(responseText);
   const response = {};
   for (const [key, value] of params) {
-    // Store both lowercase and original case
     response[key.toLowerCase()] = value;
     response[key] = value;
-    
-    // Also handle add_paydata fields with brackets
-    // Payone returns: add_paydata[applepay_payment_session]=BASE64_STRING
-    // URLSearchParams handles brackets, but we need to ensure we can access it
+
     if (key.includes('add_paydata') || key.includes('addPaydata')) {
       // Store with original key format
       response[key] = value;
@@ -67,11 +62,11 @@ const extractTxId = (data) => {
 const requires3DSRedirect = (data) => {
   const status = (data.status || data.Status || "").toUpperCase();
   const errorCode = data.errorcode || data.ErrorCode || data.Error?.ErrorCode;
-  
+
   // Check for redirect URL in various possible fields
-  const redirecturl = 
-    data.redirecturl || 
-    data.RedirectUrl || 
+  const redirecturl =
+    data.redirecturl ||
+    data.RedirectUrl ||
     data.redirect_url ||
     data.redirectUrl ||
     data.RedirectURL ||
@@ -96,7 +91,7 @@ const requires3DSRedirect = (data) => {
 const isErrorResponse = (data) => {
   const status = (data.status || data.Status || "").toUpperCase();
   const errorCode = data.errorcode || data.ErrorCode || data.Error?.ErrorCode;
-  
+
   return status === "ERROR" || status === "INVALID" || !!errorCode;
 };
 
@@ -107,9 +102,9 @@ const isErrorResponse = (data) => {
  */
 const get3DSRedirectUrl = (data) => {
   // Check all possible redirect URL fields
-  const redirecturl = 
-    data.redirecturl || 
-    data.RedirectUrl || 
+  const redirecturl =
+    data.redirecturl ||
+    data.RedirectUrl ||
     data.redirect_url ||
     data.redirectUrl ||
     data.RedirectURL ||

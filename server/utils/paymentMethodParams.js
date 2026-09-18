@@ -45,9 +45,11 @@ const addPaymentMethodParams = (params, logger) => {
 
   const customParams = {};
   const knownParams = new Set([
-    'cardpan', 'cardexpiredate', 'cardcvc2', 'cardtype', 'wallettype',
+    'cardexpiredate', 'cardtype', 'wallettype',
     'bankcountry', 'iban', 'bic', 'bankaccountholder', 'onlinebanktransfertype',
     'recurrence', 'financingtype', 'invoicetype',
+    // Cardholder name fields (credit card)
+    'cardFirstname', 'cardLastname',
     // Common defaults
     'salutation', 'gender', 'telephonenumber', 'ip', 'language', 'customer_is_present',
     // Payment method tokens
@@ -56,7 +58,6 @@ const addPaymentMethodParams = (params, logger) => {
     'clearingtype', 'paymentMethod', 'settings', 'enable3DSecure', 'ecommercemode'
   ]);
 
-  // Extract custom params that are not in known params
   Object.keys(updated).forEach(key => {
     if (!knownParams.has(key) && !key.startsWith('add_paydata[')) {
       customParams[key] = updated[key];
@@ -65,9 +66,7 @@ const addPaymentMethodParams = (params, logger) => {
 
   const methodDefaults = {
     cc: {
-      cardpan: "4111111111111111",
       cardexpiredate: getValidCardExpiryDate(null),
-      cardcvc2: "123",
       cardtype: "V"
     },
     wlt: {

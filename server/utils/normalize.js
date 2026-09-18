@@ -1,11 +1,5 @@
 "use strict";
 
-/**
- * Normalize reference string for Payone API
- * @param {string} input - Input reference
- * @param {string} fallbackPrefix - Fallback prefix if input is empty
- * @returns {string} Normalized reference (max 20 chars)
- */
 const normalizeReference = (input, fallbackPrefix = "REF") => {
   try {
     const raw = input == null ? "" : String(input);
@@ -22,12 +16,6 @@ const normalizeReference = (input, fallbackPrefix = "REF") => {
   }
 };
 
-/**
- * Normalize customer ID for Payone API (max 17 characters)
- * @param {string|null} customerid - Customer ID
- * @param {Object|null} logger - Logger instance
- * @returns {string} Normalized customer ID
- */
 const normalizeCustomerId = (customerid, logger = null) => {
   if (!customerid) {
     const timestamp = Date.now().toString().slice(-10);

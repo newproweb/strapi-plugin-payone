@@ -1,17 +1,18 @@
-import React, { useState } from "react";
+import * as React from "react";
 import {
   Box,
   Card,
   CardBody,
   Flex,
-  Stack,
   Typography,
   Badge,
   Button,
 } from "@strapi/design-system";
-import { ChevronDownIcon, ChevronUpIcon } from "./icons";
+import { ChevronDownIcon, ChevronUpIcon } from "../icons";
+import { isCreditCard, getCardTypeName } from "../../../../utils/transactionTableUtils";
+
 const TransactionHistoryItem = ({ transaction }) => {
-  const [isExpanded, setIsExpanded] = useState(false);
+  const [isExpanded, setIsExpanded] = React.useState(false);
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -82,9 +83,7 @@ const TransactionHistoryItem = ({ transaction }) => {
         padding={6}
         style={{ display: "flex", flexDirection: "column", gap: "6px" }}
       >
-        {/* Main Values in Column Format */}
-        <Stack spacing={3} marginBottom={4}>
-          {/* Reference */}
+        <Flex direction="column" gap={3} style={{ marginBottom: "32px" }}>
           <Flex alignItems="center" gap={2}>
             <Typography variant="pi" textColor="neutral600" fontWeight="medium">
               Reference:
@@ -93,7 +92,6 @@ const TransactionHistoryItem = ({ transaction }) => {
               {transaction.reference}
             </Typography>
           </Flex>
-          {/* Date */}
           <Flex alignItems="center" gap={2}>
             <Typography variant="pi" textColor="neutral600" fontWeight="medium">
               Date:
@@ -103,7 +101,6 @@ const TransactionHistoryItem = ({ transaction }) => {
             </Typography>
           </Flex>
 
-          {/* Payment Method */}
           <Flex alignItems="center" gap={2}>
             <Typography variant="pi" textColor="neutral600" fontWeight="medium">
               Method:
@@ -126,7 +123,6 @@ const TransactionHistoryItem = ({ transaction }) => {
             )}
           </Flex>
 
-          {/* Amount */}
           <Flex alignItems="center" gap={2}>
             <Typography variant="pi" textColor="neutral600" fontWeight="medium">
               Amount:
@@ -146,9 +142,8 @@ const TransactionHistoryItem = ({ transaction }) => {
               {transaction.status}
             </Badge>
           </Flex>
-        </Stack>
+        </Flex>
 
-        {/* Expand/Collapse Button */}
         <Flex justifyContent="center">
           <Button
             size="S"
@@ -166,7 +161,6 @@ const TransactionHistoryItem = ({ transaction }) => {
           </Button>
         </Flex>
 
-        {/* Expanded Details */}
         {isExpanded && (
           <Flex
             marginTop={4}
@@ -175,11 +169,9 @@ const TransactionHistoryItem = ({ transaction }) => {
               gap: "32px",
             }}
           >
-            <Stack spacing={4}>
-              {/* Error Message */}
+            <Flex direction="column" gap={4}>
               {transaction.status === "ERROR" && (
                 <Box
-                  marginBottom={4}
                   padding={3}
                   background="danger100"
                   hasRadius
@@ -204,7 +196,6 @@ const TransactionHistoryItem = ({ transaction }) => {
                   )}
                 </Box>
               )}
-              {/* Customer Information */}
               <Box>
                 <Flex alignItems="center" gap={2} marginBottom={3}>
                   <Typography
@@ -216,7 +207,7 @@ const TransactionHistoryItem = ({ transaction }) => {
                   </Typography>
                 </Flex>
                 <Box paddingLeft={4}>
-                  <Stack spacing={2}>
+                  <Flex direction="column" gap={2}>
                     <Flex justifyContent="space-between" gap={3}>
                       <Typography
                         variant="pi"
@@ -280,11 +271,10 @@ const TransactionHistoryItem = ({ transaction }) => {
                         {transaction.raw_request?.country}
                       </Typography>
                     </Flex>
-                  </Stack>
+                  </Flex>
                 </Box>
               </Box>
 
-              {/* Payment Method Details */}
               <Box>
                 <Flex alignItems="center" gap={2} marginBottom={3}>
                   <Typography
@@ -296,7 +286,7 @@ const TransactionHistoryItem = ({ transaction }) => {
                   </Typography>
                 </Flex>
                 <Box paddingLeft={4}>
-                  <Stack spacing={2}>
+                  <Flex direction="column" gap={2}>
                     <Flex justifyContent="space-between" gap={3}>
                       <Typography
                         variant="pi"
@@ -313,7 +303,7 @@ const TransactionHistoryItem = ({ transaction }) => {
                       </Typography>
                     </Flex>
 
-                    {transaction.raw_request?.clearingtype === "cc" && (
+                    {isCreditCard(transaction) && (
                       <>
                         <Flex justifyContent="space-between" gap={3}>
                           <Typography
@@ -352,6 +342,21 @@ const TransactionHistoryItem = ({ transaction }) => {
                             {transaction.raw_request?.cardexpiredate}
                           </Typography>
                         </Flex>
+                        {transaction.raw_request?.cardFirstname && (
+                          <Flex justifyContent="space-between" gap={3}>
+                            <Typography
+                              variant="pi"
+                              textColor="neutral600"
+                              fontWeight="medium"
+                            >
+                              Name on Card:
+                            </Typography>
+                            <Typography variant="pi" textColor="neutral800">
+                              {transaction.raw_request?.cardFirstname}{" "}
+                              {transaction.raw_request?.cardLastname}
+                            </Typography>
+                          </Flex>
+                        )}
                       </>
                     )}
 
@@ -399,11 +404,10 @@ const TransactionHistoryItem = ({ transaction }) => {
                         </Flex>
                       </>
                     )}
-                  </Stack>
+                  </Flex>
                 </Box>
               </Box>
 
-              {/* Technical Details */}
               <Box>
                 <Typography
                   variant="pi"
@@ -414,7 +418,7 @@ const TransactionHistoryItem = ({ transaction }) => {
                   Technical Details
                 </Typography>
                 <Box paddingLeft={4}>
-                  <Stack spacing={2}>
+                  <Flex direction="column" gap={2}>
                     <Flex justifyContent="space-between" gap={3}>
                       <Typography
                         variant="pi"
@@ -475,12 +479,12 @@ const TransactionHistoryItem = ({ transaction }) => {
                         {transaction.raw_request?.customer_is_present}
                       </Typography>
                     </Flex>
-                  </Stack>
+                  </Flex>
                 </Box>
               </Box>
-            </Stack>
+            </Flex>
 
-            <Stack spacing={4}>
+            <Flex direction="column" gap={4}>
               <Typography variant="pi" fontWeight="bold" textColor="neutral800">
                 Raw Body
               </Typography>
@@ -511,7 +515,7 @@ const TransactionHistoryItem = ({ transaction }) => {
                   {JSON.stringify(transaction?.body || {}, null, 2)}
                 </pre>
               </Box>
-            </Stack>
+            </Flex>
           </Flex>
         )}
       </CardBody>

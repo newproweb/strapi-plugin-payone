@@ -22,12 +22,11 @@ module.exports = async ({ strapi }) => {
         displayName: "",
         domainName: "",
         merchantIdentifier: "",
-        enableCreditCard: true,
-        enablePayPal: true,
-        enableGooglePay: true,
-        enableApplePay: true,
-        enableSofort: true,
-        enableSepaDirectDebit: true
+        enableCreditCard: false,
+        enablePayPal: false,
+        enableGooglePay: false,
+        enableApplePay: false,
+        enableSepaDirectDebit: false
       }
     });
   }

@@ -1,86 +1,148 @@
-import { useState, useEffect } from "react";
-import { useNotification } from "@strapi/helper-plugin";
-import payoneRequests from "../utils/api";
+import * as React from "react";
+import { useNotification, useQueryParams } from "@strapi/strapi/admin";
+import usePayoneRequests from "../utils/api";
 
 const PAGE_SIZE = 10;
 
 const useTransactionHistory = () => {
-  const toggleNotification = useNotification();
-  const [transactionHistory, setTransactionHistory] = useState([]);
-  const [isLoadingHistory, setIsLoadingHistory] = useState(false);
-  const [selectedTransaction, setSelectedTransaction] = useState(null);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [filters, setFilters] = useState({
+  const { toggleNotification } = useNotification();
+  const { getTransactionHistory } = usePayoneRequests();
+  const [{ query }, setQuery] = useQueryParams();
+
+  const [filters, setFilters] = React.useState({
     search: "",
+    status: "",
     request_type: "",
     payment_method: "",
     date_from: "",
-    date_to: ""
+    date_to: "",
   });
 
-  useEffect(() => {
-    loadTransactionHistory();
-  }, []);
+  const [pagination, setPagination] = React.useState({
+    page: parseInt(query?.page || "1", 10),
+    pageSize: parseInt(query?.pageSize || String(PAGE_SIZE), 10),
+    pageCount: 1,
+    total: 0,
+  });
+
+  const [transactionHistory, setTransactionHistory] = React.useState([]);
+  const [isLoadingHistory, setIsLoadingHistory] = React.useState(false);
+  const [selectedTransaction, setSelectedTransaction] = React.useState(null);
+
+  React.useEffect(() => {
+    const page = parseInt(query?.page || "1", 10);
+    const pageSize = parseInt(query?.pageSize || String(PAGE_SIZE), 10);
+    setPagination((prev) => ({
+      ...prev,
+      page,
+      pageSize,
+    }));
+  }, [query?.page, query?.pageSize]);
+
 
   const loadTransactionHistory = async () => {
     setIsLoadingHistory(true);
     try {
-      const result = await payoneRequests.getTransactionHistory(filters);
-      setTransactionHistory(result.data || []);
-      setCurrentPage(1);
+      const response = await getTransactionHistory({
+        filters,
+        pagination
+      });
+      const result = response?.data || response;
+      const historyData = Array.isArray(result?.data) ? result.data : [];
+      const paginationMeta = result?.meta?.pagination;
+
+      if (paginationMeta && paginationMeta.total !== undefined) {
+        setPagination((prev) => ({
+          ...prev,
+          pageCount: paginationMeta.pageCount || 1,
+          total: paginationMeta.total || 0,
+        }));
+      } else {
+        const calculatedTotal = historyData.length;
+        const calculatedPageCount = Math.ceil(calculatedTotal / pagination.pageSize) || 1;
+        setPagination((prev) => ({
+          ...prev,
+          pageCount: calculatedPageCount,
+          total: calculatedTotal,
+        }));
+      }
+
+      setTransactionHistory(historyData);
     } catch (error) {
+      console.error("Error loading transaction history:", error);
+      setTransactionHistory([]);
+      setPagination((prev) => ({
+        ...prev,
+        pageCount: 1,
+        total: 0,
+      }));
       toggleNotification({
-        type: "warning",
-        message: "Failed to load transaction history"
+        type: "danger",
+        message: "Failed to load transaction history",
       });
     } finally {
       setIsLoadingHistory(false);
     }
   };
 
-  const handleFilterChange = (field, value) => {
-    setFilters((prev) => ({ ...prev, [field]: value }));
-  };
-
-  const handleFilterApply = () => {
+  React.useEffect(() => {
     loadTransactionHistory();
-  };
+  }, [
+    filters.search,
+    filters.status,
+    filters.request_type,
+    filters.payment_method,
+    filters.date_from,
+    filters.date_to,
+    pagination.page,
+    pagination.pageSize,
+  ]);
 
   const handleTransactionSelect = (transaction) => {
-    if (selectedTransaction?.id === transaction?.id) {
-      setSelectedTransaction(null);
-    } else {
-      setSelectedTransaction(transaction);
+    setSelectedTransaction(
+      selectedTransaction?.id === transaction?.id ? null : transaction
+    );
+  };
+
+  const handlePaginationChange = (newPagination) => {
+    if (newPagination && typeof newPagination === "object") {
+      const updatedQuery = {
+        ...query,
+        page: query.page || 1,
+        pageSize: String(newPagination.pageSize || pagination.pageSize),
+      };
+      setQuery(updatedQuery, "push", false);
     }
   };
 
-  const handlePageChange = (page) => {
-    setCurrentPage(page);
-    setSelectedTransaction(null);
+  const handleFiltersChange = (newFilters) => {
+    if (newFilters && typeof newFilters === "object") {
+      setFilters((prev) => ({
+        ...prev,
+        ...newFilters,
+      }));
+    }
   };
 
-  // Pagination calculations
-  const totalPages = Math.ceil(transactionHistory.length / PAGE_SIZE);
-  const startIndex = (currentPage - 1) * PAGE_SIZE;
-  const endIndex = startIndex + PAGE_SIZE;
-  const paginatedTransactions = transactionHistory.slice(startIndex, endIndex);
+  React.useEffect(() => {
+    setSelectedTransaction(null);
+  }, [filters, pagination.page]);
 
   return {
-    transactionHistory,
-    paginatedTransactions,
+    transactions: Array.isArray(transactionHistory) ? transactionHistory : [],
     isLoadingHistory,
     selectedTransaction,
-    filters,
-    currentPage,
-    totalPages,
-    pageSize: PAGE_SIZE,
-    handleFilterChange,
-    handleFilterApply,
+    currentPage: pagination.page,
+    totalPages: pagination.pageCount,
+    totalCount: pagination.total,
+    pageSize: pagination.pageSize,
     handleTransactionSelect,
-    handlePageChange,
-    loadTransactionHistory
+    loadTransactionHistory,
+    filters,
+    handleFiltersChange,
+    pagination,
+    handlePaginationChange,
   };
 };
 
 export default useTransactionHistory;
-

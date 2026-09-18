@@ -12,20 +12,41 @@ const getPluginStore = (strapi) => {
 
 const getSettings = async (strapi) => {
   const pluginStore = getPluginStore(strapi);
-  return await pluginStore.get({ key: "settings" });
+  const settings = await pluginStore.get({ key: "settings" }) || {};
+
+  return settings;
 };
 
 const updateSettings = async (strapi, settings) => {
   const pluginStore = getPluginStore(strapi);
+  const currentSettings = await getSettings(strapi) || {};
+  const mergedSettings = {
+    ...currentSettings,
+    ...settings
+  };
+
+
   await pluginStore.set({
     key: "settings",
-    value: settings
+    value: mergedSettings
   });
-  return settings;
+
+  return mergedSettings;
 };
 
 const validateSettings = (settings) => {
-  return !!(settings && settings.aid && settings.portalid && settings.key);
+  // Legacy post-gateway (PAY1): requires aid/portalid/key
+  const hasPostGateway = !!(settings && settings.aid && settings.portalid && settings.key);
+
+  // PAYONE Server API (Hosted Tokenization / REST): requires merchantId + apiKeyId + apiSecret
+  const hasServerApi = !!(
+    settings &&
+    (settings.serverApiMerchantId || settings.mid) &&
+    settings.serverApiKeyId &&
+    settings.serverApiSecret
+  );
+
+  return hasPostGateway || hasServerApi;
 };
 
 module.exports = {

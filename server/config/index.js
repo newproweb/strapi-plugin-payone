@@ -11,10 +11,29 @@ module.exports = {
       key: "",
       mode: "test",
       api_version: "3.10",
+      // PAYONE Server API (Hosted Tokenization / Server-to-server)
+      // merchantId/PSPID used in REST endpoints: /v2/{merchantId}/...
+      serverApiMerchantId: "",
+      // API Key ID + Secret used for HMAC auth (GCS v1HMAC)
+      serverApiKeyId: "",
+      serverApiSecret: "",
+      // Keep configurable, default PAYONE REST version path
+      serverApiVersionPath: "/v2",
+
+      // Defaults (Germany)
+      defaultCountryCode: "DE",
+      defaultCurrencyCode: "EUR",
+      defaultLocale: "de_DE",
       merchantName: "",
       displayName: "",
       domainName: "",
-      merchantIdentifier: ""
+      merchantIdentifier: "",
+      enableCreditCard: false,
+      enablePayPal: false,
+      enableGooglePay: false,
+      enableApplePay: false,
+      enableSofort: false,
+      enableSepaDirectDebit: false,
     }
   },
   validator(config) {
@@ -33,7 +52,25 @@ module.exports = {
           api_version: yup
             .string()
             .matches(/^\d+\.\d+$/)
-            .defined()
+            .defined(),
+          serverApiMerchantId: yup.string().optional(),
+          serverApiKeyId: yup.string().optional(),
+          serverApiSecret: yup.string().optional(),
+          serverApiVersionPath: yup.string().optional(),
+
+          defaultCountryCode: yup.string().optional(),
+          defaultCurrencyCode: yup.string().optional(),
+          defaultLocale: yup.string().optional(),
+          merchantName: yup.string().optional(),
+          displayName: yup.string().optional(),
+          domainName: yup.string().optional(),
+          merchantIdentifier: yup.string().optional(),
+          enableCreditCard: yup.boolean().optional(),
+          enablePayPal: yup.boolean().optional(),
+          enableGooglePay: yup.boolean().optional(),
+          enableApplePay: yup.boolean().optional(),
+          enableSofort: yup.boolean().optional(),
+          enableSepaDirectDebit: yup.boolean().optional(),
         })
         .defined()
     });

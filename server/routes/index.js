@@ -29,6 +29,22 @@ module.exports = {
         }
       },
       {
+        method: "GET",
+        path: "/transactions/export",
+        handler: "payone.exportTransactions",
+        config: {
+          policies: ["admin::isAuthenticatedAdmin"]
+        }
+      },
+      {
+        method: "POST",
+        path: "/transactions/import",
+        handler: "payone.importTransactions",
+        config: {
+          policies: ["admin::isAuthenticatedAdmin"]
+        }
+      },
+      {
         method: "POST",
         path: "/test-connection",
         handler: "payone.testConnection",
@@ -80,6 +96,14 @@ module.exports = {
         method: "POST",
         path: "/validate-apple-pay-merchant",
         handler: "payone.validateApplePayMerchant",
+        config: {
+          policies: ["admin::isAuthenticatedAdmin"]
+        }
+      },
+      {
+        method: "POST",
+        path: "/hash384",
+        handler: "payone.hash384",
         config: {
           policies: ["admin::isAuthenticatedAdmin"]
         }
@@ -162,6 +186,33 @@ module.exports = {
           auth: false
         }
       },
+      {
+        method: "POST",
+        path: "/hosted-tokenization/jwt",
+        handler: "payone.hostedTokenizationJwt",
+        config: {
+          policies: ["plugin::strapi-plugin-payone-provider.is-auth"],
+          auth: false
+        }
+      },
+      {
+        method: "POST",
+        path: "/hash384",
+        handler: "payone.hash384",
+        config: {
+          policies: ["plugin::strapi-plugin-payone-provider.is-auth"],
+          auth: false
+        }
+      },
+      {
+        method: "POST",
+        path: "/transaction-status",
+        handler: "payone.handleTransactionStatus",
+        config: {
+          // policies: ["plugin::strapi-plugin-payone-provider.is-payone-notification"],
+          auth: false
+        }
+      }
     ]
   }
 };

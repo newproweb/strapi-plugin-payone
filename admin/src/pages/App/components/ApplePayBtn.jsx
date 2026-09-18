@@ -1,8 +1,9 @@
-import React from "react";
+import * as React from "react";
 import ApplePayButton from "apple-pay-button";
 import { Box, Typography, Alert } from "@strapi/design-system";
-import { request } from "@strapi/helper-plugin";
+import { getFetchClient } from "@strapi/strapi/admin";
 import pluginId from "../../../pluginId";
+import { usePluginTranslations } from "../../hooks/usePluginTranslations";
 
 const ApplePayBtn = ({
   amount,
@@ -12,6 +13,7 @@ const ApplePayBtn = ({
   buttonStyle = "black",
   type = "pay",
 }) => {
+  const { t } = usePluginTranslations();
   const handleEventsForApplePay = (session, amountValue, currencyCode) => {
     session.onvalidatemerchant = async (event) => {
       try {
@@ -20,17 +22,15 @@ const ApplePayBtn = ({
           currencyCode || applePayConfig.currencyCode || "EUR";
         const requestCountryCode = applePayConfig.countryCode || "DE";
 
-        const merchantSession = await request(
+        const { post } = getFetchClient();
+        const merchantSession = await post(
           `/${pluginId}/validate-apple-pay-merchant`,
           {
-            method: "POST",
-            body: {
-              domainName: settings?.domainName || window.location.hostname,
-              displayName: settings?.displayName || "Store",
-              currency: requestCurrency,
-              countryCode: requestCountryCode,
-              mode: (settings?.mode || "test").toLowerCase() || "test",
-            },
+            domainName: settings?.domainName || window.location.hostname,
+            displayName: settings?.displayName || "Store",
+            currency: requestCurrency,
+            countryCode: requestCountryCode,
+            mode: (settings?.mode || "test").toLowerCase() || "test",
           }
         );
         if (merchantSession.error) {
@@ -286,12 +286,9 @@ const ApplePayBtn = ({
   if (!settings?.mid) {
     return (
       <Box>
-        <Alert closeLabel="Close" title="Merchant ID Missing" variant="warning">
+        <Alert closeLabel="Close" title={t("applePayBtn.merchantIdMissingTitle", "Merchant ID Missing")} variant="warning">
           <Typography variant="pi" marginTop={2}>
-            Merchant ID is not configured. Please set Merchant ID in plugin
-            settings. You can find your merchantIdentifier in PMI at:
-            CONFIGURATION → PAYMENT PORTALS → [Your Portal] → Payment type
-            configuration tab.
+            {t("applePayBtn.merchantIdMissing", "Merchant ID is not configured. Please set Merchant ID in plugin settings.")} {t("applePayBtn.merchantIdHint", "You can find your merchantIdentifier in PMI at: CONFIGURATION → PAYMENT PORTALS → [Your Portal] → Payment type configuration tab.")}
           </Typography>
         </Alert>
       </Box>
@@ -303,17 +300,14 @@ const ApplePayBtn = ({
       <Box>
         <Alert
           closeLabel="Close"
-          title=" Apple Pay Only Works in Live Mode"
+          title={t("applePayBtn.liveModeOnly", "Apple Pay Only Works in Live Mode")}
           variant="danger"
         >
           <Typography variant="pi" marginTop={2}>
-            <strong>Apple Pay is only supported in live mode.</strong> According
-            to Payone documentation, test mode support will be available at a
-            later time.
+            {t("applePayBtn.liveModeMessage", "Apple Pay is only supported in live mode. According to Payone documentation, test mode support will be available at a later time.")}
           </Typography>
           <Typography variant="pi" style={{ marginLeft: "8px" }}>
-            Please switch to <strong>live mode</strong> in plugin settings to
-            use Apple Pay.
+            {t("applePayBtn.switchToLive", "Please switch to live mode in plugin settings to use Apple Pay.")}
           </Typography>
         </Alert>
       </Box>
@@ -352,8 +346,7 @@ const ApplePayBtn = ({
         textColor="neutral600"
         style={{ fontSize: "12px", marginTop: "8px", marginRight: "6px" }}
       >
-        Apple Pay does NOT work on localhost. Use a production domain with
-        HTTPS.
+        {t("applePayBtn.noLocalhost", "Apple Pay does NOT work on localhost. Use a production domain with HTTPS.")}
       </Typography>
     </Box>
   );

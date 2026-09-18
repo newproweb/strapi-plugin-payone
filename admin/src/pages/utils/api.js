@@ -1,85 +1,98 @@
-import { request } from "@strapi/helper-plugin";
-import pluginId from "../../pluginId";
+import { useFetchClient } from '@strapi/strapi/admin';
+import pluginId from '../../pluginId';
 
-const payoneRequests = {
-  getSettings: () => {
-    return request(`/${pluginId}/settings`, {
-      method: "GET"
-    });
-  },
+const usePayoneRequests = () => {
+  const { get, post, put } = useFetchClient();
 
-  updateSettings: (data) => {
-    return request(`/${pluginId}/settings`, {
-      method: "PUT",
-      body: data
-    });
-  },
+  const getSettings = () => get(`/${pluginId}/settings`);
 
-  getTransactionHistory: (params = {}) => {
-    const queryString = new URLSearchParams(params).toString();
-    return request(
-      `/${pluginId}/transaction-history${queryString ? `?${queryString}` : ""}`,
-      {
-        method: "GET"
+  const updateSettings = (data) =>
+    put(`/${pluginId}/settings`, data);
+
+  const getTransactionHistory = (params = {}) => {
+    const queryParams = new URLSearchParams();
+
+    if (params.filters && typeof params.filters === "object") {
+      Object.keys(params.filters).forEach((key) => {
+        const value = params.filters[key];
+        const v = value == null ? "" : String(value).trim();
+        if (v !== "" && v.toLowerCase() !== "all") {
+          queryParams.append(`filters[${key}]`, String(value));
+        }
+      });
+    }
+
+    if (params.pagination) {
+      if (params.pagination.page) {
+        queryParams.append('pagination[page]', String(params.pagination.page));
       }
+      if (params.pagination.pageSize) {
+        queryParams.append('pagination[pageSize]', String(params.pagination.pageSize));
+      }
+    }
+
+    const queryString = queryParams.toString();
+    return get(
+      `/${pluginId}/transaction-history${queryString ? `?${queryString}` : ''}`
     );
-  },
+  };
 
-  testConnection: () => {
-    return request(`/${pluginId}/test-connection`, {
-      method: "POST"
-    });
-  },
+  const exportTransactions = (params = {}) => {
+    const queryParams = new URLSearchParams();
+    const format = params.format === "csv" ? "csv" : "json";
+    queryParams.append("format", format);
+    if (params.sort_by) queryParams.append("sort_by", params.sort_by);
+    if (params.sort_order) queryParams.append("sort_order", params.sort_order);
+    if (params.filters && typeof params.filters === "object") {
+      Object.keys(params.filters).forEach((key) => {
+        const value = params.filters[key];
+        const v = value == null ? "" : String(value).trim();
+        if (v !== "" && v.toLowerCase() !== "all") {
+          queryParams.append(`filters[${key}]`, String(value));
+        }
+      });
+    }
+    const queryString = queryParams.toString();
+    return get(`/${pluginId}/transactions/export?${queryString}`);
+  };
 
-  preauthorization: (data) => {
-    return request(`/${pluginId}/preauthorization`, {
-      method: "POST",
-      body: data,
-      headers: {
-        "Content-Type": "application/json"
-      }
+  const importTransactions = (payload) => {
+    return post(`/${pluginId}/transactions/import`, payload, {
+      headers: { "Content-Type": "application/json" },
     });
-  },
+  };
 
-  authorization: (data) => {
-    return request(`/${pluginId}/authorization`, {
-      method: "POST",
-      body: data,
-      headers: {
-        "Content-Type": "application/json"
-      }
-    });
-  },
+  const testConnection = () =>
+    post(`/${pluginId}/test-connection`);
 
-  capture: (data) => {
-    return request(`/${pluginId}/capture`, {
-      method: "POST",
-      body: data,
-      headers: {
-        "Content-Type": "application/json"
-      }
-    });
-  },
+  const preauthorization = (data) =>
+    post(`/${pluginId}/preauthorization`, data);
 
-  refund: (data) => {
-    return request(`/${pluginId}/refund`, {
-      method: "POST",
-      body: data,
-      headers: {
-        "Content-Type": "application/json"
-      }
-    });
-  },
+  const authorization = (data) =>
+    post(`/${pluginId}/authorization`, data);
 
-  handle3DSCallback: (data) => {
-    return request(`/${pluginId}/3ds-callback`, {
-      method: "POST",
-      body: data,
-      headers: {
-        "Content-Type": "application/json"
-      }
-    });
-  }
+  const capture = (data) =>
+    post(`/${pluginId}/capture`, data);
+
+  const refund = (data) =>
+    post(`/${pluginId}/refund`, data);
+
+  const handle3DSCallback = (data) =>
+    post(`/${pluginId}/3ds-callback`, data);
+
+  return {
+    getSettings,
+    updateSettings,
+    getTransactionHistory,
+    exportTransactions,
+    importTransactions,
+    testConnection,
+    preauthorization,
+    authorization,
+    capture,
+    refund,
+    handle3DSCallback,
+  };
 };
 
-export default payoneRequests;
+export default usePayoneRequests;

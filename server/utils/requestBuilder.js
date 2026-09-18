@@ -3,42 +3,38 @@
 const crypto = require("crypto");
 const { normalizeCustomerId } = require("./normalize");
 
+
 const buildClientRequestParams = (settings, params, logger = null) => {
   const requestParams = {
     request: params.request,
     aid: settings.aid,
     mid: settings.mid,
     portalid: settings.portalid,
-    mode: settings.mode || "test",
+    mode: params.testOrder ? "test" : settings.mode || "test",
     encoding: "UTF-8",
     ...params
   };
-
-  requestParams.key = crypto
-    .createHash("md5")
-    .update(settings.portalKey || settings.key)
-    .digest("hex");
 
   requestParams.customerid = normalizeCustomerId(
     requestParams.customerid,
     logger
   );
 
-  const isCreditCard = requestParams.clearingtype === "cc";
-  const enable3DSecure = settings.enable3DSecure !== false;
+  requestParams.key = crypto
+    .createHash("md5")
+    .update(settings.portalKey || settings.key)
+    .digest("hex");
 
-  if (isCreditCard && enable3DSecure && (params.request === "preauthorization" || params.request === "authorization")) {
-    requestParams["3dsecure"] = "yes";
-    requestParams.ecommercemode = params.ecommercemode || "internet";
-
-    if (!requestParams.successurl) {
-      requestParams.successurl = params.successurl || "https://www.example.com/success";
-    }
-    if (!requestParams.errorurl) {
-      requestParams.errorurl = params.errorurl || "https://www.example.com/error";
-    }
-    if (!requestParams.backurl) {
-      requestParams.backurl = params.backurl || "https://www.example.com/back";
+  if (requiresRedirectUrls(requestParams)) {
+    const missingUrls = [];
+    if (!requestParams.successurl) missingUrls.push("successurl");
+    if (!requestParams.errorurl) missingUrls.push("errorurl");
+    if (!requestParams.backurl) missingUrls.push("backurl");
+    if (missingUrls.length > 0) {
+      throw new Error(
+        `Credit card request is missing required redirect URLs: ${missingUrls.join(", ")}. ` +
+        `These must be supplied by the caller so Payone can redirect the customer back after the issuer challenge.`
+      );
     }
 
     if (logger) {
@@ -48,8 +44,6 @@ const buildClientRequestParams = (settings, params, logger = null) => {
         backurl: requestParams.backurl
       });
     }
-  } else if (isCreditCard && !enable3DSecure) {
-    requestParams["3dsecure"] = "no";
   }
 
   const defaults = {
@@ -92,8 +86,20 @@ const toFormData = (requestParams) => {
   return formData;
 };
 
+/**
+ * Whether Payone needs somewhere to send the customer back to. The portal
+ * configuration decides whether a credit card authorization is sent to a 3-D
+ * Secure challenge, so the redirect URLs must always accompany one.
+ *
+ * @param params - Request params
+ */
+const requiresRedirectUrls = (params) =>
+  params.clearingtype === "cc" &&
+  (params.request === "preauthorization" || params.request === "authorization");
+
 module.exports = {
   buildClientRequestParams,
-  toFormData
+  toFormData,
+  requiresRedirectUrls
 };
 

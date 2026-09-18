@@ -1,23 +1,26 @@
 "use strict";
 
-module.exports = async (ctx, config, { strapi }) => {
-  const { authorization } = ctx.request.header || {};
+module.exports = async (policyContext, config, { strapi }) => {
+  const auth = policyContext.request.header?.authorization;
+  if (!auth?.startsWith("Bearer ")) return false;
 
-  if (authorization && authorization.startsWith("Bearer ")) {
-    const token = authorization.split(" ")[1];
+  const token = auth.slice(7).trim();
+  if (!token) return false;
 
-    try {
-      const apiTokenService = strapi.services["admin::api-token"];
-      const accessKey = await apiTokenService.hash(token);
-      const storedToken = await apiTokenService.getBy({ accessKey });
+  const tokenService =
+    strapi.service?.("admin::api-token-content-api") ||
+    strapi.service?.("admin::api-token");
 
-      if (storedToken) {
-        return true;
-      }
-    } catch (e) {
-      strapi.log.warn("strapi-plugin-payone-provider isAuth policy error:", e.message);
-    }
-  }
+  if (!tokenService?.hash) return false;
 
-  return false;
+  const accessKey = tokenService.hash(token);
+  const stored = await (tokenService.getByAccessKey
+    ? tokenService.getByAccessKey(accessKey)
+    : tokenService.getBy?.({ accessKey })
+  ).catch(() => null);
+
+  if (!stored) return false;
+  if (stored.expiresAt && new Date(stored.expiresAt) < new Date()) return false;
+
+  return true;
 };

@@ -1,10 +1,10 @@
-import { useEffect, useRef } from "react";
+import * as React from "react";
 import pluginId from "../../pluginId";
 
 const Initializer = ({ setPlugin }) => {
-  const ref = useRef(setPlugin);
+  const ref = React.useRef(setPlugin);
 
-  useEffect(() => {
+  React.useEffect(() => {
     if (ref.current) {
       ref.current(pluginId);
     }

@@ -9,3 +9,4 @@ export { default as PendingIcon } from './PendingIcon.jsx';
 export { default as InfoIcon } from './InfoIcon.jsx';
 export { default as ChevronDownIcon } from './ChevronDownIcon.jsx';
 export { default as ChevronUpIcon } from './ChevronUpIcon.jsx';
+export { default as MarkCircle } from './MarkCircle.jsx';

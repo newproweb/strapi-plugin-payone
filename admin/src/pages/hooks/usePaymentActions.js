@@ -1,6 +1,5 @@
-import { useState, useEffect } from "react";
-import { useNotification } from "@strapi/helper-plugin";
-import payoneRequests from "../utils/api";
+import * as React from "react";
+import { useNotification } from "@strapi/strapi/admin";
 import {
   getPreauthorizationParams,
   getAuthorizationParams,
@@ -10,61 +9,120 @@ import {
   getValidCardExpiryDate,
 } from "../utils/paymentUtils";
 import { DEFAULT_PAYMENT_DATA } from "../constants/paymentConstants";
+import usePayoneRequests from "../utils/api";
+import {
+  getLanguageForCountry,
+  getCurrencyForCountry,
+} from "../utils/countryLanguageUtils";
 
 const usePaymentActions = () => {
-  const toggleNotification = useNotification();
+  const { toggleNotification } = useNotification();
+  const { getSettings, preauthorization, authorization, capture, refund } = usePayoneRequests();
+  const [settings, setSettings] = React.useState({ enable3DSecure: false });
 
-  const [settings, setSettings] = useState({ enable3DSecure: false });
-
-  useEffect(() => {
+  React.useEffect(() => {
     const loadSettings = async () => {
       try {
-        const response = await payoneRequests.getSettings();
+        const response = await getSettings();
         if (response?.data) {
           setSettings(response.data);
         }
       } catch (error) {
+        console.error("Error loading settings:", error);
       }
     };
     loadSettings();
   }, []);
-
-  const [paymentAmount, setPaymentAmount] = useState("1000");
 
   const generateOrderReference = () => {
     const sequence = 1000 + Math.floor((Date.now() % 99000));
     return generateLagOrderNumber(sequence);
   };
 
-  const [preauthReference, setPreauthReference] = useState(generateOrderReference());
-  const [authReference, setAuthReference] = useState(generateOrderReference());
-  const [captureTxid, setCaptureTxid] = useState("");
-  const [refundTxid, setRefundTxid] = useState("");
-  const [refundSequenceNumber, setRefundSequenceNumber] = useState("2");
-  const [refundReference, setRefundReference] = useState("");
-  const [paymentMethod, setPaymentMethod] = useState("cc");
-  const [captureMode, setCaptureMode] = useState("full");
-  const [googlePayToken, setGooglePayToken] = useState(null);
-  const [applePayToken, setApplePayToken] = useState(null);
+  const [paymentState, setPaymentState] = React.useState({
+    paymentAmount: "1000",
+    preauthReference: generateOrderReference(),
+    authReference: generateOrderReference(),
+    captureTxid: "",
+    refundTxid: "",
+    refundSequenceNumber: "2",
+    refundReference: "",
+    paymentMethod: "cc",
+    captureMode: "full",
+    googlePayToken: null,
+    applePayToken: null,
+    cardtype: "",
+    cardpan: "",
+    cardexpiredate: "",
+    cardcvc2: "",
+    currency: "EUR",
+    firstname: "John",
+    lastname: "Doe",
+    email: "test@example.com",
+    street: "Test Street 123",
+    zip: "12345",
+    city: "Test City",
+    country: "DE",
+    telephonenumber: "01752345678",
+    salutation: "Herr",
+    gender: "m",
+    ip: "127.0.0.1",
+    language: "de",
+    customerIsPresent: "yes",
+    narrativeText: "",
+    invoiceid: "",
+    shippingFirstname: "John",
+    shippingLastname: "Doe",
+    shippingStreet: "Test Street 123",
+    shippingZip: "12345",
+    shippingCity: "Test City",
+    shippingCountry: "DE",
+    successurl: "",
+    errorurl: "",
+    backurl: "",
+    captureSequenceNumber: "1",
+    captureCurrency: "EUR",
+    refundCurrency: "EUR",
+  });
 
-  const [cardtype, setCardtype] = useState("");
-  const [cardpan, setCardpan] = useState("");
-  const [cardexpiredate, setCardexpiredate] = useState("");
-  const [cardcvc2, setCardcvc2] = useState("");
+  const handleFieldChange = (field, value) => {
+    setPaymentState((prev) => {
+      const newState = { ...prev, [field]: value };
 
-  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
-  const [paymentResult, setPaymentResult] = useState(null);
-  const [paymentError, setPaymentError] = useState(null);
+      if (field === "country" && value) {
+        const languageCode = getLanguageForCountry(value);
+        const currencyCode = getCurrencyForCountry(value);
+        newState.language = languageCode;
+        newState.currency = currencyCode;
+        newState.shippingCountry = value;
+      }
 
-  const handlePaymentError = (error, defaultMessage) => {
-    const errorMessage =
-      error.response?.data?.data?.Error?.ErrorMessage ||
-      error.message ||
-      defaultMessage;
-    setPaymentError(errorMessage);
+      if (field === "firstname" && value) {
+        newState.shippingFirstname = value;
+      }
+
+      if (field === "lastname" && value) {
+        newState.shippingLastname = value;
+      }
+
+      if (field === "street" && value) {
+        newState.shippingStreet = value;
+      }
+
+      return newState;
+    });
+  };
+
+  const [isProcessingPayment, setIsProcessingPayment] = React.useState(false);
+  const [paymentResult, setPaymentResult] = React.useState(null);
+  const [paymentError, setPaymentError] = React.useState(null);
+
+  const handlePaymentError = (errorMessage) => {
+    const defaultMessage = "Payment failed. Please check the error message and try again.";
+    setPaymentError(errorMessage || defaultMessage);
     toggleNotification({
-      type: "warning",
-      message: defaultMessage
+      type: "danger",
+      message: errorMessage || defaultMessage
     });
   };
 
@@ -80,33 +138,51 @@ const usePaymentActions = () => {
     setPaymentError(null);
     setPaymentResult(null);
     try {
-      const finalPreauthReference = preauthReference.trim() || generateOrderReference();
-      if (!preauthReference.trim()) {
-        setPreauthReference(finalPreauthReference);
-      }
+      const finalPreauthReference = generateOrderReference();
+      handleFieldChange("preauthReference", finalPreauthReference);
 
-      const currency = (paymentMethod === "cc" && cardtype === "A") ? "USD" : "EUR";
+      const finalCurrency = paymentState.currency || ((paymentState.paymentMethod === "cc" && paymentState.cardtype === "A") ? "USD" : "EUR");
+      const finalInvoiceid = paymentState.invoiceid || finalPreauthReference;
+      const finalNarrativeText = paymentState.narrativeText || ("Preauthorization for order " + finalPreauthReference);
 
       const baseParams = {
-        amount: parseInt(paymentAmount),
-        currency: currency,
+        amount: parseInt(paymentState.paymentAmount),
+        currency: finalCurrency,
         reference: finalPreauthReference,
         enable3DSecure: settings.enable3DSecure !== false,
-        invoiceid: finalPreauthReference,
-        narrative_text: "Preauthorization for order " + finalPreauthReference,
-        ...DEFAULT_PAYMENT_DATA
+        invoiceid: finalInvoiceid,
+        narrative_text: finalNarrativeText,
+        firstname: paymentState.firstname || DEFAULT_PAYMENT_DATA.firstname,
+        lastname: paymentState.lastname || DEFAULT_PAYMENT_DATA.lastname,
+        email: paymentState.email || DEFAULT_PAYMENT_DATA.email,
+        street: paymentState.street || DEFAULT_PAYMENT_DATA.street,
+        zip: paymentState.zip || DEFAULT_PAYMENT_DATA.zip,
+        city: paymentState.city || DEFAULT_PAYMENT_DATA.city,
+        country: paymentState.country || DEFAULT_PAYMENT_DATA.country,
+        telephonenumber: paymentState.telephonenumber || DEFAULT_PAYMENT_DATA.telephonenumber,
+        salutation: paymentState.salutation || DEFAULT_PAYMENT_DATA.salutation,
+        gender: paymentState.gender || DEFAULT_PAYMENT_DATA.gender,
+        ip: paymentState.ip || DEFAULT_PAYMENT_DATA.ip,
+        language: paymentState.language || DEFAULT_PAYMENT_DATA.language,
+        customer_is_present: paymentState.customerIsPresent || DEFAULT_PAYMENT_DATA.customer_is_present,
+        shipping_firstname: paymentState.shippingFirstname || paymentState.firstname || DEFAULT_PAYMENT_DATA.firstname,
+        shipping_lastname: paymentState.shippingLastname || paymentState.lastname || DEFAULT_PAYMENT_DATA.lastname,
+        shipping_street: paymentState.shippingStreet || paymentState.street || DEFAULT_PAYMENT_DATA.street,
+        shipping_zip: paymentState.shippingZip || paymentState.zip || DEFAULT_PAYMENT_DATA.zip,
+        shipping_city: paymentState.shippingCity || paymentState.city || DEFAULT_PAYMENT_DATA.city,
+        shipping_country: paymentState.shippingCountry || paymentState.country || DEFAULT_PAYMENT_DATA.country,
       };
 
-      if (paymentMethod === "cc" && settings.enable3DSecure !== false) {
-        if (cardtype) baseParams.cardtype = cardtype;
-        if (cardpan) baseParams.cardpan = cardpan;
-        baseParams.cardexpiredate = getValidCardExpiryDate(cardexpiredate);
-        if (cardcvc2) baseParams.cardcvc2 = cardcvc2;
+      if (paymentState.paymentMethod === "cc" && settings.enable3DSecure !== false) {
+        if (paymentState.cardtype) baseParams.cardtype = paymentState.cardtype;
+        if (paymentState.cardpan) baseParams.cardpan = paymentState.cardpan;
+        baseParams.cardexpiredate = getValidCardExpiryDate(paymentState.cardexpiredate);
+        if (paymentState.cardcvc2) baseParams.cardcvc2 = paymentState.cardcvc2;
       }
 
       const needsRedirectUrls =
-        (paymentMethod === "cc" && settings.enable3DSecure !== false) ||
-        ["wlt", "gpp", "apl", "sb"].includes(paymentMethod);
+        (paymentState.paymentMethod === "cc" && settings.enable3DSecure !== false) ||
+        ["wlt", "gpp", "apl", "sb"].includes(paymentState.paymentMethod);
 
       if (needsRedirectUrls) {
         const baseUrl = window.location.origin;
@@ -120,52 +196,42 @@ const usePaymentActions = () => {
         baseParams.backurl = `${baseUrl}${basePath}${pluginPath}/back`;
       }
 
-      const tokenToUse = tokenParam || googlePayToken || applePayToken;
-      if (paymentMethod === "gpp" && tokenToUse) {
+      const tokenToUse = tokenParam || paymentState.googlePayToken || paymentState.applePayToken;
+      if (paymentState.paymentMethod === "gpp" && tokenToUse) {
         baseParams.googlePayToken = tokenToUse;
         baseParams.settings = settings;
-      } else if (paymentMethod === "apl" && tokenToUse) {
+      } else if (paymentState.paymentMethod === "apl" && tokenToUse) {
         baseParams.applePayToken = tokenToUse;
         baseParams.settings = settings;
       }
 
-      const params = getPreauthorizationParams(paymentMethod, baseParams);
+      const params = getPreauthorizationParams(paymentState.paymentMethod, baseParams);
 
-      const result = await payoneRequests.preauthorization(params);
+      const result = await preauthorization(params);
       const responseData = result?.data || result;
-      const status = (responseData.status || responseData.Status || "").toUpperCase();
-      const errorCode = responseData.errorcode || responseData.errorCode || responseData.ErrorCode;
-      const errorMessage = responseData.errormessage || responseData.errorMessage || responseData.ErrorMessage;
-
+      const status = responseData?.Status || null;
+      const errorCode = responseData?.errorCode || null;
+      const errorMessage = responseData?.errorMessage || null;
       const requires3DSErrorCodes = ["4219", 4219];
       const is3DSRequiredError = requires3DSErrorCodes.includes(errorCode);
-
-      const redirectUrl =
-        responseData.redirectUrl ||
-        responseData.redirecturl ||
-        responseData.RedirectUrl ||
-        responseData.redirect_url ||
-        responseData.url ||
-        responseData.Url ||
-        null;
+      const redirectUrl = responseData?.redirectUrl || null;
 
       if (is3DSRequiredError && !redirectUrl) {
-        setPaymentError(
-          "3D Secure authentication required. Please check Payone configuration and ensure redirect URLs are properly set. Error: " +
-          (errorMessage || `Error code: ${errorCode}`)
+        handlePaymentError(
+          errorMessage + " " +
+          (`Error code: ${errorCode || "Unknown"}`)
         );
         setPaymentResult(responseData);
-        return;
+        return { success: false, data: responseData };
       }
 
       if ((status === "ERROR" || status === "INVALID" || errorCode) && !is3DSRequiredError) {
-        setPaymentError(
-          errorMessage ||
-          `Payment failed with error code: ${errorCode || "Unknown"}` ||
-          "Preauthorization failed"
+        handlePaymentError(
+          errorMessage + " " +
+          (`Error code: ${errorCode || "Unknown"}`)
         );
         setPaymentResult(responseData);
-        return;
+        return { success: false, data: responseData };
       }
 
       const needsRedirect = responseData.requires3DSRedirect ||
@@ -185,15 +251,15 @@ const usePaymentActions = () => {
       } else {
         const errorMsg = errorMessage || `Unexpected status: ${status}`;
         handlePaymentError(
-          { message: errorMsg },
-          `Preauthorization completed with status: ${status}`
+          errorMsg + "Preauthorization completed with status: ${status}"
         );
-        throw new Error(errorMsg);
+
+        return { success: false, data: responseData };
       }
     } catch (error) {
-      console.error("[Payment] Preauthorization error:", error);
-      handlePaymentError(error, "Preauthorization failed");
-      throw error;
+      const errorMessage = error.message || "Preauthorization failed";
+      handlePaymentError(errorMessage);
+      return { success: false, data: error };
     } finally {
       setIsProcessingPayment(false);
     }
@@ -205,92 +271,124 @@ const usePaymentActions = () => {
     setPaymentResult(null);
 
     try {
-      const finalAuthReference = authReference.trim() || generateOrderReference();
-      if (!authReference.trim()) {
-        setAuthReference(finalAuthReference);
-      }
+      const finalAuthReference = generateOrderReference();
+      handleFieldChange("authReference", finalAuthReference);
 
-      const currency = (paymentMethod === "cc" && cardtype === "A") ? "USD" : "EUR";
+      const finalCurrency = paymentState.currency || ((paymentState.paymentMethod === "cc" && paymentState.cardtype === "A") ? "USD" : "EUR");
+      const finalInvoiceid = paymentState.invoiceid || finalAuthReference;
+      const finalNarrativeText = paymentState.narrativeText || ("Authorization for order " + finalAuthReference);
 
       const baseParams = {
-        amount: parseInt(paymentAmount),
-        currency: currency,
+        amount: parseInt(paymentState.paymentAmount),
+        currency: finalCurrency,
         reference: finalAuthReference,
         enable3DSecure: settings.enable3DSecure !== false,
-        invoiceid: finalAuthReference,
-        narrative_text: "Authorization for order " + finalAuthReference,
-        ...DEFAULT_PAYMENT_DATA
+        invoiceid: finalInvoiceid,
+        narrative_text: finalNarrativeText,
+        firstname: paymentState.firstname || DEFAULT_PAYMENT_DATA.firstname,
+        lastname: paymentState.lastname || DEFAULT_PAYMENT_DATA.lastname,
+        email: paymentState.email || DEFAULT_PAYMENT_DATA.email,
+        street: paymentState.street || DEFAULT_PAYMENT_DATA.street,
+        zip: paymentState.zip || DEFAULT_PAYMENT_DATA.zip,
+        city: paymentState.city || DEFAULT_PAYMENT_DATA.city,
+        country: paymentState.country || DEFAULT_PAYMENT_DATA.country,
+        telephonenumber: paymentState.telephonenumber || DEFAULT_PAYMENT_DATA.telephonenumber,
+        salutation: paymentState.salutation || DEFAULT_PAYMENT_DATA.salutation,
+        gender: paymentState.gender || DEFAULT_PAYMENT_DATA.gender,
+        ip: paymentState.ip || DEFAULT_PAYMENT_DATA.ip,
+        language: paymentState.language || DEFAULT_PAYMENT_DATA.language,
+        customer_is_present: paymentState.customerIsPresent || DEFAULT_PAYMENT_DATA.customer_is_present,
+        shipping_firstname: paymentState.shippingFirstname || paymentState.firstname || DEFAULT_PAYMENT_DATA.firstname,
+        shipping_lastname: paymentState.shippingLastname || paymentState.lastname || DEFAULT_PAYMENT_DATA.lastname,
+        shipping_street: paymentState.shippingStreet || paymentState.street || DEFAULT_PAYMENT_DATA.street,
+        shipping_zip: paymentState.shippingZip || paymentState.zip || DEFAULT_PAYMENT_DATA.zip,
+        shipping_city: paymentState.shippingCity || paymentState.city || DEFAULT_PAYMENT_DATA.city,
+        shipping_country: paymentState.shippingCountry || paymentState.country || DEFAULT_PAYMENT_DATA.country,
       };
 
-      if (paymentMethod === "cc" && settings.enable3DSecure !== false) {
-        if (cardtype) baseParams.cardtype = cardtype;
-        if (cardpan) baseParams.cardpan = cardpan;
-        baseParams.cardexpiredate = getValidCardExpiryDate(cardexpiredate);
-        if (cardcvc2) baseParams.cardcvc2 = cardcvc2;
+      if (paymentState.paymentMethod === "cc" && settings.enable3DSecure !== false) {
+        if (paymentState.cardtype) baseParams.cardtype = paymentState.cardtype;
+        if (paymentState.cardpan) baseParams.cardpan = paymentState.cardpan;
+        baseParams.cardexpiredate = getValidCardExpiryDate(paymentState.cardexpiredate);
+        if (paymentState.cardcvc2) baseParams.cardcvc2 = paymentState.cardcvc2;
       }
 
       const needsRedirectUrls =
-        (paymentMethod === "cc" && settings.enable3DSecure !== false) ||
-        ["wlt", "gpp", "apl", "sb"].includes(paymentMethod);
+        (paymentState.paymentMethod === "cc" && settings.enable3DSecure !== false) ||
+        ["wlt", "gpp", "apl", "sb"].includes(paymentState.paymentMethod);
 
       if (needsRedirectUrls) {
-        const baseUrl = window.location.origin;
-        const currentPath = window.location.pathname;
-        const isContentUI = currentPath.includes('/content-ui') || currentPath.includes('/content-manager');
-        const basePath = isContentUI ? '/content-ui' : '/admin';
-        const pluginPath = '/plugins/strapi-plugin-payone-provider/payment';
+        if (paymentState.successurl) {
+          baseParams.successurl = paymentState.successurl;
+        } else {
+          const baseUrl = window.location.origin;
+          const currentPath = window.location.pathname;
+          const isContentUI = currentPath.includes('/content-ui') || currentPath.includes('/content-manager');
+          const basePath = isContentUI ? '/content-ui' : '/admin';
+          const pluginPath = '/plugins/strapi-plugin-payone-provider/payment';
+          baseParams.successurl = `${baseUrl}${basePath}${pluginPath}/success`;
+        }
 
-        baseParams.successurl = `${baseUrl}${basePath}${pluginPath}/success`;
-        baseParams.errorurl = `${baseUrl}${basePath}${pluginPath}/error`;
-        baseParams.backurl = `${baseUrl}${basePath}${pluginPath}/back`;
+        if (paymentState.errorurl) {
+          baseParams.errorurl = paymentState.errorurl;
+        } else {
+          const baseUrl = window.location.origin;
+          const currentPath = window.location.pathname;
+          const isContentUI = currentPath.includes('/content-ui') || currentPath.includes('/content-manager');
+          const basePath = isContentUI ? '/content-ui' : '/admin';
+          const pluginPath = '/plugins/strapi-plugin-payone-provider/payment';
+          baseParams.errorurl = `${baseUrl}${basePath}${pluginPath}/error`;
+        }
+
+        if (paymentState.backurl) {
+          baseParams.backurl = paymentState.backurl;
+        } else {
+          const baseUrl = window.location.origin;
+          const currentPath = window.location.pathname;
+          const isContentUI = currentPath.includes('/content-ui') || currentPath.includes('/content-manager');
+          const basePath = isContentUI ? '/content-ui' : '/admin';
+          const pluginPath = '/plugins/strapi-plugin-payone-provider/payment';
+          baseParams.backurl = `${baseUrl}${basePath}${pluginPath}/back`;
+        }
       }
 
-      const tokenToUse = tokenParam || googlePayToken || applePayToken;
-      if (paymentMethod === "gpp" && tokenToUse) {
+      const tokenToUse = tokenParam || paymentState.googlePayToken || paymentState.applePayToken;
+      if (paymentState.paymentMethod === "gpp" && tokenToUse) {
         baseParams.googlePayToken = tokenToUse;
         baseParams.settings = settings;
-      } else if (paymentMethod === "apl" && tokenToUse) {
+      } else if (paymentState.paymentMethod === "apl" && tokenToUse) {
         baseParams.applePayToken = tokenToUse;
         baseParams.settings = settings;
       }
 
-      const params = getAuthorizationParams(paymentMethod, baseParams);
+      const params = getAuthorizationParams(paymentState.paymentMethod, baseParams);
+      const result = await authorization(params);
 
-      const result = await payoneRequests.authorization(params);
       const responseData = result?.data || result;
-      const status = (responseData.status || responseData.Status || "").toUpperCase();
-      const errorCode = responseData.errorcode || responseData.errorCode || responseData.ErrorCode;
-      const errorMessage = responseData.errormessage || responseData.errorMessage || responseData.ErrorMessage;
-
+      const status = responseData?.Status || null;
+      const errorCode = responseData?.errorCode || null;
+      const errorMessage = responseData?.errorMessage || null;
       const requires3DSErrorCodes = ["4219", 4219];
       const is3DSRequiredError = requires3DSErrorCodes.includes(errorCode);
+      const redirectUrl = responseData?.redirectUrl || null;
 
-      const redirectUrl =
-        responseData.redirectUrl ||
-        responseData.redirecturl ||
-        responseData.RedirectUrl ||
-        responseData.redirect_url ||
-        responseData.url ||
-        responseData.Url ||
-        null;
 
       if (is3DSRequiredError && !redirectUrl) {
-        setPaymentError(
-          "3D Secure authentication required. Please check Payone configuration and ensure redirect URLs are properly set. Error: " +
-          (errorMessage || `Error code: ${errorCode}`)
+        handlePaymentError(
+          errorMessage + " " +
+          (`Error code: ${errorCode || "Unknown"}`)
         );
         setPaymentResult(responseData);
-        return;
+        return { success: false, data: responseData };
       }
 
       if ((status === "ERROR" || status === "INVALID" || errorCode) && !is3DSRequiredError) {
-        setPaymentError(
-          errorMessage ||
-          `Payment failed with error code: ${errorCode || "Unknown"}` ||
-          "Authorization failed"
+        handlePaymentError(
+          errorMessage + " " +
+          (`Error code: ${errorCode || "Unknown"}`)
         );
         setPaymentResult(responseData);
-        return;
+        return { success: false, data: responseData };
       }
 
       const needsRedirect = responseData.requires3DSRedirect ||
@@ -306,128 +404,93 @@ const usePaymentActions = () => {
 
       if (status === "APPROVED") {
         handlePaymentSuccess("Authorization completed successfully");
-        // Return success result for Apple Pay callback
         return { success: true, data: responseData };
       } else {
-        const errorMsg = errorMessage || `Unexpected status: ${status}`;
+        const errorMsg = errorMessage + `Unexpected status: ${status}`;
         handlePaymentError(
-          { message: errorMsg },
-          `Authorization completed with status: ${status}`
+          errorMsg + "Authorization completed with status: ${status}"
         );
-        throw new Error(errorMsg);
+        return { success: false, data: responseData };
       }
     } catch (error) {
-      console.error("[Payment] Authorization error:", error);
-      handlePaymentError(error, "Authorization failed");
-      throw error;
+      const errorMessage = error.message || "Authorization failed";
+      handlePaymentError(errorMessage);
+      return { success: false, data: error };
     } finally {
       setIsProcessingPayment(false);
     }
   };
 
   const handleCapture = async () => {
-    if (!captureTxid.trim()) {
-      setPaymentError("Transaction ID is required for capture");
-      return;
+    if (!paymentState.captureTxid.trim()) {
+      handlePaymentError("Transaction ID is required for capture");
+      return { success: false, data: "Transaction ID is required for capture" };
     }
     setIsProcessingPayment(true);
     setPaymentError(null);
     setPaymentResult(null);
     try {
-      const params = getCaptureParams(paymentMethod, {
-        txid: captureTxid,
-        amount: parseInt(paymentAmount),
-        currency: "EUR",
-        captureMode: captureMode,
-        sequencenumber: 1
+      const params = getCaptureParams(paymentState.paymentMethod, {
+        txid: paymentState.captureTxid,
+        amount: parseInt(paymentState.paymentAmount),
+        currency: paymentState.captureCurrency || "EUR",
+        captureMode: paymentState.captureMode,
+        sequencenumber: parseInt(paymentState.captureSequenceNumber) || 1
       });
 
-      const result = await payoneRequests.capture(params);
+      const result = await capture(params);
       setPaymentResult(result);
       handlePaymentSuccess("Capture completed successfully");
+      return { success: true, data: result };
     } catch (error) {
-      handlePaymentError(error, "Capture failed");
+      const errorMessage = error.message || "Capture failed";
+      handlePaymentError(errorMessage);
+      return { success: false, data: error };
     } finally {
       setIsProcessingPayment(false);
     }
   };
 
   const handleRefund = async () => {
-    if (!refundTxid.trim()) {
-      setPaymentError("Transaction ID is required for refund");
-      return;
+    if (!paymentState.refundTxid.trim()) {
+      handlePaymentError("Transaction ID is required for refund");
+      return { success: false, data: "Transaction ID is required for refund" };
     }
     setIsProcessingPayment(true);
     setPaymentError(null);
     setPaymentResult(null);
     try {
-      const params = getRefundParams(paymentMethod, {
-        txid: refundTxid,
-        sequencenumber: parseInt(refundSequenceNumber),
-        amount: parseInt(paymentAmount),
-        currency: "EUR",
-        reference: refundReference || `REFUND-${Date.now()}`
+      const params = getRefundParams(paymentState.paymentMethod, {
+        txid: paymentState.refundTxid,
+        sequencenumber: parseInt(paymentState.refundSequenceNumber),
+        amount: parseInt(paymentState.paymentAmount),
+        currency: paymentState.refundCurrency || "EUR",
+        reference: paymentState.refundReference || `REFUND-${Date.now()}`
       });
 
-      const result = await payoneRequests.refund(params);
+      const result = await refund(params);
       setPaymentResult(result);
       handlePaymentSuccess("Refund completed successfully");
+      return { success: true, data: result };
     } catch (error) {
-      handlePaymentError(error, "Refund failed");
+      const errorMessage = error.message || "Refund failed";
+      handlePaymentError(errorMessage);
+      return { success: false, data: error };
     } finally {
       setIsProcessingPayment(false);
     }
   };
 
   return {
-    // Form state
-    paymentAmount,
-    setPaymentAmount,
-    preauthReference,
-    setPreauthReference,
-    authReference,
-    setAuthReference,
-    captureTxid,
-    setCaptureTxid,
-    refundTxid,
-    setRefundTxid,
-    refundSequenceNumber,
-    setRefundSequenceNumber,
-    refundReference,
-    setRefundReference,
-    paymentMethod,
-    setPaymentMethod,
-    captureMode,
-    setCaptureMode,
-
-    // Processing state
+    paymentState,
+    handleFieldChange,
     isProcessingPayment,
     paymentResult,
     paymentError,
-
-    // Handlers
     handlePreauthorization,
     handleAuthorization,
     handleCapture,
     handleRefund,
-
-    // Google Pay
-    googlePayToken,
-    setGooglePayToken,
-
-    // Apple Pay
-    applePayToken,
-    setApplePayToken,
-
-    // Card details for 3DS
-    cardtype,
-    setCardtype,
-    cardpan,
-    setCardpan,
-    cardexpiredate,
-    setCardexpiredate,
-    cardcvc2,
-    setCardcvc2
   };
 };
 
