@@ -1,7 +1,7 @@
 "use strict";
 
 const axios = require("axios");
-const { buildClientRequestParams, toFormData, is3dsViable } = require("../utils/requestBuilder");
+const { buildClientRequestParams, toFormData } = require("../utils/requestBuilder");
 const { addPaymentMethodParams } = require("../utils/paymentMethodParams");
 const { parseResponse, extractTxId, requires3DSRedirect, get3DSRedirectUrl } = require("../utils/responseParser");
 const { getSettings, validateSettings } = require("./settingsService");

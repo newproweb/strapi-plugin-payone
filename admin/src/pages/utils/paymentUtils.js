@@ -256,7 +256,6 @@ export const getPreauthorizationParams = (paymentMethod, options = {}) => {
     errorurl,
     backurl,
     enable3DSecure,
-    ecommercemode,
     cardtype,
     cardpan,
     cardexpiredate,
@@ -270,11 +269,6 @@ export const getPreauthorizationParams = (paymentMethod, options = {}) => {
     ...additionalParams,
     request: "preauthorization"
   };
-
-  if (paymentMethod === "cc" && options.enable3DSecure !== false) {
-    params["3dsecure"] = "yes";
-    params.ecommercemode = options.ecommercemode || "internet";
-  }
 
   return params;
 };
@@ -306,7 +300,6 @@ export const getAuthorizationParams = (paymentMethod, options = {}) => {
     errorurl,
     backurl,
     enable3DSecure,
-    ecommercemode,
     cardtype,
     cardpan,
     cardexpiredate,
@@ -320,11 +313,6 @@ export const getAuthorizationParams = (paymentMethod, options = {}) => {
     ...additionalParams,
     request: "authorization"
   };
-
-  if (paymentMethod === "cc" && options.enable3DSecure !== false) {
-    params["3dsecure"] = "yes";
-    params.ecommercemode = options.ecommercemode || "internet";
-  }
 
   return params;
 };

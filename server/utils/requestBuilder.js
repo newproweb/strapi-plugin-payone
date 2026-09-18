@@ -25,20 +25,14 @@ const buildClientRequestParams = (settings, params, logger = null) => {
     .update(settings.portalKey || settings.key)
     .digest("hex");
 
-  const isCreditCard = requestParams.clearingtype === "cc";
-  const enable3DSecure = settings.enable3DSecure !== false;
-
-  if (is3dsViable(requestParams, settings)) {
-    requestParams["3dsecure"] = "yes";
-    requestParams.ecommercemode = params.ecommercemode || "internet";
-
+  if (requiresRedirectUrls(requestParams)) {
     const missingUrls = [];
     if (!requestParams.successurl) missingUrls.push("successurl");
     if (!requestParams.errorurl) missingUrls.push("errorurl");
     if (!requestParams.backurl) missingUrls.push("backurl");
     if (missingUrls.length > 0) {
       throw new Error(
-        `3DS-eligible credit card request is missing required redirect URLs: ${missingUrls.join(", ")}. ` +
+        `Credit card request is missing required redirect URLs: ${missingUrls.join(", ")}. ` +
         `These must be supplied by the caller so Payone can redirect the customer back after the issuer challenge.`
       );
     }
@@ -50,8 +44,6 @@ const buildClientRequestParams = (settings, params, logger = null) => {
         backurl: requestParams.backurl
       });
     }
-  } else if (isCreditCard && !enable3DSecure) {
-    requestParams["3dsecure"] = "no";
   }
 
   const defaults = {
@@ -95,22 +87,19 @@ const toFormData = (requestParams) => {
 };
 
 /**
- * Checks if the request is viable for 3DS according to the settings
- * 
+ * Whether Payone needs somewhere to send the customer back to. The portal
+ * configuration decides whether a credit card authorization is sent to a 3-D
+ * Secure challenge, so the redirect URLs must always accompany one.
+ *
  * @param params - Request params
- * @param settings - Set up in admin
- * @returns 
  */
-const is3dsViable = (params, settings) => {
-  const isCreditCard = params.clearingtype === "cc";
-  const enable3DSecure = settings.enable3DSecure !== false;
-
-  return isCreditCard && enable3DSecure && (params.request === "preauthorization" || params.request === "authorization")
-};
+const requiresRedirectUrls = (params) =>
+  params.clearingtype === "cc" &&
+  (params.request === "preauthorization" || params.request === "authorization");
 
 module.exports = {
   buildClientRequestParams,
   toFormData,
-  is3dsViable
+  requiresRedirectUrls
 };
 
