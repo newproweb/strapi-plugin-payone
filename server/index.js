@@ -1,23 +1,11 @@
 "use strict";
 
-const register = require("./register");
-const bootstrap = require("./bootstrap");
-const destroy = require("./destroy");
-const config = require("./config");
-const controllers = require("./controllers");
-const routes = require("./routes");
-const services = require("./services");
-const policies = require("./policies");
-const contentTypes = require("./content-types");
-
 module.exports = {
-  register,
-  bootstrap,
-  destroy,
-  config,
-  controllers,
-  contentTypes,
-  routes,
-  services,
-  policies
+  bootstrap: require("./bootstrap"),
+  config: require("./config"),
+  contentTypes: require("./content-types"),
+  controllers: require("./controllers"),
+  policies: require("./policies"),
+  routes: require("./routes"),
+  services: require("./services")
 };

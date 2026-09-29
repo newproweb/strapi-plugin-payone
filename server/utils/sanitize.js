@@ -1,52 +1,22 @@
 "use strict";
 
-const SENSITIVE_KEYS = [
-  "cardpan",
-  "cardexpiredate",
-  "cardcvc2",
-  "iban",
-  "bic",
-  "bankaccount",
-  "bankcode",
-  "bankaccountholder",
-  "key",
-  "accesscode",
-  "accessname",
-  "token",
-  "redirecturl",
-  "Identifier",
-  "pseudocardpan",
-  "aid",
-  "mid",
-  "portalid",
-  "portalId",
-  "creditcardtoken",
-  "creditcardtokenid",
-  "creditcardtokenvalue",
-  "creditcardtokentype",
-  "creditcardtokenexpiry",
-  "creditcardtokencvv",
-  "creditcardtokenholder",
-  "creditcardtokenbank",
-];
+const { SENSITIVE_KEYS } = require("../constants");
 
-const maskValue = (val) => {
-  if (typeof val !== "string") return val;
-  return "*".repeat(Math.min(val.length, 20));
-};
+const maskValue = (value) => "*".repeat(Math.min(value.length, 20));
 
+/** Recursively masks every value whose key is listed in SENSITIVE_KEYS (compared lower-cased). */
 const sanitizeSensitive = (obj) => {
   if (!obj || typeof obj !== "object") return obj;
   if (Array.isArray(obj)) return obj.map(sanitizeSensitive);
+
   const out = {};
-  for (const [k, v] of Object.entries(obj)) {
-    const keyLower = k.toLowerCase();
-    if (SENSITIVE_KEYS.includes(keyLower) && v != null) {
-      out[k] = maskValue(String(v));
-    } else if (v != null && typeof v === "object" && !Array.isArray(v)) {
-      out[k] = sanitizeSensitive(v);
+  for (const [key, value] of Object.entries(obj)) {
+    if (SENSITIVE_KEYS.includes(key.toLowerCase()) && value != null) {
+      out[key] = maskValue(String(value));
+    } else if (value != null && typeof value === "object" && !Array.isArray(value)) {
+      out[key] = sanitizeSensitive(value);
     } else {
-      out[k] = v;
+      out[key] = value;
     }
   }
   return out;

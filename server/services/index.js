@@ -1,9 +1,11 @@
 "use strict";
 
-const payone = require("./payone");
-const newHostedTokenizationService = require("./newHostedTokenizationService");
-
 module.exports = {
-  payone,
-  newHostedTokenizationService,
+  settings: require("./settings.service"),
+  payment: require("./payment.service"),
+  transaction: require("./transaction.service"),
+  notification: require("./notification.service"),
+  applePay: require("./apple-pay.service"),
+  testConnection: require("./test-connection.service"),
+  hostedTokenization: require("./hosted-tokenization.service")
 };

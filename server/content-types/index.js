@@ -1,5 +1,3 @@
-const transactionsContentType = require('./transactions/index.js')
+"use strict";
 
-module.exports = {
-  'transaction': transactionsContentType
-}
+module.exports = { transaction: require("./transaction") };
