@@ -92,15 +92,22 @@ After installation, you need to configure your Payone credentials:
 ### Using the Admin Panel (Recommended)
 
 1. Open **Payone Provider** in the sidebar menu
-2. Go to the **Configuration** tab
-3. Fill in your Payone credentials and save:
+2. Go to the **Settings** tab
+3. Fill in your Payone credentials:
    - **Account ID (AID)**: Your Payone account ID
    - **Portal ID**: Your Payone portal ID
    - **Merchant ID (MID)**: Your merchant ID
    - **Portal Key**: Your API security key
-   - **Mode**: Select `test` for testing or `live` for production
+   - **Environment**: `Test` for testing or `Live` for production (switching to Live asks for confirmation)
    - **API Version**: Leave as `3.10` (default)
-4. Click **"Test Connection"** to verify your credentials
+4. Click **Save Configuration** in the bar at the bottom. Changes are not stored until you save; **Discard** reverts them.
+5. Click **Test Connection** to verify the saved credentials
+
+The admin page has three tabs:
+
+- **Transactions**: status totals, filters (search, status, type, payment method, date range), JSON export and import, and a details view per transaction.
+- **Payment tests**: run a preauthorization, authorization, capture or refund against Payone's test system. Capture and refund pick up the TxId of the last result.
+- **Settings**: environment, credentials, payment methods, and the Apple Pay / Google Pay configuration pages.
 
 ### Apple Pay setup
 
