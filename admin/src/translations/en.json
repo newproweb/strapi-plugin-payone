@@ -256,12 +256,12 @@
   "import.confirmAction": "Import",
   "settings.loading": "Loading settings…",
   "settings.environment.title": "Environment",
-  "settings.environment.description": "Live mode charges real cards. Use test mode while you set things up.",
+  "settings.environment.description": "Live mode charges real cards.",
   "settings.environment.confirmTitle": "Switch to live mode?",
   "settings.environment.confirmBody": "Payments will be sent to Payone's live system and real cards will be charged. The change is applied when you save.",
   "settings.environment.confirmAction": "Use live mode",
   "settings.credentials.title": "Credentials",
-  "settings.credentials.description": "Find these in the Payone Merchant Interface (PMI) under your payment portal.",
+  "settings.credentials.description": "From the Payone Merchant Interface (PMI).",
   "settings.methods.title": "Payment methods",
   "settings.methods.configure": "Configure",
   "settings.saveBar.oneChange": "1 unsaved change",
@@ -282,5 +282,6 @@
   "paymentResult.customerMessage": "Customer message",
   "paymentResult.waiting": "Waiting for Payone…",
   "paymentResult.empty": "Run a test payment to see Payone's response here.",
-  "paymentResult.raw": "Raw response"
+  "paymentResult.raw": "Raw response",
+  "settings.methods.description": "Only enabled methods are offered at checkout."
 }

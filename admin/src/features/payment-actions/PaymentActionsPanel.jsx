@@ -1,6 +1,5 @@
 import * as React from "react";
-import { Alert, Box, Button, Flex, Grid, Typography } from "@strapi/design-system";
-import { ArrowRight } from "@strapi/icons";
+import { Alert, Box, Button, Flex, Grid } from "@strapi/design-system";
 import { SectionCard } from "../../components/SectionCard";
 import { usePluginTranslations } from "../../hooks/usePluginTranslations";
 import { PaymentMethodSelector } from "./components/PaymentMethodSelector";
@@ -42,17 +41,15 @@ export const PaymentActionsPanel = ({ onNavigateToConfig, settings, paymentActio
 
   const renderOperationPicker = () => (
     <Flex gap={2} wrap="wrap" role="group" aria-label={t("paymentActions.operation", "Operation")}>
-      {operations.map((item, index) => (
-        <React.Fragment key={item.id}>
-          {index > 0 && item.id !== "authorization" && <ArrowRight aria-hidden width="1.2rem" height="1.2rem" fill="neutral500" />}
-          <Button
-            variant={item.id === operationId ? "secondary" : "tertiary"}
-            aria-pressed={item.id === operationId}
-            onClick={() => handleOperationChange(item)}
-          >
-            {t(item.titleKey, item.title)}
-          </Button>
-        </React.Fragment>
+      {operations.map((item) => (
+        <Button
+          key={item.id}
+          variant={item.id === operationId ? "secondary" : "tertiary"}
+          aria-pressed={item.id === operationId}
+          onClick={() => handleOperationChange(item)}
+        >
+          {t(item.titleKey, item.title)}
+        </Button>
       ))}
     </Flex>
   );
@@ -70,20 +67,13 @@ export const PaymentActionsPanel = ({ onNavigateToConfig, settings, paymentActio
 
   return (
     <Flex direction="column" alignItems="stretch" gap={6} paddingTop={6}>
-      {isLiveMode ? (
+      {isLiveMode && (
         <Alert variant="warning" title={t("paymentActions.liveTitle", "Live mode")} closeLabel={t("common.close", "Close")}>
           {t(
             "applePayPanel.warning",
             "Apple Pay can only be tested on a production domain with HTTPS and Live mode. Testing in Strapi admin panel is not supported. Please test Apple Pay on your production website."
           )}
         </Alert>
-      ) : (
-        <Typography variant="pi" textColor="neutral600">
-          {t(
-            "paymentActions.note",
-            "Note: These payment actions allow you to test the complete payment flow: Preauthorization → Capture → Refund. Make sure to use valid Transaction IDs for capture and refund operations."
-          )}
-        </Typography>
       )}
 
       {renderOperationPicker()}

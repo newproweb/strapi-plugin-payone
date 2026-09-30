@@ -26,7 +26,7 @@ export const EnvironmentCard = ({ settings, onInputChange }) => {
   return (
     <SectionCard
       title={t("settings.environment.title", "Environment")}
-      description={t("settings.environment.description", "Live mode charges real cards. Use test mode while you set things up.")}
+      description={t("settings.environment.description", "Live mode charges real cards.")}
     >
       <Flex direction="column" alignItems="stretch" gap={5}>
         <Radio.Group value={mode} onValueChange={handleModeChange} aria-label={t("config.fields.mode", "Mode")}>

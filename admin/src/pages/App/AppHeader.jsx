@@ -36,7 +36,7 @@ export const AppHeader = ({ title, subtitle, settings, onBack }) => {
   return (
     <Layouts.Header
       title={title || t("plugin.name", "Payone Provider")}
-      subtitle={subtitle || t("header.subtitle", "Configure your Payone integration and manage payment transactions")}
+      subtitle={subtitle}
       navigationAction={
         onBack ? (
           <Button onClick={onBack} startIcon={<ArrowLeft />} variant="tertiary">

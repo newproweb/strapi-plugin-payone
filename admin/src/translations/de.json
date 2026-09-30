@@ -256,12 +256,12 @@
   "import.confirmAction": "Importieren",
   "settings.loading": "Einstellungen werden geladen…",
   "settings.environment.title": "Umgebung",
-  "settings.environment.description": "Im Live-Modus werden echte Karten belastet. Nutzen Sie den Testmodus während der Einrichtung.",
+  "settings.environment.description": "Im Live-Modus werden echte Karten belastet.",
   "settings.environment.confirmTitle": "In den Live-Modus wechseln?",
   "settings.environment.confirmBody": "Zahlungen gehen an das Live-System von Payone und echte Karten werden belastet. Die Änderung gilt nach dem Speichern.",
   "settings.environment.confirmAction": "Live-Modus verwenden",
   "settings.credentials.title": "Zugangsdaten",
-  "settings.credentials.description": "Diese Werte finden Sie im Payone Merchant Interface (PMI) unter Ihrem Zahlungsportal.",
+  "settings.credentials.description": "Aus dem Payone Merchant Interface (PMI).",
   "settings.methods.title": "Zahlarten",
   "settings.methods.configure": "Konfigurieren",
   "settings.saveBar.oneChange": "1 ungespeicherte Änderung",
@@ -282,5 +282,6 @@
   "paymentResult.customerMessage": "Kundenmeldung",
   "paymentResult.waiting": "Warten auf Payone…",
   "paymentResult.empty": "Führen Sie eine Testzahlung aus, um die Antwort von Payone hier zu sehen.",
-  "paymentResult.raw": "Rohantwort"
+  "paymentResult.raw": "Rohantwort",
+  "settings.methods.description": "Nur aktivierte Zahlarten werden im Checkout angeboten."
 }

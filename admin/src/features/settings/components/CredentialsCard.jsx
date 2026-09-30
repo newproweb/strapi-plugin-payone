@@ -22,7 +22,7 @@ export const CredentialsCard = ({ settings }) => {
   return (
     <SectionCard
       title={t("settings.credentials.title", "Credentials")}
-      description={t("settings.credentials.description", "Find these in the Payone Merchant Interface (PMI) under your payment portal.")}
+      description={t("settings.credentials.description", "From the Payone Merchant Interface (PMI).")}
     >
       <Grid.Root gap={4}>
         {CREDENTIAL_FIELDS.map((field) => (
