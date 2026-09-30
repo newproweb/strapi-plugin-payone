@@ -5,7 +5,8 @@ const {
   PLACEHOLDERS,
   DEFAULT_PAGE_SIZE,
   MAX_PAGE_SIZE,
-  MAX_SCANNED_ROWS
+  MAX_SCANNED_ROWS,
+  STAT_STATUSES
 } = require("../constants");
 const { sanitizeSensitive } = require("../utils/sanitize");
 const { parseJsonField } = require("../utils/json");
@@ -66,6 +67,12 @@ const paginationMeta = (page, pageSize, total) => {
 
 const withWhere = (options, where) => (where === undefined ? options : { ...options, where });
 
+/** `{ total, approved, error, redirect }` from a total and counts ordered like STAT_STATUSES. */
+const toStats = (total, statusCounts) => ({
+  total,
+  ...Object.fromEntries(STAT_STATUSES.map((status, i) => [status.toLowerCase(), statusCounts[i]])),
+});
+
 module.exports = ({ strapi }) => {
   const transactions = () => strapi.db.query(TRANSACTION_UID);
 
@@ -114,6 +121,29 @@ module.exports = ({ strapi }) => {
     return paymentMethod ? data.filter((row) => matchesPaymentMethod(row, paymentMethod)) : data;
   };
 
+  /** Totals per status for the stat cards; the status filter itself is ignored so every card stays meaningful. */
+  const getTransactionStats = async ({ filters = {} } = {}) => {
+    const where = buildWhereFromFilters({ ...filters, status: undefined });
+    const paymentMethod = paymentMethodOf(filters);
+
+    if (paymentMethod) {
+      const rows = await transactions().findMany(withWhere({ select: ["status", "raw_request"], limit: MAX_SCANNED_ROWS }, where));
+      const matching = rows.filter((row) => matchesPaymentMethod(row, paymentMethod));
+      const statusCount = (status) => matching.filter((row) => String(row.status || "").toUpperCase() === status).length;
+      return toStats(matching.length, STAT_STATUSES.map(statusCount));
+    }
+
+    const withStatus = (status) => {
+      const statusCondition = { status: { $eqi: status } };
+      return where === undefined ? statusCondition : { $and: [where, statusCondition] };
+    };
+    const [total, ...statusCounts] = await Promise.all([
+      transactions().count(withWhere({}, where)),
+      ...STAT_STATUSES.map((status) => transactions().count({ where: withStatus(status) })),
+    ]);
+    return toStats(total, statusCounts);
+  };
+
   const importTransactions = async (rows) => {
     const results = { imported: 0, failed: 0, errors: [] };
     if (!Array.isArray(rows) || rows.length === 0) return results;
@@ -132,5 +162,5 @@ module.exports = ({ strapi }) => {
     return results;
   };
 
-  return { logTransaction, getTransactionHistory, getTransactionsForExport, importTransactions };
+  return { logTransaction, getTransactionHistory, getTransactionsForExport, getTransactionStats, importTransactions };
 };

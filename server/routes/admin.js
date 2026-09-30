@@ -13,6 +13,7 @@ module.exports = {
     route("GET", "/settings", "settings.getSettings"),
     route("PUT", "/settings", "settings.updateSettings"),
     route("GET", "/transaction-history", "transaction.getTransactionHistory"),
+    route("GET", "/transaction-stats", "transaction.getTransactionStats"),
     route("GET", "/transactions/export", "transaction.exportTransactions"),
     route("POST", "/transactions/import", "transaction.importTransactions"),
     route("POST", "/test-connection", "settings.testConnection"),

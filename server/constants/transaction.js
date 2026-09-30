@@ -31,6 +31,7 @@ const DEFAULT_SORT_FIELD = "createdAt";
 const MAX_PAGE_SIZE = 100;
 const DEFAULT_PAGE_SIZE = 10;
 const MAX_SCANNED_ROWS = 10000;
+const STAT_STATUSES = ["APPROVED", "ERROR", "REDIRECT"];
 
 /** PayOne wallet (`clearingtype: wlt`) codes; the extra aliases cover legacy rows. */
 const WALLET_CODES = {
@@ -78,6 +79,7 @@ module.exports = {
   MAX_PAGE_SIZE,
   DEFAULT_PAGE_SIZE,
   MAX_SCANNED_ROWS,
+  STAT_STATUSES,
   WALLET_CODES,
   SENSITIVE_KEYS
 };

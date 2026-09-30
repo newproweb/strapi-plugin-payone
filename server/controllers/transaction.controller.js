@@ -41,6 +41,15 @@ module.exports = ({ strapi }) => {
       }
     },
 
+    async getTransactionStats(ctx) {
+      try {
+        const { filters: rawFilters = {} } = ctx.query || {};
+        ctx.body = { data: await transactionService().getTransactionStats({ filters: buildFiltersFromQuery(rawFilters) }) };
+      } catch (error) {
+        respondWithError(ctx, error);
+      }
+    },
+
     async exportTransactions(ctx) {
       try {
         const { filters: rawFilters = {}, format = "json", sort_by, sort_order } = ctx.query || {};
