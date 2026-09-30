@@ -3,7 +3,6 @@
   background: transparent !important;
 }
 
-/* ===== Global Animations ===== */
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -16,40 +15,7 @@
   }
 }
 
-@keyframes slideIn {
-  from {
-    opacity: 0;
-    transform: translateX(-12px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
-@keyframes pulse {
-  0%,
-  100% {
-    opacity: 1;
-  }
-
-  50% {
-    opacity: 0.7;
-  }
-}
-
-@keyframes shimmer {
-  0% {
-    background-position: -1000px 0;
-  }
-
-  100% {
-    background-position: 1000px 0;
-  }
-}
-
-/* Tab Button Base Styles */
+/* ===== Tabs ===== */
 .payone-provider-root button[role="tab"] {
   box-shadow: none !important;
   border: none !important;
@@ -64,7 +30,6 @@
   transform: scale(1) !important;
 }
 
-/* Remove shake animation */
 .payone-provider-root button[role="tab"]:focus,
 .payone-provider-root button[role="tab"]:focus-visible {
   outline: none !important;
@@ -73,11 +38,7 @@
 }
 
 .payone-provider-root button[role="tab"][data-state="active"] {
-  background: linear-gradient(
-    180deg,
-    rgba(73, 69, 255, 0.05) 0%,
-    transparent 100%
-  ) !important;
+  background: linear-gradient(180deg, rgba(73, 69, 255, 0.05) 0%, transparent 100%) !important;
   color: #4945ff !important;
   font-weight: 600 !important;
   box-shadow: none !important;
@@ -96,28 +57,11 @@
 }
 
 .payone-provider-root button[role="tab"][data-state="inactive"]:hover {
-  background: linear-gradient(
-    180deg,
-    rgba(73, 69, 255, 0.02) 0%,
-    transparent 100%
-  ) !important;
+  background: linear-gradient(180deg, rgba(73, 69, 255, 0.02) 0%, transparent 100%) !important;
   box-shadow: none !important;
 }
 
-/* Border animation */
-@keyframes borderSlideIn {
-  0% {
-    transform: scaleX(0);
-    opacity: 0;
-  }
-
-  100% {
-    transform: scaleX(1);
-    opacity: 1;
-  }
-}
-
-/* ===== Form Section Styles ===== */
+/* ===== Payment action forms ===== */
 .payment-form-section {
   animation: fadeIn 0.5s ease-out;
   padding: 24px;
@@ -143,22 +87,14 @@
   margin-bottom: 20px;
 }
 
-/* ===== Divider Styles ===== */
 .payment-divider {
   border: none;
   height: 1px;
-  background: linear-gradient(
-    90deg,
-    transparent 0%,
-    #e8e8ea 20%,
-    #e8e8ea 80%,
-    transparent 100%
-  );
+  background: linear-gradient(90deg, transparent 0%, #e8e8ea 20%, #e8e8ea 80%, transparent 100%);
   margin: 32px 0;
   animation: fadeIn 0.4s ease-out;
 }
 
-/* ===== Responsive ===== */
 @media (max-width: 768px) {
   .payment-container {
     border-radius: 12px;
@@ -167,10 +103,5 @@
 
   .payment-form-section {
     padding: 16px;
-  }
-
-  .payment-grid-2,
-  .payment-grid-3 {
-    grid-template-columns: 1fr;
   }
 }

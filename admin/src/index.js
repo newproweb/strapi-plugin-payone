@@ -1,13 +1,9 @@
-
-import pluginPkg from '../../package.json';
-import pluginId from './pluginId';
-import Initializer from './components/Initializer';
-import PluginIcon from './components/PluginIcon';
-import { injectGooglePayScript } from './pages/utils/injectGooglePayScript';
-import { injectApplePayScript } from './pages/utils/injectApplePayScript';
-import { prefixPluginTranslations } from './utils/prefixPluginTranslations';
-
-const name = pluginPkg.strapi.name;
+import pluginPkg from "../../package.json";
+import { pluginId } from "./pluginId";
+import { Initializer } from "./components/Initializer";
+import { PluginIcon } from "./components/PluginIcon";
+import { loadGooglePayScript } from "./utils/google-pay-script";
+import { prefixPluginTranslations } from "./utils/translations";
 
 export default {
   register(app) {
@@ -16,12 +12,9 @@ export default {
       icon: PluginIcon,
       intlLabel: {
         id: `${pluginId}.plugin.name`,
-        defaultMessage: 'Payone Provider',
+        defaultMessage: "Payone Provider",
       },
-      Component: async () => {
-        const App = await import('./pages/App');
-        return App;
-      },
+      Component: () => import("./pages/App"),
       permissions: [],
     });
 
@@ -29,30 +22,21 @@ export default {
       id: pluginId,
       initializer: Initializer,
       isReady: false,
-      name,
+      name: pluginPkg.strapi.name,
     });
   },
 
   bootstrap() {
-    injectGooglePayScript();
-    injectApplePayScript();
+    loadGooglePayScript();
   },
 
   async registerTrads({ locales }) {
-    const importedTrads = await Promise.all(
+    return Promise.all(
       locales.map((locale) =>
         import(`./translations/${locale}.json`)
-          .then(({ default: data }) => ({
-            data: prefixPluginTranslations(data, pluginId),
-            locale,
-          }))
-          .catch(() => ({
-            data: {},
-            locale,
-          }))
+          .then(({ default: data }) => ({ data: prefixPluginTranslations(data, pluginId), locale }))
+          .catch(() => ({ data: {}, locale }))
       )
     );
-
-    return Promise.resolve(importedTrads);
   },
 };
