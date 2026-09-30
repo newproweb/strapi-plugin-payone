@@ -71,7 +71,7 @@ export const TransactionDetails = ({ transaction }) => {
         </Box>
       )}
 
-      <Box style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(400px,1fr))", gap: "16px", marginBottom: "1.5rem" }}>
+      <Box style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(280px,1fr))", gap: "16px", marginBottom: "1.5rem" }}>
         {renderCustomer()}
         {renderPayment()}
       </Box>

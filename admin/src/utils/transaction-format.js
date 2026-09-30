@@ -57,14 +57,3 @@ export const getPaymentMethodDisplay = (clearingtype, wallettype, cardtype) => {
       return { category: clearingtype || "Unknown", subtype: null };
   }
 };
-
-/** Turns a Payone response into `{ key, value }` rows with readable keys ("errorCode" → "Error Code"). */
-export const formatTransactionData = (data) => {
-  if (!data || typeof data !== "object") return [];
-  return Object.entries(data)
-    .filter(([, value]) => value !== null && value !== undefined)
-    .map(([key, value]) => ({
-      key: key.charAt(0).toUpperCase() + key.slice(1).replace(/([A-Z])/g, " $1"),
-      value: typeof value === "object" ? JSON.stringify(value) : String(value),
-    }));
-};

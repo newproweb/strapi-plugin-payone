@@ -61,7 +61,7 @@ export const RefundForm = ({ paymentActions }) => {
   );
 
   return (
-    <ActionForm title={t("refund.title", "Refund")} description={t("refund.description", "Refund a captured payment.")} fields={fields}>
+    <ActionForm fields={fields}>
       <SubmitButton
         onClick={() => paymentActions.handleRefund()}
         loading={paymentActions.isProcessingPayment}

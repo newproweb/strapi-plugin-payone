@@ -1,101 +1,109 @@
 import * as React from "react";
-import { Accordion, Box, Flex, Typography } from "@strapi/design-system";
-import { PanelHeader } from "../../components/PanelHeader";
+import { Alert, Box, Button, Flex, Grid, Typography } from "@strapi/design-system";
+import { ArrowRight } from "@strapi/icons";
+import { SectionCard } from "../../components/SectionCard";
 import { usePluginTranslations } from "../../hooks/usePluginTranslations";
 import { PaymentMethodSelector } from "./components/PaymentMethodSelector";
 import { PaymentForm } from "./components/PaymentForm";
 import { CaptureForm } from "./components/CaptureForm";
 import { RefundForm } from "./components/RefundForm";
 import { PaymentResult } from "./components/PaymentResult";
-import { ApplePayPanel } from "./components/ApplePayPanel";
 
-const SECTIONS = [
-  { value: "preauthorization", titleKey: "preauth.title", title: "Preauthorization", lockedInLive: true },
-  { value: "authorization", titleKey: "auth.title", title: "Authorization", lockedInLive: false },
-  { value: "capture", titleKey: "capture.title", title: "Capture", lockedInLive: true },
-  { value: "refund", titleKey: "refund.title", title: "Refund", lockedInLive: true },
+const OPERATIONS = [
+  { id: "preauthorization", titleKey: "preauth.title", title: "Preauthorization", descriptionKey: "preauth.description", description: "Reserve an amount on a credit card without capturing it immediately." },
+  { id: "authorization", titleKey: "auth.title", title: "Authorization", descriptionKey: "auth.description", description: "Authorize a payment with an existing preauthorization." },
+  { id: "capture", titleKey: "capture.title", title: "Capture", descriptionKey: "capture.description", description: "Capture a previously preauthorized amount.", txidField: "captureTxid" },
+  { id: "refund", titleKey: "refund.title", title: "Refund", descriptionKey: "refund.description", description: "Refund a captured payment.", txidField: "refundTxid" },
 ];
 
-const lockedStyle = (isLocked) => ({ opacity: isLocked ? 0.5 : 1, pointerEvents: isLocked ? "none" : "auto" });
+const lastTxIdOf = (result) => result?.TxId || result?.txid || result?.data?.TxId || result?.data?.txid || "";
 
-/** Payment actions tab: test preauthorization / authorization / capture / refund against Payone. */
+/** Payment tests tab: pick an operation, fill the form on the left, read Payone's answer on the right. */
 export const PaymentActionsPanel = ({ onNavigateToConfig, settings, paymentActions }) => {
   const { t } = usePluginTranslations();
-  const isLiveMode = (settings?.settings?.mode || "test").toLowerCase() === "live";
+  const isLiveMode = (settings?.savedSettings?.mode || "test").toLowerCase() === "live";
   const method = paymentActions.paymentState.paymentMethod;
+  const [operationId, setOperationId] = React.useState(isLiveMode ? "authorization" : "preauthorization");
+  const operation = OPERATIONS.find((item) => item.id === operationId);
+  const operations = isLiveMode ? OPERATIONS.filter((item) => item.id === "authorization") : OPERATIONS;
 
   React.useEffect(() => {
     if (isLiveMode && method !== "apl") paymentActions.handleFieldChange("paymentMethod", "apl");
+    if (isLiveMode) setOperationId("authorization");
   }, [isLiveMode, method, paymentActions.handleFieldChange]);
 
-  if (isLiveMode && method !== "apl") {
-    return (
-      <Box style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "8px", marginTop: "44px" }}>
-        <Typography variant="pi" textColor="neutral600">
-          {t("paymentActions.testModeOnly", "Test Payments are only works in test mode.")}
-        </Typography>
-        <Typography variant="pi" textColor="neutral600">
-          {t("paymentActions.switchToTestMode", "Please switch to test mode in plugin settings to use test payments.")}
-        </Typography>
-      </Box>
-    );
-  }
-
-  if (method === "apl") {
-    return <ApplePayPanel onNavigateToConfig={onNavigateToConfig} isLiveMode={isLiveMode} paymentActions={paymentActions} settings={settings} />;
-  }
-
-  const renderSectionForm = (section) => {
-    switch (section) {
-      case "preauthorization":
-      case "authorization":
-        return <PaymentForm type={section} paymentActions={paymentActions} settings={settings} />;
-      case "capture":
-        return <CaptureForm paymentActions={paymentActions} />;
-      default:
-        return <RefundForm paymentActions={paymentActions} />;
+  const handleOperationChange = (next) => {
+    const lastTxId = lastTxIdOf(paymentActions.paymentResult);
+    if (next.txidField && lastTxId && !paymentActions.paymentState[next.txidField]) {
+      paymentActions.handleFieldChange(next.txidField, String(lastTxId));
     }
+    setOperationId(next.id);
+  };
+
+  const renderOperationPicker = () => (
+    <Flex gap={2} wrap="wrap" role="group" aria-label={t("paymentActions.operation", "Operation")}>
+      {operations.map((item, index) => (
+        <React.Fragment key={item.id}>
+          {index > 0 && item.id !== "authorization" && <ArrowRight aria-hidden width="1.2rem" height="1.2rem" fill="neutral500" />}
+          <Button
+            variant={item.id === operationId ? "secondary" : "tertiary"}
+            aria-pressed={item.id === operationId}
+            onClick={() => handleOperationChange(item)}
+          >
+            {t(item.titleKey, item.title)}
+          </Button>
+        </React.Fragment>
+      ))}
+    </Flex>
+  );
+
+  const renderForm = () => {
+    if (operationId === "capture") return <CaptureForm paymentActions={paymentActions} />;
+    if (operationId === "refund") return <RefundForm paymentActions={paymentActions} />;
+    return (
+      <Flex direction="column" alignItems="stretch" gap={5}>
+        <PaymentMethodSelector paymentActions={paymentActions} onNavigateToConfig={onNavigateToConfig} isLiveMode={isLiveMode} />
+        <PaymentForm type={operationId} paymentActions={paymentActions} settings={settings} />
+      </Flex>
+    );
   };
 
   return (
-    <Box className="payment-container" paddingTop={8} paddingBottom={8} paddingLeft={8} paddingRight={8}>
-      <Flex direction="column" alignItems="stretch" gap={6}>
-        <PanelHeader
-          title={t("paymentActions.title", "Payment Actions")}
-          subtitle={t("paymentActions.subtitle", "Perform preauthorization, capture, refund and other payment operations.")}
-          boxStyle={{ display: "flex", flexDirection: "column", alignItems: "flex-start", gap: "8px" }}
-        />
+    <Flex direction="column" alignItems="stretch" gap={6} paddingTop={6}>
+      {isLiveMode ? (
+        <Alert variant="warning" title={t("paymentActions.liveTitle", "Live mode")} closeLabel={t("common.close", "Close")}>
+          {t(
+            "applePayPanel.warning",
+            "Apple Pay can only be tested on a production domain with HTTPS and Live mode. Testing in Strapi admin panel is not supported. Please test Apple Pay on your production website."
+          )}
+        </Alert>
+      ) : (
+        <Typography variant="pi" textColor="neutral600">
+          {t(
+            "paymentActions.note",
+            "Note: These payment actions allow you to test the complete payment flow: Preauthorization → Capture → Refund. Make sure to use valid Transaction IDs for capture and refund operations."
+          )}
+        </Typography>
+      )}
 
-        <PaymentMethodSelector paymentActions={paymentActions} onNavigateToConfig={onNavigateToConfig} isLiveMode={isLiveMode} />
+      {renderOperationPicker()}
 
-        <Accordion.Root>
-          {SECTIONS.map((section) => (
-            <Accordion.Item key={section.value} value={section.value}>
-              <Accordion.Header>
-                <Accordion.Trigger>{t(section.titleKey, section.title)}</Accordion.Trigger>
-              </Accordion.Header>
-              <Accordion.Content>
-                <Box className="payment-form-section" style={section.lockedInLive ? lockedStyle(isLiveMode) : undefined}>
-                  {renderSectionForm(section.value)}
-                </Box>
-              </Accordion.Content>
-            </Accordion.Item>
-          ))}
-        </Accordion.Root>
-
-        <hr className="payment-divider" />
-
-        <PaymentResult paymentError={paymentActions.paymentError} paymentResult={paymentActions.paymentResult} />
-
-        <Box paddingTop={4}>
-          <Typography variant="sigma" textColor="neutral600">
-            {t(
-              "paymentActions.note",
-              "Note: These payment actions allow you to test the complete payment flow: Preauthorization → Capture → Refund. Make sure to use valid Transaction IDs for capture and refund operations."
-            )}
-          </Typography>
-        </Box>
-      </Flex>
-    </Box>
+      <Grid.Root gap={6}>
+        <Grid.Item col={7} s={12} direction="column" alignItems="stretch">
+          <SectionCard title={t(operation.titleKey, operation.title)} description={t(operation.descriptionKey, operation.description)}>
+            {renderForm()}
+          </SectionCard>
+        </Grid.Item>
+        <Grid.Item col={5} s={12} direction="column" alignItems="stretch">
+          <Box position="sticky" top={4}>
+            <PaymentResult
+              paymentError={paymentActions.paymentError}
+              paymentResult={paymentActions.paymentResult}
+              isProcessing={paymentActions.isProcessingPayment}
+            />
+          </Box>
+        </Grid.Item>
+      </Grid.Root>
+    </Flex>
   );
 };

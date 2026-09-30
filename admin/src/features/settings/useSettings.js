@@ -2,8 +2,6 @@ import * as React from "react";
 import { useNotification } from "@strapi/strapi/admin";
 import { usePayoneApi } from "../../api/payone.api";
 
-const AUTOSAVE_DELAY_MS = 1000;
-
 const DEFAULT_SETTINGS = {
   aid: "",
   portalid: "",
@@ -27,25 +25,31 @@ const DEFAULT_SETTINGS = {
   enableSepaDirectDebit: false,
 };
 
-/** Plugin settings with a 1s debounced autosave per field, instant method toggles and a test connection. */
+const changedFields = (draft, saved) =>
+  Object.keys({ ...saved, ...draft }).filter((key) => JSON.stringify(draft[key]) !== JSON.stringify(saved[key]));
+
+/** Plugin settings edited as a draft: nothing is stored until `handleSave`; `handleDiscard` reverts the draft. */
 export const useSettings = () => {
   const { toggleNotification } = useNotification();
+  const { getSettings, updateSettings, testConnection } = usePayoneApi();
   const [settings, setSettings] = React.useState(DEFAULT_SETTINGS);
-  const [isLoading, setIsLoading] = React.useState(false);
+  const [savedSettings, setSavedSettings] = React.useState(DEFAULT_SETTINGS);
+  const [isLoading, setIsLoading] = React.useState(true);
   const [isSaving, setIsSaving] = React.useState(false);
   const [isTesting, setIsTesting] = React.useState(false);
   const [testResult, setTestResult] = React.useState(null);
-  const { getSettings, updateSettings, testConnection } = usePayoneApi();
-  const saveTimeoutRef = React.useRef(null);
 
-  const notifyError = (message) => toggleNotification({ type: "danger", message });
+  const changes = changedFields(settings, savedSettings);
 
   const loadSettings = async () => {
     setIsLoading(true);
     try {
       const response = await getSettings();
       const settingsData = response?.data?.data || response?.data;
-      if (settingsData && typeof settingsData === "object") setSettings(settingsData);
+      if (settingsData && typeof settingsData === "object") {
+        setSettings(settingsData);
+        setSavedSettings(settingsData);
+      }
     } catch (error) {
       toggleNotification({ type: "warning", message: "Failed to load settings" });
     } finally {
@@ -55,58 +59,22 @@ export const useSettings = () => {
 
   React.useEffect(() => {
     loadSettings();
-    return () => clearTimeout(saveTimeoutRef.current);
   }, []);
 
-  const saveAndReload = async (nextSettings, handleError) => {
-    setIsSaving(true);
-    try {
-      await updateSettings(nextSettings);
-      await loadSettings();
-    } catch (error) {
-      handleError();
-      notifyError("Failed to update settings");
-    } finally {
-      setIsSaving(false);
-    }
-  };
+  const handleInputChange = (field, value) => setSettings((prev) => ({ ...prev, [field]: value }));
 
-  const handleInputChange = (field, value) => {
-    setSettings((prev) => ({ ...prev, [field]: value }));
-    clearTimeout(saveTimeoutRef.current);
+  const handlePaymentMethodToggle = (field, value) => handleInputChange(field, Boolean(value));
 
-    saveTimeoutRef.current = setTimeout(async () => {
-      let latestSettings;
-      setSettings((prev) => {
-        latestSettings = { ...prev };
-        return prev;
-      });
-
-      await saveAndReload(latestSettings, () =>
-        setSettings((prev) => ({ ...prev, [field]: prev[field] }))
-      );
-    }, AUTOSAVE_DELAY_MS);
-  };
-
-  const handlePaymentMethodToggle = async (field, value) => {
-    const enabled = Boolean(value);
-    let nextSettings;
-    setSettings((prev) => {
-      nextSettings = { ...prev, [field]: enabled };
-      return nextSettings;
-    });
-
-    await saveAndReload(nextSettings, () => setSettings((prev) => ({ ...prev, [field]: !enabled })));
-  };
+  const handleDiscard = () => setSettings(savedSettings);
 
   const handleSave = async () => {
     setIsSaving(true);
     try {
       await updateSettings(settings);
-      toggleNotification({ type: "success", message: "Settings saved successfully" });
+      toggleNotification({ type: "success", message: "Settings saved" });
       await loadSettings();
     } catch (error) {
-      notifyError("Failed to save settings");
+      toggleNotification({ type: "danger", message: "Failed to save settings" });
     } finally {
       setIsSaving(false);
     }
@@ -117,17 +85,15 @@ export const useSettings = () => {
     setTestResult(null);
     try {
       const response = await testConnection();
-      setTestResult(response.data);
-
-      if (response.data && response.data.success) {
-        toggleNotification({ type: "success", message: response.data.message || "Test completed" });
-        return;
-      }
-
-      notifyError(response.data.error.ErrorMessage || "Failed to test connection");
-      throw new Error(response.data.error.ErrorMessage);
+      const result = response?.data || { success: false, message: "Empty response from the server" };
+      setTestResult(result);
+      toggleNotification({
+        type: result.success ? "success" : "danger",
+        message: result.success ? result.message || "Test completed" : result.error?.ErrorMessage || result.message || "Failed to test connection",
+      });
     } catch (error) {
-      throw new Error(error.message);
+      setTestResult({ success: false, message: error.message || "Failed to test connection" });
+      toggleNotification({ type: "danger", message: "Failed to test connection" });
     } finally {
       setIsTesting(false);
     }
@@ -135,12 +101,16 @@ export const useSettings = () => {
 
   return {
     settings,
+    savedSettings,
+    changedFields: changes,
+    isDirty: changes.length > 0,
     isLoading,
     isSaving,
     isTesting,
     testResult,
     handleInputChange,
     handlePaymentMethodToggle,
+    handleDiscard,
     handleSave,
     handleTestConnection,
   };

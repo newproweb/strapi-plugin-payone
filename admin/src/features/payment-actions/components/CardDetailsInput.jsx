@@ -18,10 +18,7 @@ export const CardDetailsInput = ({ cardtype, cardpan, cardexpiredate, cardcvc2, 
     CARD_FIELDS.forEach((field) => onFieldChange(field, selectedCard[field]));
   };
 
-  const testCardOptions = [
-    { value: "", label: t("card.selectTestCardOption", "-- Select a test card --") },
-    ...TEST_3DS_CARDS.map((card) => ({ value: testCardValue(card), label: `${card.name} - ${card.description}` })),
-  ];
+  const testCardOptions = TEST_3DS_CARDS.map((card) => ({ value: testCardValue(card), label: `${card.name} - ${card.description}` }));
 
   return (
     <Box>

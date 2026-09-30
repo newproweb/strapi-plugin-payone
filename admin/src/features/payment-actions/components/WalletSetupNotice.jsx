@@ -99,7 +99,7 @@ export const ApplePaySetupNotice = ({ onNavigateToConfig }) => (
     <ConfigLink
       label="Configure Apple Pay settings:"
       path="apple-pay-config"
-      view="apple-pay"
+      view="apple-pay-config"
       onNavigateToConfig={onNavigateToConfig}
       boxProps={{ borderRadius: "4px" }}
     />
@@ -132,7 +132,7 @@ export const GooglePaySetupNotice = ({ onNavigateToConfig }) => (
     <ConfigLink
       label="Configure Google Pay settings:"
       path="google-pay-config"
-      view="google-pay"
+      view="google-pay-config"
       onNavigateToConfig={onNavigateToConfig}
       boxProps={{ background: "neutral100", borderRadius: "4px" }}
     />

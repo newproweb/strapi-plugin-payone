@@ -2,15 +2,17 @@ import * as React from "react";
 
 const ALWAYS_VISIBLE = "details";
 
-const allVisible = (headers, previous = {}) =>
-  Object.fromEntries(headers.map((header) => [header.name, previous[header.name] ?? true]));
+const initialVisibility = (headers, previous = {}) =>
+  Object.fromEntries(headers.map((header) => [header.name, previous[header.name] ?? !header.hiddenByDefault]));
+
+const allVisible = (headers) => Object.fromEntries(headers.map((header) => [header.name, true]));
 
 /** Show/hide table columns; the details column always stays and at least one other column remains visible. */
 export const useColumnVisibility = (headers) => {
-  const [visibleColumns, setVisibleColumns] = React.useState(() => allVisible(headers));
+  const [visibleColumns, setVisibleColumns] = React.useState(() => initialVisibility(headers));
 
   React.useEffect(() => {
-    setVisibleColumns((prev) => allVisible(headers, prev));
+    setVisibleColumns((prev) => initialVisibility(headers, prev));
   }, [headers]);
 
   const toggleableHeaders = React.useMemo(() => headers.filter((header) => header.name !== ALWAYS_VISIBLE), [headers]);

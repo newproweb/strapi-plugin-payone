@@ -3,21 +3,18 @@ import { TabErrorBoundary } from "../../components/TabErrorBoundary";
 import { HistoryPanel } from "../../features/transactions/HistoryPanel";
 import { ConfigurationPanel } from "../../features/settings/ConfigurationPanel";
 import { PaymentActionsPanel } from "../../features/payment-actions/PaymentActionsPanel";
-import { DocsPanel } from "../../features/docs/DocsPanel";
 import { usePluginTranslations } from "../../hooks/usePluginTranslations";
 
 export const TAB_IDS = {
-  history: "history",
-  configuration: "configuration",
-  paymentActions: "paymentActions",
-  documentation: "documentation",
+  transactions: "transactions",
+  paymentTests: "paymentTests",
+  settings: "settings",
 };
 
 const TABS = [
-  { id: TAB_IDS.history, labelKey: "tabs.history", label: "Transaction History" },
-  { id: TAB_IDS.configuration, labelKey: "tabs.configuration", label: "Configuration" },
-  { id: TAB_IDS.paymentActions, labelKey: "tabs.paymentActions", label: "Payment Actions" },
-  { id: TAB_IDS.documentation, labelKey: "tabs.documentation", label: "Documentation" },
+  { id: TAB_IDS.transactions, labelKey: "tabs.transactions", label: "Transactions" },
+  { id: TAB_IDS.paymentTests, labelKey: "tabs.paymentTests", label: "Payment tests" },
+  { id: TAB_IDS.settings, labelKey: "tabs.settings", label: "Settings" },
 ];
 
 export const AppTabs = ({ activeTab, onTabChange, onNavigateToConfig, settings, paymentActions }) => {
@@ -25,20 +22,18 @@ export const AppTabs = ({ activeTab, onTabChange, onNavigateToConfig, settings, 
 
   const renderPanel = (tabId) => {
     switch (tabId) {
-      case TAB_IDS.history:
+      case TAB_IDS.transactions:
         return <HistoryPanel />;
-      case TAB_IDS.configuration:
-        return <ConfigurationPanel settings={settings} onNavigateToConfig={onNavigateToConfig} />;
-      case TAB_IDS.paymentActions:
+      case TAB_IDS.paymentTests:
         return <PaymentActionsPanel onNavigateToConfig={onNavigateToConfig} settings={settings} paymentActions={paymentActions} />;
       default:
-        return <DocsPanel />;
+        return <ConfigurationPanel settings={settings} onNavigateToConfig={onNavigateToConfig} />;
     }
   };
 
   return (
-    <Tabs.Root value={activeTab} variant="regular" onValueChange={onTabChange}>
-      <Tabs.List style={{ width: "100%" }}>
+    <Tabs.Root value={activeTab} onValueChange={onTabChange}>
+      <Tabs.List aria-label={t("tabs.label", "Payone sections")}>
         {TABS.map((tab) => (
           <Tabs.Trigger key={tab.id} value={tab.id}>
             {t(tab.labelKey, tab.label)}

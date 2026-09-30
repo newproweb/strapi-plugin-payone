@@ -1,31 +1,29 @@
-import { Button, Typography } from "@strapi/design-system";
+import { Flex, IconButton, Typography } from "@strapi/design-system";
+import { Eye } from "@strapi/icons";
 import { StatusBadge } from "../../../components/StatusBadge";
-import { ChevronDownIcon } from "../../../components/icons/ChevronDownIcon";
-import { ChevronUpIcon } from "../../../components/icons/ChevronUpIcon";
 import { usePluginTranslations } from "../../../hooks/usePluginTranslations";
 import { formatAmount, formatDate, getPaymentMethodDisplay, requestField } from "../../../utils/transaction-format";
 
 /** One table cell of the transaction list, chosen by the column name. */
-export const TransactionCell = ({ column, transaction, isSelected, onToggleDetails }) => {
+export const TransactionCell = ({ column, transaction, onOpenDetails }) => {
   const { t } = usePluginTranslations();
   const notAvailable = t("table.na", "N/A");
 
   switch (column) {
-    case "txid":
+    case "order":
       return (
-        <Typography variant="pi" textColor="neutral600">
-          {transaction.txid || notAvailable}
-        </Typography>
-      );
-    case "reference":
-      return (
-        <Typography variant="pi" fontWeight="medium">
-          {transaction.reference || notAvailable}
-        </Typography>
+        <Flex direction="column" alignItems="flex-start">
+          <Typography variant="omega" fontWeight="semiBold">
+            {transaction.reference || notAvailable}
+          </Typography>
+          <Typography variant="pi" textColor="neutral600">
+            {transaction.txid || notAvailable}
+          </Typography>
+        </Flex>
       );
     case "amount":
       return (
-        <Typography variant="pi" textColor="neutral600">
+        <Typography variant="omega" textAlign="right" display="block">
           {formatAmount(transaction.amount, transaction.currency)}
         </Typography>
       );
@@ -36,15 +34,20 @@ export const TransactionCell = ({ column, transaction, isSelected, onToggleDetai
         requestField(transaction, "cardtype")
       );
       return (
-        <Typography variant="pi">
-          {category}
-          {subtype ? ` / ${subtype}` : ""}
+        <Typography variant="omega">
+          {subtype || category}
+          {subtype && (
+            <Typography variant="pi" textColor="neutral600">
+              {" "}
+              · {category}
+            </Typography>
+          )}
         </Typography>
       );
     }
     case "type":
       return (
-        <Typography variant="pi" fontWeight="semiBold">
+        <Typography variant="omega" textColor="neutral700">
           {transaction.request_type || transaction.body?.request_type || notAvailable}
         </Typography>
       );
@@ -64,15 +67,16 @@ export const TransactionCell = ({ column, transaction, isSelected, onToggleDetai
       );
     case "details":
       return (
-        <Button
-          size="S"
-          variant="tertiary"
-          minWidth="100px"
-          onClick={() => onToggleDetails(transaction)}
-          startIcon={isSelected ? <ChevronUpIcon size={16} /> : <ChevronDownIcon size={16} />}
+        <IconButton
+          label={t("table.viewDetails", "View details")}
+          variant="ghost"
+          onClick={(e) => {
+            e.stopPropagation();
+            onOpenDetails(transaction);
+          }}
         >
-          {isSelected ? t("table.hide", "Hide") : t("table.details", "Details")}
-        </Button>
+          <Eye />
+        </IconButton>
       );
     default:
       return null;

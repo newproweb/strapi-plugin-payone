@@ -69,7 +69,7 @@ export const CaptureForm = ({ paymentActions }) => {
   );
 
   return (
-    <ActionForm title={t("capture.title", "Capture")} description={t("capture.description", "Capture a previously preauthorized amount.")} fields={fields}>
+    <ActionForm fields={fields}>
       <SubmitButton
         onClick={() => paymentActions.handleCapture()}
         loading={paymentActions.isProcessingPayment}

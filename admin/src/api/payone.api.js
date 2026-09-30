@@ -32,19 +32,26 @@ export const usePayoneApi = () => {
     return get(withQuery("/transaction-history", query));
   };
 
+  const getTransactionStats = (filters) => {
+    const query = new URLSearchParams();
+    appendFilters(query, filters);
+    return get(withQuery("/transaction-stats", query));
+  };
+
   const exportTransactions = (params = {}) => {
     const query = new URLSearchParams();
     query.append("format", params.format === "csv" ? "csv" : "json");
     if (params.sort_by) query.append("sort_by", params.sort_by);
     if (params.sort_order) query.append("sort_order", params.sort_order);
     appendFilters(query, params.filters);
-    return get(endpoint(`/transactions/export?${query.toString()}`));
+    return get(endpoint(`/transactions/export?${query.toString()}`), { responseType: "blob" });
   };
 
   return {
     getSettings: () => get(endpoint("/settings")),
     updateSettings: (data) => put(endpoint("/settings"), data),
     getTransactionHistory,
+    getTransactionStats,
     exportTransactions,
     importTransactions: (payload) =>
       post(endpoint("/transactions/import"), payload, { headers: { "Content-Type": "application/json" } }),

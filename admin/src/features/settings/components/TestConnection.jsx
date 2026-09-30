@@ -1,85 +1,66 @@
-import { Box, Button, Card, CardBody, Flex, Typography } from "@strapi/design-system";
+import { Box, Button, Flex, Status, Typography } from "@strapi/design-system";
 import { Play } from "@strapi/icons";
 import { usePluginTranslations } from "../../../hooks/usePluginTranslations";
 
-const SUCCESS_DETAILS = [
-  { key: "mode", labelKey: "testConnection.mode", label: "Mode" },
-  { key: "aid", labelKey: "testConnection.aid", label: "AID" },
-  { key: "portalid", labelKey: "testConnection.portalid", label: "Portal ID" },
-];
-
-const ERROR_DETAILS = [
+const RESULT_FIELDS = [
   { key: "ErrorCode", labelKey: "testConnection.errorCode", label: "Error Code" },
   { key: "ErrorMessage", labelKey: "testConnection.errorMessage", label: "Error Message" },
   { key: "CustomerMessage", labelKey: "testConnection.customerMessage", label: "Customer Message" },
 ];
 
-export const TestConnection = ({ settings, isTesting, testResult, onTestConnection }) => {
+/** Runs a test authorization with the saved credentials and shows the outcome inline. */
+export const TestConnection = ({ settings, isDirty, isTesting, testResult, onTestConnection }) => {
   const { t } = usePluginTranslations();
   const isLiveMode = (settings?.mode || "test").toLowerCase() === "live";
 
-  const renderDetails = (rows, values) => (
-    <Card>
-      <CardBody padding={4}>
-        <Flex direction="column" alignItems="stretch" gap={2}>
-          {rows
-            .filter((row) => values?.[row.key])
-            .map((row) => (
-              <Typography key={row.key} variant="pi" textColor="neutral600">
-                <strong>{t(row.labelKey, row.label)}:</strong> {values[row.key]}
-              </Typography>
-            ))}
-        </Flex>
-      </CardBody>
-    </Card>
-  );
+  const renderHint = () => {
+    if (isLiveMode) return t("testConnection.disabledInLive", "Test Connection is disabled in live mode.");
+    if (isDirty) return t("testConnection.usesSaved", "Uses the saved credentials. Save your changes first to test them.");
+    return t("testConnection.description", "Verify your Payone configuration by testing the API connection");
+  };
 
   const renderResult = () => {
     if (!testResult) return null;
-    const succeeded = testResult.details && Boolean(testResult.success);
+    const errorDetails = RESULT_FIELDS.filter((field) => testResult.error?.[field.key]);
     return (
-      <Flex direction="column" alignItems="stretch" gap={2}>
-        <Typography variant="pi" fontWeight="medium" style={{ marginBottom: "16px" }}>
+      <Box marginTop={3} padding={3} hasRadius background={testResult.success ? "success100" : "danger100"}>
+        <Typography variant="pi" fontWeight="semiBold" textColor={testResult.success ? "success700" : "danger700"}>
           {testResult.message}
         </Typography>
-        {succeeded ? <Box paddingTop={3}>{renderDetails(SUCCESS_DETAILS, testResult.details)}</Box> : renderDetails(ERROR_DETAILS, testResult.error)}
-      </Flex>
+        {errorDetails.map((field) => (
+          <Typography key={field.key} variant="pi" textColor="danger700" tag="p">
+            {t(field.labelKey, field.label)}: {testResult.error[field.key]}
+          </Typography>
+        ))}
+      </Box>
     );
   };
 
   return (
-    <Card padding={8}>
-      <CardBody>
-        <Flex direction="column" alignItems="stretch" gap={6} paddingTop={6}>
-          <Box>
-            <Typography variant="delta" as="h3" fontWeight="bold" style={{ marginBottom: "16px" }}>
+    <Box>
+      <Flex justifyContent="space-between" alignItems="center" gap={4} wrap="wrap">
+        <Flex direction="column" alignItems="flex-start" gap={1}>
+          <Flex gap={2}>
+            <Typography variant="omega" fontWeight="semiBold">
               {t("testConnection.title", "Test Connection")}
             </Typography>
-            {isLiveMode ? (
-              <Typography variant="pi" textColor="neutral600" style={{ marginTop: "8px" }}>
-                {t("testConnection.disabledInLive", "Test Connection is disabled in live mode.")}
-              </Typography>
-            ) : (
-              <Typography variant="pi" textColor="neutral600">
-                {t("testConnection.description", "Verify your Payone configuration by testing the API connection")}
-              </Typography>
+            {testResult && (
+              <Status variant={testResult.success ? "success" : "danger"} size="S">
+                <Typography fontWeight="bold" textColor={testResult.success ? "success700" : "danger700"}>
+                  {testResult.success ? t("testConnection.passed", "Passed") : t("testConnection.failed", "Failed")}
+                </Typography>
+              </Status>
             )}
-          </Box>
-
-          <Button
-            variant="default"
-            onClick={onTestConnection}
-            loading={isTesting}
-            startIcon={<Play />}
-            disabled={isLiveMode}
-            style={{ maxWidth: "200px" }}
-          >
-            {isTesting ? t("testConnection.testing", "Testing Connection...") : t("testConnection.button", "Test Connection")}
-          </Button>
-
-          {renderResult()}
+          </Flex>
+          <Typography variant="pi" textColor="neutral600">
+            {renderHint()}
+          </Typography>
         </Flex>
-      </CardBody>
-    </Card>
+        <Button variant="secondary" onClick={onTestConnection} loading={isTesting} startIcon={<Play />} disabled={isLiveMode}>
+          {t("testConnection.button", "Test Connection")}
+        </Button>
+      </Flex>
+      {renderResult()}
+    </Box>
   );
 };
