@@ -32,7 +32,7 @@ export const AppTabs = ({ activeTab, onTabChange, onNavigateToConfig, settings, 
   };
 
   return (
-    <Tabs.Root value={activeTab} onValueChange={onTabChange}>
+    <Tabs.Root value={activeTab} onValueChange={onTabChange} variant="simple">
       <Tabs.List aria-label={t("tabs.label", "Payone sections")}>
         {TABS.map((tab) => (
           <Tabs.Trigger key={tab.id} value={tab.id}>

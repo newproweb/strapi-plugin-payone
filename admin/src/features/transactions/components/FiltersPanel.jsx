@@ -1,10 +1,11 @@
 import * as React from "react";
-import { Box, Field, Flex, Searchbar, SingleSelect, SingleSelectOption, TextButton, TextInput } from "@strapi/design-system";
+import { Box, Field, Flex, Searchbar, SingleSelect, SingleSelectOption, TextButton, TextInput, Typography } from "@strapi/design-system";
 import { ArrowsCounterClockwise } from "@strapi/icons";
 import { usePluginTranslations } from "../../../hooks/usePluginTranslations";
 import { EMPTY_FILTERS } from "../../../constants/transactions";
 
 const SEARCH_DEBOUNCE_MS = 300;
+const FILTER_ITEM_STYLE = { flex: "1 1 180px", minWidth: 0 };
 
 const STATUS_OPTIONS = [
   ["APPROVED", "status.approved", "Approved"],
@@ -54,7 +55,7 @@ export const FiltersPanel = ({ filters, handleFiltersChange }) => {
   };
 
   const renderSelect = (name, label, allLabel, entries) => (
-    <Box minWidth="180px">
+    <Box style={FILTER_ITEM_STYLE}>
       <SingleSelect
         aria-label={label}
         placeholder={allLabel}
@@ -72,17 +73,27 @@ export const FiltersPanel = ({ filters, handleFiltersChange }) => {
   );
 
   const renderDate = (name, label) => (
-    <Field.Root name={name}>
-      <Flex gap={2} alignItems="center">
-        <Field.Label>{label}</Field.Label>
-        <TextInput type="date" value={filters[name] || ""} onChange={(e) => handleFiltersChange({ [name]: e.target.value })} />
-      </Flex>
-    </Field.Root>
+    <Box style={FILTER_ITEM_STYLE}>
+      <Field.Root name={name}>
+        <TextInput
+          type="date"
+          aria-label={label}
+          startAction={
+            <Typography variant="pi" textColor="neutral600" style={{ whiteSpace: "nowrap" }}>
+              {label}
+            </Typography>
+          }
+          value={filters[name] || ""}
+          onChange={(e) => handleFiltersChange({ [name]: e.target.value })}
+        />
+      </Field.Root>
+    </Box>
   );
 
   return (
-    <Flex gap={3} wrap="wrap" alignItems="center">
-      <Box flex="1" minWidth="240px">
+    <Flex direction="column" alignItems="stretch" gap={3}>
+      <Flex gap={3} alignItems="center">
+        <Box flex="1">
         <Searchbar
           name="search"
           value={searchInput}
@@ -92,18 +103,21 @@ export const FiltersPanel = ({ filters, handleFiltersChange }) => {
           placeholder={t("filters.searchPlaceholder", "Search by reference or transaction ID")}
         >
           {t("filters.search", "Search")}
-        </Searchbar>
-      </Box>
-      {renderSelect("status", t("filters.status", "Status"), t("filters.allStatuses", "All Statuses"), STATUS_OPTIONS)}
-      {renderSelect("request_type", t("filters.requestType", "Request Type"), t("filters.allTypes", "All Types"), REQUEST_TYPE_OPTIONS)}
-      {renderSelect("payment_method", t("filters.paymentMethod", "Payment Method"), t("filters.allMethods", "All Methods"), PAYMENT_METHOD_OPTIONS)}
-      {renderDate("date_from", t("filters.dateFrom", "Date From"))}
-      {renderDate("date_to", t("filters.dateTo", "Date To"))}
-      {hasActiveFilters(filters) && (
-        <TextButton startIcon={<ArrowsCounterClockwise />} onClick={handleReset}>
-          {t("filters.reset", "Reset")}
-        </TextButton>
-      )}
+          </Searchbar>
+        </Box>
+        {hasActiveFilters(filters) && (
+          <TextButton startIcon={<ArrowsCounterClockwise />} onClick={handleReset}>
+            {t("filters.reset", "Reset")}
+          </TextButton>
+        )}
+      </Flex>
+      <Flex gap={3} wrap="wrap">
+        {renderSelect("status", t("filters.status", "Status"), t("filters.allStatuses", "All Statuses"), STATUS_OPTIONS)}
+        {renderSelect("request_type", t("filters.requestType", "Request Type"), t("filters.allTypes", "All Types"), REQUEST_TYPE_OPTIONS)}
+        {renderSelect("payment_method", t("filters.paymentMethod", "Payment Method"), t("filters.allMethods", "All Methods"), PAYMENT_METHOD_OPTIONS)}
+        {renderDate("date_from", t("filters.dateFrom", "Date From"))}
+        {renderDate("date_to", t("filters.dateTo", "Date To"))}
+      </Flex>
     </Flex>
   );
 };
